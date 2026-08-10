@@ -343,7 +343,7 @@
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
       <div id="step-confirm" class="hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:26px;">You're in.</div>
-        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Check your email for the receipt. Someone from our team will call within one business day to lock in your days and introduce your Pro.</p>
+        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Receipt's in your email. Someone from our team calls within a day to lock in your days and introduce your Pro.</p>
         <p class="fineprint" style="margin-top:12px;">PLACEHOLDER &mdash; confirm the one-business-day callback promise with the concierge team before launch (&sect;8 gap 6).</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart">Back to plans</button>
       </div>
@@ -378,12 +378,12 @@
     <div>
       <div class="step-num">Step 2</div>
       <h3>We call you</h3>
-      <p>Someone on our team calls within a business day to set your days and match you to one local Pro. You meet them before anything is booked.</p>
+      <p>Someone from our team calls within a day to set your days and match you with one local Pro. You meet them before anything's booked.</p>
     </div>
     <div>
       <div class="step-num">Step 3</div>
-      <h3>It just runs</h3>
-      <p>Same Pro, same days, every week. Your walks come out of your plan, so there's nothing to book and nothing to pay at the door.</p>
+      <h3>Nobody has to remember</h3>
+      <p>Same Pro, same days, every week. Walks come out of your plan &mdash; nothing to book, nothing to pay at the door, no Sunday-night scramble.</p>
     </div>
   </div>
 </section>
@@ -394,7 +394,7 @@
 <section class="band" id="compare">
   <div class="wrap" style="max-width:820px;">
     <h2 style="font-size:30px; margin-bottom:6px;">Side by side</h2>
-    <p style="font-size:14px; color:#444; margin:0 0 22px;">Every plan is capped, so you always know what you're paying for. Need more than your plan holds? Book it the normal way.</p>
+    <p style="font-size:14px; color:#444; margin:0 0 22px;">Every plan is capped, so there's no surprise at the end of the month. Need more than your plan holds? Book it the normal way.</p>
     <div class="compare-wrap">
       <table class="compare">
         <thead>
@@ -435,7 +435,7 @@
 
 <section class="band" style="background:#fff;">
   <div class="wrap">
-    <h2 style="font-size:30px;">What people say about their Pros</h2>
+    <h2 style="font-size:30px;">People who stopped looking</h2>
     <!-- PLACEHOLDER SET — these are real reviews carried over from the concierge page, but they're
          boarding and cat-sitting reviews on a dog-walking page. Swap in walking reviews. -->
     <div class="reviews">
@@ -504,7 +504,7 @@
      Every serious subscription page repeats the CTA at the bottom rather than making them scroll. -->
 <section class="band closer">
   <div class="wrap">
-    <h2>Ready to stop scrambling?</h2>
+    <h2>Stop arranging it every week.</h2>
     <p>Pick a routine, and next week's walks are already handled.</p>
     <button class="btn-dark" id="closer-cta">Pick your routine</button>
   </div>
@@ -586,9 +586,9 @@
      backup") are service promises the concierge team has to actually keep — confirm with them
      before launch (§8 gap 6). */
   var PLAN_BENEFITS = {
-    weekly:   ['5 walks a month', 'One matched Pro who keeps your day', 'A person sets your schedule up with you'],
-    twice:    ['9 walks a month', 'One matched Pro who keeps your days', 'A person sets your schedule up with you', 'First pick of times when your Pro books up'],
-    weekdays: ['14 walks a month', '2 daycare days a month', 'One matched Pro plus a named backup', 'First pick of times when your Pro books up']
+    weekly:   ['5 walks a month', 'The same Pro every week', 'We call you to set your days'],
+    twice:    ['9 walks a month', 'The same Pro every week', 'We call you to set your days', 'Your slot holds when your Pro fills up'],
+    weekdays: ['14 walks a month', '2 daycare days a month', 'The same Pro, plus a named backup', 'Your slot holds when your Pro fills up']
   };
 
   /* What each plan actually contains, and what those services cost booked one at a time.
@@ -907,7 +907,7 @@
     try{plan=JSON.parse(sessionStorage.getItem('yg_plan')||'{}');}catch(e){}
     if(p==='success'){
       if(plan.label){
-        $('confirm-body').textContent='Your '+plan.label+' plan is live at $'+plan.price+'/mo. Check your email for the receipt. Someone from our team will call within one business day to lock in your days and introduce your Pro.';
+        $('confirm-body').textContent='Your '+plan.label+' plan is live at $'+plan.price+'/mo. Receipt\'s in your email. Someone from our team calls within a day to lock in your days and introduce your Pro.';
       }
       trackEvent('Subscription Started',{plan_tier:plan.tier||'unknown',plan_price:plan.price||null,verified:false});
       show('step-confirm');

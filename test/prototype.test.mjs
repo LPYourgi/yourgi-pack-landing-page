@@ -541,6 +541,27 @@ console.log('\n— preview traffic is kept out of production analytics —');
   ok('a lookalike domain does NOT', !isProd('notyourgi.com'));
 }
 
+// Copy edits touch JS string literals. An apostrophe in the wrong place takes the whole page
+// down silently — the HTML still renders, the script just never runs. Catch it directly.
+console.log('\n— page script is syntactically valid —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const blocks = src.match(/<script>([\s\S]*?)<\/script>/g) || [];
+  ok('found the page script blocks', blocks.length >= 1, blocks.length);
+  let bad = null;
+  for (const b of blocks) {
+    const code = b.replace(/^<script>/, '').replace(/<\/script>$/, '');
+    try { new Function(code); } catch (e) { bad = e.message; break; }
+  }
+  ok('every inline script parses', bad === null, bad);
+
+  // An unescaped apostrophe inside a single-quoted JS string is the specific way this breaks.
+  const w = await boot();
+  ok('the script actually ran (benefits rendered)', w.document.querySelectorAll('#incl li').length > 0);
+  ok('the script actually ran (prices computed)',
+    [...w.document.querySelectorAll('#tiers [data-unit]')].every(e => e.textContent.trim() !== ''));
+}
+
 console.log('\n— no secrets in page source —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
