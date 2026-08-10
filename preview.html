@@ -40,18 +40,22 @@
   button:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
   .note{font-size:11.5px; color:#8fa0b8;}
   .note a{color:var(--yellow);}
+  .seeded{background:#132a45; border:1px solid #3a4a63; border-radius:6px; padding:5px 9px;
+          margin:0; color:var(--yellow); white-space:nowrap;}
+  .seeded[hidden]{display:none;}
+  /* Plain white stage. A patterned backdrop competes with the page being reviewed — white is
+     neutral and makes the page's own Bone (#FAF5EA) read as the deliberate colour it is. */
   .stage{flex:1 1 auto; overflow:auto; padding:22px 18px 30px; display:flex; justify-content:center;
-         align-items:flex-start; background:
-           repeating-linear-gradient(45deg,#0d2439 0 12px,#0b1f31 12px 24px);}
+         align-items:flex-start; background:#fff;}
   .device{position:relative; transform-origin:top center;}
   .device .chrome{display:flex; align-items:center; justify-content:space-between;
-                  font-size:11px; color:#8fa0b8; padding:0 2px 7px;}
+                  font-size:11px; color:#6b7280; padding:0 2px 7px;}
   .device iframe{display:block; width:100%; height:100%; border:0; background:var(--bone);}
   /* content-box on purpose: the width we set must be the FRAME's viewport width, not the shell's
      outer width. With border-box the phone bezel would eat 16px and a "390px" preview would
      really be 374px — wrong enough to mislead a design review. */
-  .device .screen{box-sizing:content-box; background:var(--bone); border:1px solid #3a4a63;
-                  border-radius:10px; overflow:hidden; box-shadow:0 18px 50px rgba(0,0,0,.45);}
+  .device .screen{box-sizing:content-box; background:var(--bone); border:1px solid #d8d2c4;
+                  border-radius:10px; overflow:hidden; box-shadow:0 10px 34px rgba(0,0,0,.13);}
   /* Phones get a rounder shell so the mobile view reads as a phone at a glance. */
   .device[data-d="mobile"] .screen{border-radius:26px; border-width:8px; border-color:#1c1c1e;}
   .dims{font-variant-numeric:tabular-nums;}
@@ -77,6 +81,7 @@
       <button type="button" data-state="?checkout=cancel"  aria-pressed="false">Backed out</button>
     </div>
 
+    <p class="note seeded" id="seeded" hidden></p>
     <div class="spacer"></div>
     <p class="note">Dry-run &mdash; no card is ever charged. <a href="index.html" target="_blank" rel="noopener">Open the real page &#8599;</a></p>
   </div>
@@ -101,7 +106,8 @@
 
   var device=document.getElementById('device'), screenEl=document.getElementById('screen'),
       frame=document.getElementById('frame'), stage=document.querySelector('.stage'),
-      label=document.getElementById('label'), dims=document.getElementById('dims');
+      label=document.getElementById('label'), dims=document.getElementById('dims'),
+      seeded=document.getElementById('seeded');
   var current='desktop', state='';
 
   /* Render at true pixel size, then scale down only if the window is too narrow to show it.
@@ -132,11 +138,38 @@
     });
   });
 
+  /* The post-Stripe screens read the plan out of sessionStorage, which the real page writes on the
+     way TO Stripe. A reviewer jumping straight to "Paid" never went that way, so without this the
+     confirmation falls back to generic copy with no plan name or price — it looks broken, and it
+     hides the line that actually needs reviewing.
+
+     So: seed the plan the reviewer currently has selected, then reload. Same-origin iframes share
+     sessionStorage with this page, and the seed has to happen BEFORE the reload because the page
+     reads it during load. Pick a plan in the frame, hit Paid, and you'll see that plan confirmed. */
+  var FALLBACK={tier:'twice',label:'Twice a Week',price:149};
+  function seedPlan(){
+    var plan=FALLBACK;
+    try{
+      var sel=frame.contentDocument.querySelector('#tiers .tier[aria-pressed="true"]');
+      if(sel) plan={tier:sel.dataset.tier,label:sel.dataset.label,price:+sel.dataset.price};
+    }catch(e){/* frame not ready — fall back */}
+    try{sessionStorage.setItem('yg_plan',JSON.stringify(plan));}catch(e){}
+    return plan;
+  }
+
   document.querySelectorAll('[data-state]').forEach(function(b){
     b.addEventListener('click',function(){
       document.querySelectorAll('[data-state]').forEach(function(x){x.setAttribute('aria-pressed','false');});
       b.setAttribute('aria-pressed','true');
       state=b.dataset.state;
+      if(state){
+        var plan=seedPlan();
+        seeded.textContent='Showing the '+plan.label+' plan ($'+plan.price+'/mo)';
+        seeded.hidden=false;
+      }else{
+        try{sessionStorage.removeItem('yg_plan');}catch(e){}
+        seeded.hidden=true;
+      }
       frame.src='index.html'+state;   // this one does reload — it's a different page state
     });
   });
