@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yourgi Pack — review preview</title>
+<!--
+  REVIEW HARNESS. Not part of the product.
+
+  This wraps index.html in an iframe so reviewers can flip between mobile, tablet, and desktop
+  without resizing their browser, and can jump straight to the post-Stripe screens.
+
+  DO NOT paste this file into Webflow, and do not copy it into deploy/. The thing that ships is
+  index.html on its own — this page exists only so people can look at it. A test asserts the
+  toggle never leaks into index.html itself.
+
+  The frame widths below are viewport widths, so index.html's own media queries (the 820px
+  breakpoint) fire exactly as they would on a real device.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ --yellow:#FFBB45; --bone:#FAF5EA; --navy:#09213C; --line:#e2dccb; --sky:#7FAACD; }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0; font-family:'Archivo',system-ui,sans-serif; background:var(--navy); color:var(--bone);
+       display:flex; flex-direction:column;}
+  header{background:var(--navy); border-bottom:1px solid #26344a; padding:12px 18px; flex:0 0 auto;}
+  .bar{display:flex; align-items:center; gap:18px; flex-wrap:wrap; max-width:1400px; margin:0 auto; width:100%;}
+  .title{font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+         font-size:15px; margin:0; white-space:nowrap;}
+  .title span{color:var(--yellow);}
+  .spacer{flex:1 1 auto;}
+  .group{display:flex; align-items:center; gap:6px;}
+  .group-label{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:#8fa0b8; margin-right:2px;}
+  button{font-family:'Oswald',sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.03em;
+         font-size:12px; padding:8px 13px; border-radius:7px; border:1px solid #3a4a63; background:#132a45;
+         color:var(--bone); cursor:pointer; line-height:1;}
+  button:hover{background:#1b3757;}
+  button[aria-pressed="true"]{background:var(--yellow); color:#000; border-color:var(--yellow);}
+  button:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
+  .note{font-size:11.5px; color:#8fa0b8;}
+  .note a{color:var(--yellow);}
+  .stage{flex:1 1 auto; overflow:auto; padding:22px 18px 30px; display:flex; justify-content:center;
+         align-items:flex-start; background:
+           repeating-linear-gradient(45deg,#0d2439 0 12px,#0b1f31 12px 24px);}
+  .device{position:relative; transform-origin:top center;}
+  .device .chrome{display:flex; align-items:center; justify-content:space-between;
+                  font-size:11px; color:#8fa0b8; padding:0 2px 7px;}
+  .device iframe{display:block; width:100%; height:100%; border:0; background:var(--bone);}
+  /* content-box on purpose: the width we set must be the FRAME's viewport width, not the shell's
+     outer width. With border-box the phone bezel would eat 16px and a "390px" preview would
+     really be 374px — wrong enough to mislead a design review. */
+  .device .screen{box-sizing:content-box; background:var(--bone); border:1px solid #3a4a63;
+                  border-radius:10px; overflow:hidden; box-shadow:0 18px 50px rgba(0,0,0,.45);}
+  /* Phones get a rounder shell so the mobile view reads as a phone at a glance. */
+  .device[data-d="mobile"] .screen{border-radius:26px; border-width:8px; border-color:#1c1c1e;}
+  .dims{font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <p class="title">Yourgi Pack <span>&middot; review preview</span></p>
+
+    <div class="group" role="group" aria-label="Device size">
+      <span class="group-label">Device</span>
+      <button type="button" data-device="mobile"  aria-pressed="false">Mobile</button>
+      <button type="button" data-device="tablet"  aria-pressed="false">Tablet</button>
+      <button type="button" data-device="desktop" aria-pressed="true">Desktop</button>
+    </div>
+
+    <div class="group" role="group" aria-label="Page state">
+      <span class="group-label">State</span>
+      <button type="button" data-state=""                aria-pressed="true">Sign-up</button>
+      <button type="button" data-state="?checkout=success" aria-pressed="false">Paid</button>
+      <button type="button" data-state="?checkout=cancel"  aria-pressed="false">Backed out</button>
+    </div>
+
+    <div class="spacer"></div>
+    <p class="note">Dry-run &mdash; no card is ever charged. <a href="index.html" target="_blank" rel="noopener">Open the real page &#8599;</a></p>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="device" id="device" data-d="desktop">
+    <div class="chrome"><span id="label">Desktop</span><span class="dims" id="dims">1280 &times; 800</span></div>
+    <div class="screen" id="screen"><iframe id="frame" src="index.html" title="Yourgi Pack landing page preview"></iframe></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* Viewport sizes the frame is rendered at. These are real viewport widths, so index.html's
+     820px breakpoint fires here exactly as it does on a device. */
+  var SIZES = {
+    mobile:  { w: 390,  h: 844,  label: 'Mobile' },
+    tablet:  { w: 768,  h: 1024, label: 'Tablet' },
+    desktop: { w: 1280, h: 800,  label: 'Desktop' }
+  };
+
+  var device=document.getElementById('device'), screenEl=document.getElementById('screen'),
+      frame=document.getElementById('frame'), stage=document.querySelector('.stage'),
+      label=document.getElementById('label'), dims=document.getElementById('dims');
+  var current='desktop', state='';
+
+  /* Render at true pixel size, then scale down only if the window is too narrow to show it.
+     Scaling the whole device (rather than shrinking the frame) keeps the layout honest — the
+     page still believes it is 1280px wide, so we're previewing the real breakpoint, not a
+     squeezed one. */
+  function paint(){
+    var s=SIZES[current];
+    screenEl.style.width=s.w+'px';
+    screenEl.style.height=s.h+'px';
+    label.textContent=s.label;
+    dims.innerHTML=s.w+' &times; '+s.h;
+
+    var avail=stage.clientWidth-40;
+    var scale=Math.min(1, avail/s.w);
+    device.style.transform = scale<1 ? 'scale('+scale+')' : '';
+    // A scaled element still reserves its unscaled height, which would leave dead space below.
+    device.style.marginBottom = scale<1 ? ((scale-1)*s.h)+'px' : '';
+  }
+
+  document.querySelectorAll('[data-device]').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('[data-device]').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      current=b.dataset.device;
+      device.dataset.d=current;
+      paint();   // CSS only — the frame is NOT reloaded, so whatever you typed survives the switch
+    });
+  });
+
+  document.querySelectorAll('[data-state]').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('[data-state]').forEach(function(x){x.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      state=b.dataset.state;
+      frame.src='index.html'+state;   // this one does reload — it's a different page state
+    });
+  });
+
+  window.addEventListener('resize',paint);
+  paint();
+})();
+</script>
+</body>
+</html>

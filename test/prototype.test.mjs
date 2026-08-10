@@ -424,6 +424,24 @@ console.log('\n— no secrets in page source —');
   ok('Teams webhook still unset', /var TEAMS_WEBHOOK_URL = '';/.test(src));
 }
 
+// The review harness must never bleed into the thing that ships.
+console.log('\n— review harness is separate from the product —');
+{
+  const PREVIEW = path.join(HERE, '..', 'preview.html');
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('preview.html exists', fs.existsSync(PREVIEW));
+  const prev = fs.readFileSync(PREVIEW, 'utf8');
+  ok('preview frames the real page, not a copy of it', prev.includes('src="index.html"'));
+  ok('preview offers all three device sizes',
+    ['mobile', 'tablet', 'desktop'].every(d => prev.includes(`data-device="${d}"`)));
+  ok('preview can reach both post-Stripe states',
+    prev.includes('?checkout=success') && prev.includes('?checkout=cancel'));
+  ok('the device toggle is NOT in the landing page itself', !src.includes('data-device'));
+  ok('the landing page does not reference the harness', !src.includes('preview.html'));
+  ok('harness is not in deploy/ (only index.html ships)',
+    !fs.existsSync(path.join(HERE, '..', 'deploy', 'preview.html')));
+}
+
 console.log('\n— deploy copy is in sync —');
 {
   const canonical = fs.readFileSync(PAGE, 'utf8');

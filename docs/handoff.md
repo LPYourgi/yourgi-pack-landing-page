@@ -65,7 +65,7 @@ back. A test asserts the claim hasn't crept back in.
 ## Current status
 
 **Dry-run.** `STRIPE_PAYMENT_LINKS` is empty, so "Continue to payment" captures the lead and shows the
-confirmation screen **without charging anyone**. 130 headless checks pass.
+confirmation screen **without charging anyone**. 137 headless checks pass.
 
 ## How the flow works
 

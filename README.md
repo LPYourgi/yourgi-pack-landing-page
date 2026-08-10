@@ -19,8 +19,11 @@ paying.
 ## Files
 
 - `index.html` — the page (canonical). Double-click to open, or serve it (see below).
-- `deploy/index.html` — identical copy, ready to drop into a static host. A test asserts they match.
-- `test/prototype.test.mjs` — 130 headless checks. See "Testing".
+- `preview.html` — **review harness.** Frames the page with a mobile / tablet / desktop toggle and
+  shortcuts to the post-Stripe screens. Send reviewers here. **Never goes into Webflow**, and a test
+  keeps it out of `deploy/` and out of `index.html`.
+- `deploy/index.html` — identical copy of `index.html`, ready to drop into a static host. A test asserts they match.
+- `test/prototype.test.mjs` — 137 headless checks. See "Testing".
 - `docs/handoff.md` — start-here onboarding, open decisions, and the Stripe wiring steps.
 - `docs/project-context.md` — **the authoritative source.** Synthesized from the 10 Aug 2026 team
   discussion. Where this doc and the page disagree, this doc wins and the page is wrong.
@@ -147,6 +150,12 @@ python3 -m http.server 8137
 ```
 
 To see the post-Stripe screens without a real payment, append `?checkout=success` or `?checkout=cancel`.
+
+**Sharing it with reviewers:** send them `preview.html`, not `index.html`. It renders the page at real
+mobile (390×844), tablet (768×1024), and desktop (1280×800) viewport widths — actual widths, so the page's
+own breakpoints fire exactly as they would on a device — and has one-click access to the paid and
+backed-out screens. Switching device does **not** reload the frame, so anything typed into the form
+survives the switch.
 
 ## Testing
 
