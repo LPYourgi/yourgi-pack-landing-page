@@ -1,7 +1,10 @@
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const PAGE = '/Users/laurenpalma/Library/CloudStorage/OneDrive-DestinationPet/Subscription Landing Page/index.html';
+// Resolved relative to this file so the suite travels with the project.
+const PAGE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'index.html');
 const NAV_LINE = 'window.location.href=url;';
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { cond ? (pass++, console.log('  ok  ', name)) : (fail++, console.log('  FAIL', name, extra ?? '')); };

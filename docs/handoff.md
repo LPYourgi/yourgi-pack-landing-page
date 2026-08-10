@@ -4,6 +4,8 @@
 
 ---
 
+> **Read `project-context.md` in this folder first.** It's synthesized from the 10 Aug 2026 team discussion and is the authoritative source on the offer (working name: **"Yourgi Prime"**). This prototype was scaffolded before that doc existed, and several of its placeholders contradict it — the README lists the conflicts. Where the two disagree, the context doc wins.
+
 ## What this is
 
 A standalone landing page testing one question: **will customers sign up for a recurring pet-care subscription?**
@@ -39,7 +41,9 @@ It was seeded from the Concierge Landing Page ("Best Care Guarantee"), which tes
 
 ## Wiring up Stripe (the remaining build work)
 
-The page uses **Stripe Payment Links** — one hosted link per tier. Why: a Payment Link needs no server and no secret key, so the page stays a single static file that drops into Webflow custom code, and card entry happens on Stripe's domain, never on ours.
+The page uses **Stripe Payment Links** — one hosted link per tier. Why: a Payment Link needs no server and no secret key, so the page stays a single static file that drops into Webflow custom code, and card entry happens on Stripe's domain, never on ours. This matches the plan in `project-context.md` §4: a Webflow page linking out to Stripe-hosted checkout, with Stripe handling billing notices and cancellation.
+
+**Check what already exists before building.** `project-context.md` §4 says a Stripe subscription page *has already been prototyped and is connected to Yourgi's Stripe account, unpublished*. Find it before creating new Products — you may only need to publish and grab links. Lauren still needs Stripe access provisioned (§8 gap 9).
 
 1. In the Stripe Dashboard, create three recurring **Products** matching the approved tiers.
 2. For each, create a **Payment Link**, and set its "After payment" behavior to redirect to this page's URL with `?checkout=success` appended.
@@ -51,9 +55,10 @@ The page uses **Stripe Payment Links** — one hosted link per tier. Why: a Paym
 
 ## Things a reviewer should push on
 
-- **`?checkout=success` is a UI signal, not proof of payment.** Anyone can type it into the URL bar. The `Subscription Started` event is tagged `verified: false` for exactly this reason. **Stripe's Dashboard is the source of truth for who actually subscribed** — do not report signup counts from Mixpanel alone. Making it trustworthy needs a server-side Stripe webhook, which is out of scope for a static page.
-- **Nothing syncs a Stripe subscription into a Yourgi customer record.** For a short test, someone reading the Stripe Dashboard is a workable stopgap — but decide who does that, and how a new member actually gets onboarded, *before* taking money.
-- **`TEAMS_WEBHOOK_URL` is intentionally empty.** The concierge page's webhook feeds the concierge team's booking queue; subscription signups routed there would mix into a queue meant for something else. This page needs its own destination.
+- **`?checkout=success` is a UI signal, not proof of payment.** Anyone can type it into the URL bar. The `Subscription Started` event is tagged `verified: false` for exactly this reason. **Stripe's Dashboard is the source of truth for who actually subscribed** — do not report signup counts from Mixpanel alone. The planned fix is already in `project-context.md` §4: a **Stripe webhook** posting each signup into a dedicated Teams channel. That webhook, not this page, is what makes signups trustworthy.
+- **`TEAMS_WEBHOOK_URL` is intentionally empty**, and given the above it may stay that way — if the Stripe webhook handles notifications server-side, this page's client-side post is redundant. Either way it must not reuse the concierge team's order-form channel (§7 q6 leans to a new, separate channel).
+- **Fulfillment is manual and unscoped.** §4 says staff issue coupons by hand to zero out each subscriber's bookings, and follow up individually to set up services. §8 gap 6 notes nobody has estimated how many signups that survives. This is the operational ceiling on the whole test.
+- **Subsidy exposure is a live risk.** §6 flags that pros get paid their full rate while the subscriber's cost is zeroed — the worked example is someone booking $200/night house-sitting on a $50 flat fee. Guardrails aren't defined yet.
 - **Taking real payments raises the bar on copy.** The concierge page could ship with placeholder rates because nobody was charged. Here, the price, what's included, rollover, and cancellation terms are the product — they need Kai and Legal sign-off, not a placeholder label.
 - **Segment reuses the concierge page's write key**, distinguished by `form_type: 'subscription_landing_page'`. Confirm that's the right source before launch.
 - **Event names need a lexicon check.** `Plan Selected`, `Checkout Started`, `Subscription Started`, `Checkout Abandoned`, and `Membership Checkout Clicked` are new; the concierge page's events were renamed once already to match the org lexicon.

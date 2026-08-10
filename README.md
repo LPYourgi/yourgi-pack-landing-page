@@ -12,6 +12,20 @@ Seeded from the [Concierge Landing Page](../Concierge%20Landing%20Page) repo on 
 - `deploy/index.html` — identical copy, ready to drop into a static host. Keep in sync.
 - `test/prototype.test.mjs` — 72 headless checks. See "Testing".
 - `docs/handoff.md` — start-here onboarding, open decisions, and the Stripe wiring steps.
+- `docs/project-context.md` — **the authoritative source.** Synthesized from the 10 Aug 2026 team discussion. Working name for the offer is **"Yourgi Prime"**. Where this doc and the prototype disagree, this doc wins.
+
+## ⚠️ The prototype's placeholders conflict with the team discussion
+
+The page was scaffolded before `docs/project-context.md` was read. Four placeholders now contradict what the team actually said — fix these before anyone reviews the page, or they'll review the wrong offer:
+
+| Prototype currently shows | What the discussion says |
+|---|---|
+| A **$49/mo** Starter tier | $50/month was called **too low**; $100–$200 was floated |
+| Boarding credit in the Premium tier | Overnight services (boarding, house-sitting) are a **poor subscription fit** and likely excluded |
+| "Yourgi Guarantee on every visit" as a benefit | Whether the Guarantee covers subscription bookings is **undetermined** and flagged as a legal risk |
+| A zip market gate copied from the concierge page | Geography is **not defined** in the source — this gate is an unfounded assumption |
+
+Also unreconciled: the discussion leans toward **starting with dog walking** (possibly plus daycare), and it's still undecided whether the form should collect service interest at all.
 
 ## Status
 
@@ -19,16 +33,20 @@ Seeded from the [Concierge Landing Page](../Concierge%20Landing%20Page) repo on 
 
 ## Blocking decisions — nothing ships until these land
 
+Full detail in `docs/project-context.md` §7 (Open Questions) and §8 (Gaps). Condensed:
+
 | # | Decision | Owner |
 |---|----------|-------|
-| 1 | **Tier names, prices, and what's actually included.** All three tiers are placeholders. | Kai |
-| 2 | **Rollover policy for unused visits.** The FAQ flags this as the question that decides signups. | Kai |
-| 3 | **Cancellation policy** — immediate or end-of-cycle, and any proration on plan switches. | Kai / Legal |
-| 4 | **Who owns the Stripe account and products**, and who has Dashboard access. | Jeff / Finance |
-| 5 | **How a subscription becomes a real customer record.** Stripe is currently the only record — see handoff. | Jeff |
-| 6 | **Where signup notifications land.** Deliberately unset; must NOT reuse the concierge team's booking channel. | Kai / Jeff |
-| 7 | **Guarantee wording for a recurring plan.** Legal boundaries are undocumented. | Legal |
-| 8 | Page slug (`yourgi.com/join`?) and National 2 font + official logo lockup | Webflow / brand |
+| 1 | **Pricing model** — flat "unlimited" vs. capped packages, and the actual price. Actively being worked with David. | Facilitator / David |
+| 2 | **Tier structure** — how many and organized by what (service level, package, or per-service). Lean is 2–3, kept simple. | Emily / Lauren |
+| 3 | **Which services are in the test.** Lean: dog walking first, maybe daycare. Overnight likely out. | Jeff / bookings |
+| 4 | **Form scope** — collect service interest, or a bare sign-up CTA? | Undecided |
+| 5 | **Guarantee coverage** for subscription bookings. Legal boundaries undocumented. | Kai / Legal |
+| 6 | **Subsidy guardrails** — stop a flat low fee buying disproportionately expensive services. | Facilitator |
+| 7 | **Stripe access provisioning** for Lauren to wire up the tiers. | Facilitator |
+| 8 | **Success metric** — no target, baseline, or kill threshold defined. | Facilitator / Scott |
+| 9 | **Notification channel** — new dedicated Teams channel, separate from the concierge order-form channel. | Jeff |
+| 10 | Geography, page slug, National 2 font + official logo lockup | Webflow / brand |
 
 ## Running it
 
