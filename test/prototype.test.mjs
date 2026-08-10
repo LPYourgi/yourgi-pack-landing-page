@@ -50,10 +50,9 @@ async function boot({ search = '', links = null, webhook = null } = {}) {
 
 const $ = (w, id) => w.document.getElementById(id);
 const vis = (w, id) => !$(w, id).classList.contains('hidden');
-// The form asks for a zip and nothing else. Email exists only on the out-of-market screen.
-const fill = (w, { zip, email }) => {
-  const vals = [['q-zip', zip]];
-  if (email !== undefined) vals.push(['q-email', email]);
+// The form asks for email, phone and zip. Nothing else.
+const fill = (w, { zip, email = 'test@example.com', phone = '3035550142' }) => {
+  const vals = [['q-zip', zip], ['q-email', email], ['q-phone', phone]];
   for (const [id, val] of vals) {
     const el = $(w, id);
     el.value = val;
@@ -184,26 +183,21 @@ console.log('\n— subscription-page conventions —');
 // Field list derived from the PRD, not from landing-page habit. §4 puts the sign-up
 // notification on a Stripe webhook and puts service setup on a 1:1 call, so this page has no
 // business collecting email, phone, dog count, or schedule before payment.
-console.log('\n— form scope matches the PRD —');
+console.log('\n— form scope —');
 {
   const w = await boot();
   const planStep = $(w, 'step-plan');
-  const inputs = [...planStep.querySelectorAll('input, textarea, select')];
-  ok('the sign-up step asks for exactly one field', inputs.length === 1, inputs.map(i => i.id));
-  ok('and that field is the zip', inputs[0]?.id === 'q-zip');
+  const inputs = [...planStep.querySelectorAll('input, textarea, select')].map(i => i.id);
+  ok('the form asks for exactly three fields', inputs.length === 3, inputs);
+  ok('email, phone and zip — in that order', JSON.stringify(inputs) === JSON.stringify(['q-email', 'q-phone', 'q-zip']), inputs);
+  ok('all three are marked required', ['q-email', 'q-phone', 'q-zip'].every(id => $(w, id).getAttribute('aria-required') === 'true'));
 
-  ok('no email before payment — Stripe collects it', !planStep.querySelector('#q-email'));
-  ok('no phone before payment — Stripe can collect it', !planStep.querySelector('#q-phone'));
+  // §4 puts service setup on a 1:1 follow-up call, so these are questions for that call.
   ok('no dog count — that is a setup-call question (§4)', !$(w, 'pets-val'));
   ok('no schedule box — that is a setup-call question (§4)', !$(w, 'q-schedule'));
-
   ok('the page says a person calls to set the days up',
-    planStep.textContent.toLowerCase().includes('calls to set up your days'), planStep.textContent.slice(-260));
-  ok('zip is explained as a coverage check, not data collection',
-    planStep.textContent.includes('before you pay'));
-
-  // Email still exists — but only where Stripe will never see the visitor.
-  ok('email lives on the out-of-market screen only', !!$(w, 'step-oom').querySelector('#q-email'));
+    planStep.textContent.toLowerCase().includes('calls to set up your days'));
+  ok('zip is explained as a coverage check', planStep.textContent.includes('before you pay'));
 }
 
 console.log('\n— plan switching —');
@@ -226,29 +220,56 @@ console.log('\n— validation —');
   const w = await boot();
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('empty zip blocks submit', vis(w, 'step-plan') && $(w, 'e-zip').style.display === 'block');
-  ok('Validation Failed names the zip', w.__mp.some(([n, p]) => n === 'Validation Failed' && p.fields[0] === 'zip'));
+  ok('empty form blocks submit', vis(w, 'step-plan'));
+  ok('all three errors shown', ['e-email', 'e-qphone', 'e-zip'].every(id => $(w, id).style.display === 'block'));
+  ok('Validation Failed lists all three fields', w.__mp.some(([n, p]) => n === 'Validation Failed' && p.fields.length === 3));
   ok('nothing sent to Segment', w.__seg.length === 0);
   ok('no Stripe navigation', w.__nav.length === 0);
+
+  fill(w, { zip: '80202', email: 'not-an-email' });
+  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('bad email blocks', vis(w, 'step-plan') && $(w, 'e-email').style.display === 'block');
+
+  fill(w, { zip: '80202', phone: '1234567890' });
+  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('phone with a 1 area code rejected', vis(w, 'step-plan') && $(w, 'e-qphone').style.display === 'block');
 
   fill(w, { zip: '802' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('a short zip still blocks', vis(w, 'step-plan') && $(w, 'e-zip').style.display === 'block');
+  ok('a short zip blocks', vis(w, 'step-plan') && $(w, 'e-zip').style.display === 'block');
 }
 
-// §4: staff hear about sign-ups from a Stripe webhook. A client-side post would fire before
-// payment and would report people who never actually paid.
-console.log('\n— nothing is posted before payment —');
+// The lead is captured before the Stripe handoff so an abandoned checkout still tells us who
+// was interested. It is NOT a sale — §4 keeps the real sign-up record on the Stripe webhook.
+console.log('\n— lead captured before the Stripe handoff —');
 {
   const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
-  fill(w, { zip: '80202' });
+  fill(w, { zip: '80202', email: 'lead@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
   ok('goes to Stripe', w.__nav.length === 1, w.__nav);
-  ok('no Teams post on the in-market path', w.__fetches.length === 0, w.__fetches);
-  ok('no Segment identify on the in-market path', w.__seg.length === 0, w.__seg);
-  ok('no "Lead Captured" for someone who has not paid', !w.__seg.some(s => s.ev === 'Lead Captured'));
+  ok('Teams told once, before the jump', w.__fetches.length === 1);
+  ok('Segment identified by email', w.__seg.some(s => s.ev === 'Lead Captured' && s.email === 'lead@example.com'));
+  ok('lead flagged in-market', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.out_of_market === false));
+
+  const card = w.__fetches[0].body.attachments[0].content;
+  ok('card is titled CHECKOUT STARTED, not a signup', card.body[0].text === 'PACK CHECKOUT STARTED', card.body[0].text);
+  const status = card.body.find(b => b.type === 'FactSet').facts.find(f => f.title === 'Status').value;
+  ok('card warns this is not yet paid', /NOT yet paid/.test(status), status);
+  ok('card tells staff to confirm in Stripe first', /Confirm the subscription exists in Stripe/.test(status));
+}
+
+console.log('\n— phone formatting —');
+{
+  const w = await boot();
+  const p = $(w, 'q-phone');
+  p.value = '3035550142'; p.dispatchEvent(new w.Event('input', { bubbles: true }));
+  ok('formats to (303) 555-0142', p.value === '(303) 555-0142', p.value);
+  p.value = '13035550142'; p.dispatchEvent(new w.Event('input', { bubbles: true }));
+  ok('strips leading country code 1', p.value === '(303) 555-0142', p.value);
 }
 
 console.log('\n— zip masking —');
@@ -276,14 +297,14 @@ console.log('\n— in-market with Stripe links configured —');
 {
   const w = await boot({ links: 'https://buy.stripe.com/test_' });
   $(w, 'tiers').querySelector('[data-tier="weekly"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  fill(w, { zip: '75201' });
+  fill(w, { zip: '75201', email: 'dallas@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
   ok('navigates to Stripe', w.__nav.length === 1, w.__nav);
   const url = w.__nav[0] || '';
   ok('uses the weekly link', url.startsWith('https://buy.stripe.com/test_w'), url);
   ok('client_reference_id carries plan and zip for the webhook', /client_reference_id=yg_weekly_75201_\d+/.test(url), url);
-  ok('no prefilled_email — Stripe collects the email itself', !url.includes('prefilled_email'), url);
+  ok('email prefilled into Stripe so they do not type it twice', url.includes('prefilled_email=dallas%40example.com'), url);
   ok('Checkout Started tracked', w.__mp.some(([n, p]) => n === 'Checkout Started' && p.plan_tier === 'weekly'));
   ok('plan stashed for the return trip', JSON.parse(w.sessionStorage.getItem('yg_plan')).tier === 'weekly');
 }
@@ -304,27 +325,18 @@ console.log('\n— every plan routes to its own Stripe link —');
 console.log('\n— out of market —');
 {
   const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
-  fill(w, { zip: '90210' });
+  fill(w, { zip: '90210', email: 'la@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
   ok('shows the out-of-market step', vis(w, 'step-oom'));
   ok('NEVER navigates to Stripe', w.__nav.length === 0, w.__nav);
   ok('copy says no charge was made', $(w, 'step-oom').textContent.includes('not been charged'));
-  ok('Out-of-Market Blocked tracked', w.__mp.some(([n]) => n === 'Out-of-Market Blocked'));
-  ok('nothing captured yet — we have not asked', w.__seg.length === 0 && w.__fetches.length === 0);
-
-  // Now the email ask, which only exists here.
-  $(w, 'oom-notify').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  await settle();
-  ok('blank email blocks the notify submit', vis(w, 'step-oom') && $(w, 'e-email').style.display === 'block');
-
-  fill(w, { zip: '90210', email: 'la@example.com' });
-  $(w, 'oom-notify').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  await settle();
-  ok('captured and confirmed', vis(w, 'step-oom-done'));
-  ok('lead sent to Segment with out_of_market', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.out_of_market === true));
-  ok('Teams told, exactly once', w.__fetches.length === 1);
-  ok('still never navigates to Stripe', w.__nav.length === 0, w.__nav);
+  ok('lead still captured, flagged out_of_market', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.out_of_market === true));
+  ok('Out-of-Market Lead Captured tracked', w.__mp.some(([n]) => n === 'Out-of-Market Lead Captured'));
+  const card = w.__fetches[0].body.attachments[0].content;
+  ok('Teams card flagged out-of-area', card.body[0].text === 'OUT-OF-AREA PACK INTEREST', card.body[0].text);
+  const status = card.body.find(b => b.type === 'FactSet').facts.find(f => f.title === 'Status').value;
+  ok('card tells staff not to enroll or charge', /do NOT attempt to enroll or charge/.test(status), status);
 }
 
 console.log('\n— market gate coverage —');
@@ -341,42 +353,34 @@ console.log('\n— market gate coverage —');
   }
 }
 
-console.log('\n— Teams card (out-of-area only) —');
+console.log('\n— Teams card contents —');
 {
   const w = await boot({ webhook: 'https://example.test/hook' });
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  fill(w, { zip: '90210' });
+  fill(w, { zip: '80202', email: 'hook@example.com', phone: '3035550142' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  fill(w, { zip: '90210', email: 'hook@example.com' });
-  $(w, 'oom-notify').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  await settle();
-
   ok('posts once', w.__fetches.length === 1);
-  const card = w.__fetches[0]?.body.attachments[0].content;
-  const facts = card.body.find(b => b.type === 'FactSet').facts;
+  const facts = w.__fetches[0].body.attachments[0].content.body.find(b => b.type === 'FactSet').facts;
   const get = t => facts.find(f => f.title === t)?.value;
-  ok('card is flagged out-of-area, not a signup', card.body[0].text === 'OUT-OF-AREA PACK INTEREST', card.body[0].text);
-  ok('card carries the plan they wanted', get('Plan wanted') === 'Weekdays ($199/mo)', get('Plan wanted'));
-  ok('card carries zip and email', get('ZIP') === '90210' && get('Email') === 'hook@example.com');
-  ok('card tells staff NOT to enroll or charge', /do NOT attempt to enroll or charge/.test(get('Status')), get('Status'));
+  ok('card carries the plan', get('Plan') === 'Weekdays ($199/mo)', get('Plan'));
+  ok('card carries email', get('Email') === 'hook@example.com');
+  ok('card carries formatted phone', get('Phone') === '(303) 555-0142', get('Phone'));
+  ok('card carries zip', get('ZIP') === '80202');
   ok('card no longer carries dogs or schedule', !get('Dogs') && !get('Days wanted'));
 }
 
 console.log('\n— webhook failure surfaces an error —');
 {
   const w = await boot({ webhook: 'https://example.test/hook' });
-  fill(w, { zip: '90210' });
+  w.fetch = () => Promise.resolve({ ok: false });
+  fill(w, { zip: '80202', email: 'fail@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  w.fetch = () => Promise.resolve({ ok: false });
-  fill(w, { zip: '90210', email: 'fail@example.com' });
-  $(w, 'oom-notify').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  await settle();
-  ok('stays on the out-of-market step', vis(w, 'step-oom'));
+  ok('stays on the plan step', vis(w, 'step-plan'));
   ok('no Segment lead on failure', w.__seg.length === 0);
   ok('Submission Failed tracked', w.__mp.some(([n, p]) => n === 'Submission Failed' && p.reason === 'response_not_ok'));
-  ok('button re-enabled after failure', !$(w, 'oom-notify').hasAttribute('disabled'));
+  ok('button re-enabled', !$(w, 'to-checkout').hasAttribute('disabled'));
 }
 
 console.log('\n— return from Stripe —');
@@ -401,10 +405,10 @@ console.log('\n— reset —');
   $(w, 'restart').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('back on the plan step', vis(w, 'step-plan'));
   ok('plan reset to Twice a Week', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-pressed') === 'true');
-  ok('zip cleared', $(w, 'q-zip').value === '');
+  ok('fields cleared', ['q-zip', 'q-email', 'q-phone'].every(id => $(w, id).value === ''));
 
   // Every dead-end screen offers a way back.
-  for (const id of ['restart', 'restart2', 'restart3', 'restart4']) ok(`${id} exists`, !!$(w, id));
+  for (const id of ['restart', 'restart2', 'restart3']) ok(`${id} exists`, !!$(w, id));
 }
 
 console.log('\n— no secrets in page source —');
