@@ -269,49 +269,30 @@
         <ul class="incl" id="incl" aria-live="polite"><!-- filled by JS from PLAN_BENEFITS --></ul>
         <p class="save" id="save-line"><!-- filled by JS --></p>
 
-        <div style="display:flex; gap:12px; margin-bottom:6px;">
-          <div style="flex:1;">
-            <label for="q-zip">Zip code <span class="req">*</span></label>
-            <input id="q-zip" type="text" inputmode="numeric" placeholder="80202" aria-required="true">
-            <div class="err-msg" id="e-zip">Enter a 5-digit zip.</div>
-          </div>
-          <!-- Phone is OPTIONAL, deliberately. Every required field before payment costs signups,
-               and this page's whole job is measuring willingness to pay. Concierge still gets a
-               phone number for anyone who actually subscribes — turn on phone collection in the
-               Stripe Payment Link (see docs/handoff.md). Given free, we take it here too. -->
-          <div style="flex:1;">
-            <label for="q-phone">Phone <span style="color:#777;">(optional)</span></label>
-            <input id="q-phone" type="tel" autocomplete="tel" placeholder="(303) 555-0142">
-            <div class="err-msg" id="e-qphone">That doesn't look like a 10-digit US number.</div>
-          </div>
-        </div>
-        <div style="display:flex; gap:12px; margin-bottom:12px;">
-          <div style="flex:1;">
-            <label for="q-email">Email <span class="req">*</span></label>
-            <input id="q-email" type="email" autocomplete="email" placeholder="you@email.com" aria-required="true">
-            <div class="err-msg" id="e-email">Enter a valid email address.</div>
-          </div>
-          <div style="flex:0 0 110px;">
-            <label for="pets-val">Dogs</label>
-            <div class="stepper"><button id="pminus" aria-label="Decrease dogs">&minus;</button><span id="pets-val" aria-live="polite">1</span><button id="pplus" aria-label="Increase dogs">+</button></div>
-          </div>
-        </div>
-
-        <!-- §7 q4 (form scope) was undecided. This is the lightest useful answer: ONE optional
-             free-text field. §4 says a person follows up to set each subscriber's services up
-             by hand, and this is the single thing that person needs to know before calling. -->
+        <!-- FORM SCOPE, derived from the PRD rather than from landing-page habit.
+             §7 q4 asked whether to collect service interest at all. Two §4 bullets answer it:
+               - "Staff can receive each new sign-up as a notification ... driven by a STRIPE WEBHOOK"
+                 -> we don't need to capture the customer ourselves for staff to hear about them.
+               - "Staff can follow up with subscribers to set up their SPECIFIC SERVICES one-on-one"
+                 -> which days, how many dogs, and which service belong on that call, not here.
+             Stripe's hosted checkout already collects name, email and card, and can collect phone.
+             So the only thing this form legitimately needs before money moves is the ZIP, because
+             it is the one check that must happen BEFORE a charge, not after.
+             Every other field was friction on the one page whose job is measuring willingness to pay. -->
         <div style="margin-bottom:14px;">
-          <label for="q-schedule">Which days do you need? <span style="color:#777;">(optional)</span></label>
-          <textarea id="q-schedule" maxlength="200" placeholder="Tues + Thurs, around lunchtime"></textarea>
+          <label for="q-zip">Zip code <span class="req">*</span></label>
+          <input id="q-zip" type="text" inputmode="numeric" placeholder="80202" aria-required="true" autocomplete="postal-code">
+          <div class="err-msg" id="e-zip">Enter a 5-digit zip.</div>
+          <p class="fineprint" style="margin-top:5px;">So we can check we have Pros walking your streets before you pay.</p>
         </div>
 
         <button class="btn-dark" style="width:100%;" id="to-checkout">Continue to payment</button>
         <!-- Naming Stripe BEFORE the jump. An unexplained hop to a different domain mid-purchase
              reads as a redirect gone wrong; saying where you're going is standard on hosted
              checkouts. (Don't paste a real Stripe URL into this comment — a test greps for it.) -->
-        <p class="fineprint" style="text-align:center; margin-top:8px;">Payment is handled by <strong>Stripe</strong> &mdash; you'll finish on their secure page. Your card never touches Yourgi.</p>
+        <p class="fineprint" style="text-align:center; margin-top:8px;">Next: <strong>Stripe</strong> takes your email and card on their secure page. Your card never touches Yourgi.</p>
         <p class="fineprint" style="text-align:center; margin-top:4px;">Billed monthly. Cancel any month from the link on your receipt.</p>
-        <p class="fineprint" style="text-align:center; margin-top:4px;">By submitting your phone number and email, you agree to receive text messages and emails from Yourgi about the services.<br>Message and data rates may apply.</p>
+        <p class="fineprint" style="text-align:center; margin-top:4px;">Once you're in, someone from our team calls to set up your days and match your Pro.</p>
       </div>
 
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
@@ -322,12 +303,27 @@
         <button class="btn-dark" style="margin-top:18px;" id="restart">Back to plans</button>
       </div>
 
-      <!-- STEP 2b: out of market — no sale, capture interest only -->
-      <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
-        <div class="display" style="font-size:24px;">No Pros there yet.</div>
-        <p style="font-size:15px; margin:12px auto 0; max-width:360px;">We don't have walkers on your block yet, so we're not going to take your money for a plan we can't run. We've saved your info and we'll reach out the moment we're nearby. You have not been charged.</p>
-        <p class="fineprint" style="margin-top:10px;">Right now we cover Denver, Dallas, Fort Worth, Houston, Boston, and Portland. PLACEHOLDER &mdash; confirm the market list (&sect;8 gap 8).</p>
-        <button class="btn-dark" style="margin-top:18px;" id="restart2">Start over</button>
+      <!-- STEP 2b: out of market — no sale, so no Stripe, so this is the ONE path where we have to
+           ask for an email ourselves. Asking here rather than up front means the 99% who can buy
+           never pay a toll for the few we can't serve, and the people we do ask have been told why. -->
+      <div id="step-oom" class="hidden" style="padding:10px 4px;">
+        <div style="text-align:center;">
+          <div class="display" style="font-size:24px;">No Pros there yet.</div>
+          <p style="font-size:15px; margin:12px auto 16px; max-width:360px;">We don't have walkers on your streets yet, so we're not going to take your money for a plan we can't run. <strong>You have not been charged.</strong></p>
+        </div>
+        <label for="q-email">Want us to tell you when we get there?</label>
+        <input id="q-email" type="email" autocomplete="email" placeholder="you@email.com">
+        <div class="err-msg" id="e-email">Enter a valid email address.</div>
+        <button class="btn-dark" style="width:100%; margin-top:12px;" id="oom-notify">Tell me when you're here</button>
+        <p class="fineprint" style="text-align:center; margin-top:10px;">Right now we cover Denver, Dallas, Fort Worth, Houston, Boston, and Portland. PLACEHOLDER &mdash; confirm the market list (&sect;8 gap 8).</p>
+        <p style="text-align:center; margin:10px 0 0;"><button type="button" id="restart2" style="background:none; border:0; text-decoration:underline; cursor:pointer; font:inherit; font-size:13px; color:#4a4a46;">Start over</button></p>
+      </div>
+
+      <!-- STEP 2d: out-of-market email captured -->
+      <div id="step-oom-done" class="hidden" style="text-align:center; padding:10px 4px;">
+        <div class="display" style="font-size:24px;">We'll be in touch.</div>
+        <p style="font-size:15px; margin:12px auto 0; max-width:340px;">You're on the list. We'll email you the week we have Pros near you &mdash; and not before. You have not been charged.</p>
+        <button class="btn-dark" style="margin-top:18px;" id="restart4">Start over</button>
       </div>
 
       <!-- STEP 2c: returned from Stripe without completing -->
@@ -654,8 +650,6 @@
       trackEvent('Plan Selected',{plan_tier:state.tier,plan_price:state.price});
     });
   });
-  $('pminus').onclick=function(){if(state.pets>1){state.pets--;$('pets-val').textContent=state.pets;}};
-  $('pplus').onclick=function(){if(state.pets<8){state.pets++;$('pets-val').textContent=state.pets;}};
 
   /* In-market = zip falls within CO, ME, MA, NH, OR, TX, or WA (3-digit zip prefix ranges).
 
@@ -669,11 +663,15 @@
   var MARKET_ZIPS=[733,885];
   function inMarket(zip){var p=+zip.slice(0,3);return MARKET_ZIPS.indexOf(p)>-1||MARKET_RANGES.some(function(r){return p>=r[0]&&p<=r[1];});}
 
-  /* Posts the signup to a Teams channel via Power Automate. Resolves immediately when no
-     webhook is configured so the rest of the flow still runs. */
-  function notifyTeams(oom){
+  /* OUT-OF-MARKET interest only.
+
+     This no longer fires for real signups. §4 says staff hear about each sign-up via a STRIPE
+     WEBHOOK, and Stripe is the only trustworthy source for who actually paid — a client-side post
+     from this page would fire before payment and would report people who never completed checkout.
+     So the in-market path posts nothing, and this card exists purely for the visitors Stripe will
+     never see because we refused to sell to them. Resolves immediately when no webhook is set. */
+  function notifyTeamsOutOfArea(zip,email){
     if(!TEAMS_WEBHOOK_URL) return Promise.resolve({ok:true,skipped:true});
-    var sched=($('q-schedule').value||'').trim();
     var payload={
       type:'message',
       attachments:[{
@@ -682,16 +680,13 @@
           '$schema':'http://adaptivecards.io/schemas/adaptive-card.json',
           type:'AdaptiveCard', version:'1.4',
           body:[
-            {type:'TextBlock',text:oom?'OUT-OF-AREA PACK INTEREST':'NEW PACK SIGNUP',weight:'Bolder',size:'Medium'},
-            {type:'TextBlock',text:state.label+' in '+$('q-zip').value+(oom?' — no coverage, no payment taken':' — $'+state.price+'/mo, sent to Stripe checkout'),isSubtle:true,spacing:'None',wrap:true},
+            {type:'TextBlock',text:'OUT-OF-AREA PACK INTEREST',weight:'Bolder',size:'Medium'},
+            {type:'TextBlock',text:'Wanted '+state.label+' in '+zip+' — no coverage, no payment taken',isSubtle:true,spacing:'None',wrap:true},
             {type:'FactSet',facts:[
-              {title:'Plan',value:state.label+' ($'+state.price+'/mo)'},
-              {title:'Dogs',value:String(state.pets)},
-              {title:'ZIP',value:$('q-zip').value},
-              {title:'Phone',value:$('q-phone').value||'Not given — reply by email, or check Stripe'},
-              {title:'Email',value:$('q-email').value},
-              {title:'Days wanted',value:sched||'Not given — ask on the setup call'},
-              {title:'Status',value:oom?'Outside coverage — log as future interest, do not attempt to enroll.':'Sent to Stripe. Confirm the subscription exists in Stripe before onboarding, then issue the coupon.'}
+              {title:'Plan wanted',value:state.label+' ($'+state.price+'/mo)'},
+              {title:'ZIP',value:zip},
+              {title:'Email',value:email},
+              {title:'Status',value:'Outside coverage. Log as future interest — do NOT attempt to enroll or charge.'}
             ]},
             {type:'TextBlock',text:'Submitted '+new Date().toISOString()+' via the Pack landing page',isSubtle:true,size:'Small',wrap:true}
           ]
@@ -704,25 +699,10 @@
   var submitErr=document.createElement('div');
   submitErr.style.cssText="display:none;margin-top:10px;font-weight:700;font-size:14px;text-align:center;color:#000;";
   submitErr.textContent="That didn't send. Give it one more try.";
-  $('to-checkout').insertAdjacentElement('afterend',submitErr);
+  /* Sits under the out-of-area button — the only submit left that talks to a server. */
+  $('oom-notify').insertAdjacentElement('afterend',submitErr);
 
-  function show(id){['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});$(id).classList.remove('hidden');}
-
-  function validPhone(v){var d=v.replace(/\D/g,'');if(d.length===11&&d[0]==='1')d=d.slice(1);return /^[2-9]\d{2}[2-9]\d{6}$/.test(d);}
-  $('q-phone').addEventListener('input',function(){
-    var d=this.value.replace(/\D/g,'');
-    if(d.length===11&&d[0]==='1')d=d.slice(1);
-    d=d.slice(0,10);
-    var out=d;
-    if(d.length>6)out='('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6);
-    else if(d.length>3)out='('+d.slice(0,3)+') '+d.slice(3);
-    else if(d.length>0)out='('+d;
-    this.value=out;
-    if(validPhone(this.value)){this.classList.remove('err');$('e-qphone').style.display='none';}
-  });
-  $('q-phone').addEventListener('blur',function(){
-    if(this.value&&!validPhone(this.value)){this.classList.add('err');$('e-qphone').style.display='block';}
-  });
+  function show(id){['step-plan','step-confirm','step-oom','step-oom-done','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});$(id).classList.remove('hidden');}
 
   $('q-zip').addEventListener('input',function(){
     this.value=this.value.replace(/\D/g,'').slice(0,5);
@@ -737,69 +717,88 @@
     if(this.value&&!validEmail(this.value)){this.classList.add('err');$('e-email').style.display='block';}
   });
 
-  /* Builds the Stripe Payment Link URL. prefilled_email saves the visitor retyping it;
-     client_reference_id is how a future Stripe webhook ties the subscription back to this
-     signup (it shows up on the checkout session in the Stripe Dashboard). */
-  function checkoutUrl(email, zip){
+  /* Builds the Stripe Payment Link URL.
+
+     client_reference_id is the whole integration: Stripe echoes it back on the checkout session
+     and on the webhook §4 calls for, so the Teams notification can say WHICH PLAN and WHICH ZIP
+     without this page having posted anything itself. It is the only piece of context Stripe
+     doesn't already collect, and it is why the reduced form still works.
+
+     Note there is no prefilled_email any more — Stripe collects the email itself, and we no
+     longer ask for one up front. */
+  function checkoutUrl(zip){
     var base=STRIPE_PAYMENT_LINKS[state.tier];
     if(!base) return '';
     var ref='yg_'+state.tier+'_'+zip+'_'+Date.now();
     var sep=base.indexOf('?')>-1?'&':'?';
-    return base+sep+'prefilled_email='+encodeURIComponent(email)+'&client_reference_id='+encodeURIComponent(ref);
+    return base+sep+'client_reference_id='+encodeURIComponent(ref);
   }
 
+  /* IN-MARKET: zip check, then straight to Stripe. Nothing is posted anywhere first — no lead
+     capture, no Teams card, no Segment identify, because we have not asked for anything to
+     identify them WITH. That is the point: §4 puts the sign-up notification on a Stripe webhook,
+     so the trustworthy record is created by Stripe when money actually moves, not by this page
+     when someone merely clicks. */
   $('to-checkout').onclick=function(){
-    var btn=this, ok=true, phone=$('q-phone'), zip=$('q-zip'), email=$('q-email'), badFields=[];
+    var zip=$('q-zip');
     trackEvent('Pack Checkout Clicked',{plan_tier:state.tier,plan_price:state.price});
-    /* Phone is optional — only validated when the visitor actually typed something. A blank box
-       must never block a signup; a half-typed number still should, or we'd capture junk. */
-    if(phone.value.trim() && !validPhone(phone.value)){phone.classList.add('err');$('e-qphone').style.display='block';ok=false;badFields.push('phone');}
-    else{phone.classList.remove('err');$('e-qphone').style.display='none';}
-    if(!/^\d{5}$/.test(zip.value)){zip.classList.add('err');$('e-zip').style.display='block';ok=false;badFields.push('zip');}
-    else{zip.classList.remove('err');$('e-zip').style.display='none';}
-    if(!validEmail(email.value)){email.classList.add('err');$('e-email').style.display='block';ok=false;badFields.push('email');}
-    else{email.classList.remove('err');$('e-email').style.display='none';}
-    if(!ok){trackEvent('Validation Failed',{fields:badFields});return;}
-    var oom=!inMarket(zip.value);
 
+    if(!/^\d{5}$/.test(zip.value)){
+      zip.classList.add('err');$('e-zip').style.display='block';
+      trackEvent('Validation Failed',{fields:['zip']});
+      return;
+    }
+    zip.classList.remove('err');$('e-zip').style.display='none';
+
+    if(!inMarket(zip.value)){
+      /* Refused sale. No charge, no Stripe. The email ask lives on the next screen. */
+      trackEvent('Out-of-Market Blocked',{plan_tier:state.tier,book_zip_code:zip.value});
+      show('step-oom');
+      return;
+    }
+
+    var url=checkoutUrl(zip.value);
+    if(!url){
+      /* DRY RUN — no Stripe link configured yet. Nobody is charged. */
+      trackEvent('Checkout Dry Run',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
+      $('confirm-body').textContent='DRY RUN — no Stripe link is configured, so no payment was taken. In production you would have gone to Stripe to start the '+state.label+' plan at $'+state.price+'/mo.';
+      show('step-confirm');
+      return;
+    }
+    trackEvent('Checkout Started',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
+    try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price}));}catch(e){}
+    window.location.href=url;
+  };
+
+  /* OUT-OF-MARKET: the only place this page collects anything about a person, because it is the
+     only path where Stripe never sees them. */
+  $('oom-notify').onclick=function(){
+    var btn=this, email=$('q-email'), zip=$('q-zip').value;
+    if(!validEmail(email.value)){
+      email.classList.add('err');$('e-email').style.display='block';
+      trackEvent('Validation Failed',{fields:['email'],context:'out_of_market'});
+      return;
+    }
+    email.classList.remove('err');$('e-email').style.display='none';
     submitErr.style.display='none';
+
     var prevText=btn.textContent;
     btn.textContent='One sec...';
     btn.setAttribute('disabled','');
     btn.style.pointerEvents='none';
 
-    /* Capture the lead BEFORE handing off to Stripe. If someone abandons on Stripe's page we
-       still know they were interested and which plan they picked — which, for an experiment
-       measuring willingness to pay, is most of the signal. */
-    notifyTeams(oom).then(function(r){
+    notifyTeamsOutOfArea(zip,email.value).then(function(r){
       if(!(r&&r.ok)){
-        trackEvent('Submission Failed',{plan_tier:state.tier,reason:'response_not_ok'});
+        trackEvent('Submission Failed',{reason:'response_not_ok',context:'out_of_market'});
         submitErr.style.display='block';
         return;
       }
-      var hasSchedule=!!($('q-schedule').value||'').trim();
-      var segTraits={email:email.value,phone:phone.value,zip:zip.value,source:'webflow_marketing_site',form_type:'subscription_landing_page'};
-      sendToSegment(email.value,segTraits,'Lead Captured',Object.assign({},segTraits,{plan_tier:state.tier,plan_price:state.price,pet_count:state.pets,schedule_given:hasSchedule,out_of_market:oom}));
-
-      if(oom){
-        trackEvent('Out-of-Market Lead Captured',{plan_tier:state.tier,book_zip_code:zip.value});
-        show('step-oom');
-        return;
-      }
-
-      var url=checkoutUrl(email.value, zip.value);
-      if(!url){
-        /* DRY RUN — no Stripe link configured yet. Nobody is charged. */
-        trackEvent('Checkout Dry Run',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
-        $('confirm-body').textContent='DRY RUN — no Stripe link is configured, so no payment was taken. In production you would have been sent to Stripe to start the '+state.label+' plan at $'+state.price+'/mo.';
-        show('step-confirm');
-        return;
-      }
-      trackEvent('Checkout Started',{plan_tier:state.tier,plan_price:state.price,pet_count:state.pets,schedule_given:hasSchedule,book_zip_code:zip.value,email:email.value,parent_phone:phone.value});
-      try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price}));}catch(e){}
-      window.location.href=url;
+      var traits={email:email.value,zip:zip,source:'webflow_marketing_site',form_type:'subscription_landing_page'};
+      sendToSegment(email.value,traits,'Lead Captured',Object.assign({},traits,{plan_tier:state.tier,plan_price:state.price,out_of_market:true}));
+      trackEvent('Out-of-Market Lead Captured',{plan_tier:state.tier,book_zip_code:zip});
+      show('step-oom-done');
     }).catch(function(){
-      trackEvent('Submission Failed',{plan_tier:state.tier,reason:'network_error'});
+      trackEvent('Submission Failed',{reason:'network_error',context:'out_of_market'});
       submitErr.style.display='block';
     }).finally(function(){
       btn.textContent=prevText;
@@ -814,14 +813,14 @@
       b.setAttribute('aria-pressed',isDefault?'true':'false');
       if(isDefault){state.tier=b.dataset.tier;state.price=+b.dataset.price;state.label=b.dataset.label;}
     });
-    state.pets=1; $('pets-val').textContent='1';
-    ['q-zip','q-phone','q-email','q-schedule'].forEach(function(id){var el=$(id);el.value='';el.classList.remove('err');});
-    ['e-zip','e-qphone','e-email'].forEach(function(id){$(id).style.display='none';});
+    ['q-zip','q-email'].forEach(function(id){var el=$(id);el.value='';el.classList.remove('err');});
+    ['e-zip','e-email'].forEach(function(id){$(id).style.display='none';});
+    submitErr.style.display='none';
     renderBenefits();
   }
-  $('restart').onclick=function(){trackEvent('Form Restarted');resetForm();show('step-plan');};
-  $('restart2').onclick=function(){trackEvent('Form Restarted');resetForm();show('step-plan');};
-  $('restart3').onclick=function(){trackEvent('Form Restarted');resetForm();show('step-plan');};
+  ['restart','restart2','restart3','restart4'].forEach(function(id){
+    $(id).onclick=function(){trackEvent('Form Restarted');resetForm();show('step-plan');};
+  });
 
   /* Handles the return trip from Stripe. Set each Payment Link's "After payment" redirect to
      this page with ?checkout=success appended.
