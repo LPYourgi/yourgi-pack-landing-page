@@ -7,7 +7,9 @@ import { fileURLToPath } from 'url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PAGE = path.join(HERE, '..', 'index.html');
 const DEPLOY = path.join(HERE, '..', 'deploy', 'index.html');
-const NAV_LINE = 'window.location.href=url;';
+const NAV_LINE = 'target.location.href=url;';
+// The whole Stripe config object, so the harness can seed per-plan links or blank them out.
+const LINKS_BLOCK = /var STRIPE_PAYMENT_LINKS = \{[\s\S]*?\n  \};/;
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { cond ? (pass++, console.log('  ok  ', name)) : (fail++, console.log('  FAIL', name, extra ?? '')); };
 
@@ -22,11 +24,14 @@ async function boot({ search = '', links = null, webhook = null } = {}) {
     window.__seg=[];
     window.sendToSegment=function(email,traits,ev,props){window.__seg.push({email,traits,ev,props});};
   </script>`);
-  if (links) {
-    const before = html;
-    html = html.replace(/weekly:   '',   \/\/ TODO\n    twice:    '',   \/\/ TODO\n    weekdays: ''    \/\/ TODO/,
-      `weekly: '${links}w', twice: '${links}t', weekdays: '${links}d'`);
-    if (html === before) throw new Error('STRIPE_PAYMENT_LINKS block changed — update the harness');
+  // links: a URL prefix gives each plan its own distinguishable link; '' blanks all three, which
+  // is how the inert-CTA state is exercised now that the page ships with a placeholder link.
+  if (links !== null) {
+    if (!LINKS_BLOCK.test(html)) throw new Error('STRIPE_PAYMENT_LINKS block changed — update LINKS_BLOCK in the harness');
+    const seeded = links === ''
+      ? `weekly: '', twice: '', weekdays: ''`
+      : `weekly: '${links}w', twice: '${links}t', weekdays: '${links}d'`;
+    html = html.replace(LINKS_BLOCK, `var STRIPE_PAYMENT_LINKS = { ${seeded} };`);
   }
   if (webhook) html = html.replace("var TEAMS_WEBHOOK_URL = '';", `var TEAMS_WEBHOOK_URL = '${webhook}';`);
   // jsdom's location.href is unforgeable, so swap the redirect for a recorder.
@@ -215,9 +220,11 @@ console.log('\n— plan switching —');
   ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 199));
 }
 
+// Validation only runs once there is a Stripe handoff to protect — with no links the CTA is inert
+// by design (see the section below), so every one of these boots with links configured.
 console.log('\n— validation —');
 {
-  const w = await boot();
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
   ok('empty form blocks submit', vis(w, 'step-plan'));
@@ -280,17 +287,48 @@ console.log('\n— zip masking —');
   ok('zip strips letters and caps at 5', z.value === '80202', z.value);
 }
 
-console.log('\n— dry run (no Stripe links configured) —');
+// The CTA connects to Stripe and nothing else — sign-up is completed on Stripe's page. Until the
+// Payment Links exist, clicking it must do NOTHING. This replaces the dry-run success screen the
+// page used to show: that screen said "You're in." when no subscription existed anywhere, and it
+// fed invented conversions into the single number this experiment exists to measure.
+// The page now ships with a placeholder link, so this state is reached by blanking the config —
+// but the guard has to stay, because emptying the links is exactly what someone will do when the
+// placeholder turns out to be wrong.
+console.log('\n— CTA is inert when no Stripe link is configured —');
 {
-  const w = await boot();
+  const w = await boot({ links: '' });
   fill(w, { zip: '80202' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('lands on confirmation', vis(w, 'step-confirm'));
-  ok('confirmation says DRY RUN', $(w, 'confirm-body').textContent.includes('DRY RUN'));
+  ok('stays on the plan step', vis(w, 'step-plan'));
+  ok('no confirmation screen', !vis(w, 'step-confirm'));
+  ok('no out-of-market screen', !vis(w, 'step-oom'));
   ok('no navigation to Stripe', w.__nav.length === 0);
   ok('no Teams post', w.__fetches.length === 0);
-  ok('Checkout Dry Run tracked, not Checkout Started', w.__mp.some(([n]) => n === 'Checkout Dry Run') && !w.__mp.some(([n]) => n === 'Checkout Started'));
+  ok('nothing sent to Segment', w.__seg.length === 0);
+  ok('no checkout, lead or signup event tracked',
+    !w.__mp.some(([n]) => /Checkout|Lead Captured|Subscription|Submission Failed/.test(n)),
+    w.__mp.map(([n]) => n));
+  ok('button is not left mid-submit',
+    $(w, 'to-checkout').textContent === 'Continue to payment' && !$(w, 'to-checkout').hasAttribute('disabled'),
+    $(w, 'to-checkout').textContent);
+
+  // "Do nothing" means nothing — an empty form must not even turn red.
+  const w2 = await boot({ links: '' });
+  $(w2, 'to-checkout').dispatchEvent(new w2.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('an empty form shows no errors either',
+    ['e-email', 'e-qphone', 'e-zip'].every(id => $(w2, id).style.display !== 'block'));
+  ok('no Validation Failed tracked', !w2.__mp.some(([n]) => n === 'Validation Failed'));
+
+  // One flag, checked once, so wiring Stripe is a config edit and not a code edit.
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('readiness is derived from the Stripe config, not a separate switch',
+    /var STRIPE_READY = Object\.keys\(STRIPE_PAYMENT_LINKS\)\.every/.test(src));
+  ok('all three links are required, not just one',
+    /STRIPE_PAYMENT_LINKS\)\.every\(function\(k\)\{\s*return !!STRIPE_PAYMENT_LINKS\[k\];/.test(src));
+  ok('the CTA returns early on that flag', /if\(!STRIPE_READY\) return;/.test(src));
+  ok('no dry-run success path left anywhere', !/DRY RUN/.test(src) && !/Checkout Dry Run/.test(src));
 }
 
 console.log('\n— in-market with Stripe links configured —');
@@ -345,17 +383,21 @@ console.log('\n— market gate coverage —');
                  ['77002', true, 'Houston'], ['02108', true, 'Boston'], ['97205', true, 'Portland'],
                  ['90210', false, 'Beverly Hills'], ['10001', false, 'NYC'], ['60601', false, 'Chicago']];
   for (const [zip, expected, name] of cases) {
-    const w2 = await boot();
+    const w2 = await boot({ links: 'https://buy.stripe.com/test_' });
     fill(w2, { zip });
     $(w2, 'to-checkout').dispatchEvent(new w2.MouseEvent('click', { bubbles: true }));
     await settle();
-    ok(`${name} ${zip} -> ${expected ? 'in' : 'out of'} market`, vis(w2, expected ? 'step-confirm' : 'step-oom'));
+    // In market, the gate's only job is to let the Stripe handoff through; out of market it must
+    // stop the handoff dead and say so.
+    ok(`${name} ${zip} -> ${expected ? 'in' : 'out of'} market`,
+      expected ? (w2.__nav.length === 1 && !vis(w2, 'step-oom')) : (vis(w2, 'step-oom') && w2.__nav.length === 0),
+      { nav: w2.__nav.length, oom: vis(w2, 'step-oom') });
   }
 }
 
 console.log('\n— Teams card contents —');
 {
-  const w = await boot({ webhook: 'https://example.test/hook' });
+  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   fill(w, { zip: '80202', email: 'hook@example.com', phone: '3035550142' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
@@ -372,7 +414,7 @@ console.log('\n— Teams card contents —');
 
 console.log('\n— webhook failure surfaces an error —');
 {
-  const w = await boot({ webhook: 'https://example.test/hook' });
+  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
   w.fetch = () => Promise.resolve({ ok: false });
   fill(w, { zip: '80202', email: 'fail@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
@@ -397,12 +439,15 @@ console.log('\n— return from Stripe —');
 
 console.log('\n— reset —');
 {
-  const w = await boot();
+  // Out of market is the one dead-end screen this page can still reach on its own, so it is the
+  // one that has to hand people back a usable form.
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  fill(w, { zip: '80202' });
+  fill(w, { zip: '90210' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  $(w, 'restart').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  ok('reached a dead-end screen to come back from', vis(w, 'step-oom'));
+  $(w, 'restart2').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('back on the plan step', vis(w, 'step-plan'));
   ok('plan reset to Twice a Week', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('fields cleared', ['q-zip', 'q-email', 'q-phone'].every(id => $(w, id).value === ''));
@@ -467,7 +512,8 @@ console.log('\n— colour contrast (WCAG AA) —');
 
 console.log('\n— keyboard and screen-reader support —');
 {
-  const w = await boot();
+  // Links configured, so the error-handling assertions below have a live submit to exercise.
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   const src = fs.readFileSync(PAGE, 'utf8');
 
   // Choosing one of three plans is a radio group, not three independent toggles.
@@ -566,9 +612,85 @@ console.log('\n— no secrets in page source —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
   ok('no Stripe secret key', !/sk_(live|test)_/.test(src));
-  ok('no live Payment Link committed', !/buy\.stripe\.com/.test(src));
+  // A Payment Link is public by design, so committing one is not a leak — but a publishable key
+  // or a Stripe.js integration would mean this page had started handling cards itself.
+  ok('no publishable key — card entry stays on Stripe', !/pk_(live|test)_/.test(src));
+  ok('no Stripe.js on the page', !/js\.stripe\.com/.test(src));
   ok('concierge webhook NOT reused', !src.includes('powerplatform.com'));
   ok('Teams webhook still unset', /var TEAMS_WEBHOOK_URL = '';/.test(src));
+}
+
+// The page ships with ONE placeholder Payment Link reused for all three plans. Both facts are
+// temporary and both are dangerous if they reach traffic, so they are pinned here: when the real
+// per-plan links land, these assertions fail and force someone to look at this section.
+console.log('\n— the shipped Stripe link is a flagged placeholder —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const urls = [...new Set(src.match(/https:\/\/buy\.stripe\.com\/[A-Za-z0-9_]+/g) || [])];
+  ok('exactly one Stripe link in the source', urls.length === 1, urls);
+  ok('it is declared once and reused, not pasted three times',
+    /var STRIPE_PLACEHOLDER_LINK = 'https:\/\/buy\.stripe\.com\//.test(src)
+    && (src.match(/STRIPE_PLACEHOLDER_LINK,?\s*\/\/ TODO/g) || []).length === 3);
+  ok('the source says out loud that it is live mode, not test mode',
+    /THIS IS A LIVE-MODE LINK/.test(src) && !/buy\.stripe\.com\/test_/.test(src));
+  ok('the source says out loud that the billed price is not the advertised price',
+    /EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES/.test(src));
+  // The observed price is recorded because it is the whole problem: $50/mo is not one of the three
+  // plans, and it is the figure §7 q1 rejected. If the link is repointed, this must be re-checked.
+  ok('the observed $50/mo charge is written down, with the §7 q1 conflict named',
+    /\$50\.00 every month/.test(src) && /\$50 is also the exact figure/.test(src) && /§7 q1 rejected/.test(src));
+  ok('the head comment warns a reader before they open the config',
+    /LIVE-mode\s+link[\s\S]{0,300}must be fixed before\s+this page sees traffic/.test(src));
+  ok('every plan still carries a TODO for its own link',
+    ['Once a Week', 'Twice a Week', 'Weekdays'].every(p => new RegExp(`TODO — real ${p} link`).test(src)));
+
+  // The handoff must still be per-plan-aware even while the link is shared, or the mismatch is
+  // unrecoverable: client_reference_id is the only record of what the visitor actually picked.
+  const w = await boot();                 // the real, shipping config
+  $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  fill(w, { zip: '80202', email: 'placeholder@example.com' });
+  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('the CTA reaches the placeholder link', (w.__nav[0] || '').startsWith(urls[0]), w.__nav[0]);
+  ok('the chosen plan still rides along for reconciliation',
+    /client_reference_id=yg_weekdays_80202_\d+/.test(w.__nav[0] || ''), w.__nav[0]);
+}
+
+// Stripe Checkout refuses to render inside a third-party iframe — it hangs on its loading skeleton.
+// preview.html frames this page, so without a breakout the CTA looks broken to every reviewer.
+console.log('\n— the Stripe handoff escapes the review iframe —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('handoff goes through one helper, not a bare assignment',
+    /function handOffToStripe\(url\)\{/.test(src) && (src.match(/location\.href=url;/g) || []).length === 1);
+  ok('the helper retargets window.top when framed',
+    /if\(window\.top && window\.top!==window\) target=window\.top;/.test(src));
+  ok('a cross-origin embed cannot throw the handoff away',
+    /try\{ if\(window\.top[\s\S]{0,60}\}catch\(e\)\{\}\s*\n\s*target\.location\.href=url;/.test(src));
+  ok('the reason is written down where someone will find it', /WHY THE BREAKOUT/.test(src));
+
+  // jsdom's window.top is non-configurable, so run the helper straight out of the source against
+  // stand-in windows. This is the branch that decides whether a reviewer sees a checkout or a
+  // grey rectangle, so it is worth testing directly rather than inferring from the regexes above.
+  const fnSrc = src.match(/function handOffToStripe\(url\)\{[\s\S]*?\n  \}/)?.[0];
+  ok('the helper source is extractable for direct testing', !!fnSrc);
+  const runHelper = (topKind) => {
+    const nav = { self: [], top: [] };
+    const self = { location: { set href(v) { nav.self.push(v); } } };
+    const parent = { location: { set href(v) { nav.top.push(v); } } };
+    Object.defineProperty(self, 'top',
+      topKind === 'throws' ? { get() { throw new Error('cross-origin'); } }
+      : { value: topKind === 'framed' ? parent : self });
+    new Function('window', fnSrc + '\nreturn handOffToStripe;')(self)('https://checkout.test/x');
+    return nav;
+  };
+  const framed = runHelper('framed');
+  ok('framed: the URL goes to the TOP window', framed.top.length === 1 && framed.self.length === 0, framed);
+  const plain = runHelper('self');
+  ok('unframed: the URL goes to this window', plain.self.length === 1 && plain.top.length === 0, plain);
+  const blocked = runHelper('throws');
+  ok('cross-origin embed: still navigates, does not throw the click away',
+    blocked.self.length === 1 && blocked.top.length === 0, blocked);
 }
 
 // The review harness must never bleed into the thing that ships.
@@ -581,10 +703,26 @@ console.log('\n— review harness is separate from the product —');
   ok('preview frames the real page, not a copy of it', prev.includes('src="index.html"'));
   ok('preview offers all three device sizes',
     ['mobile', 'tablet', 'desktop'].every(d => prev.includes(`data-device="${d}"`)));
-  ok('preview can reach both post-Stripe states',
-    prev.includes('?checkout=success') && prev.includes('?checkout=cancel'));
+  // Sign-up completes on Stripe, so the harness no longer pretends to return from it. Nothing here
+  // should reload the frame either — a device switch must not wipe what a reviewer typed.
+  // Comments may explain what was removed and why; only live code counts as "still there".
+  const prevCode = prev.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  ok('the harness no longer simulates post-payment states',
+    !/data-state/.test(prevCode) && !/\?checkout=/.test(prevCode));
+  ok('no orphaned plan-seeding left behind', !/yg_plan|seedPlan|FALLBACK/.test(prevCode));
+  ok('the frame is never reloaded, so typed input survives a device switch',
+    !/frame\.src\s*=/.test(prev));
+  // The harness must not promise safety it cannot deliver: the CTA now leaves it for a live
+  // checkout. Reinstate a dry-run claim only alongside a test-mode Payment Link.
+  ok('the harness does not claim no card is ever charged', !/no card is ever charged/.test(prev.replace(/<!--[\s\S]*?-->/g, '')));
+  ok('the harness warns that the CTA is live',
+    /Continue to payment&rdquo; is live/.test(prev) && /can take a real payment/.test(prev));
   ok('the device toggle is NOT in the landing page itself', !src.includes('data-device'));
-  ok('the landing page does not reference the harness', !src.includes('preview.html'));
+  // Comments may name the harness — the breakout in handOffToStripe only makes sense if they can.
+  // What must never exist is a real reference: a link, a script, a fetch, a frame.
+  const srcNoComments = src.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  ok('the landing page does not link to, load, or frame the harness', !srcNoComments.includes('preview.html'),
+    srcNoComments.match(/.{0,40}preview\.html.{0,40}/)?.[0]);
   ok('harness is not in deploy/ (only index.html ships)',
     !fs.existsSync(path.join(HERE, '..', 'deploy', 'preview.html')));
 }
