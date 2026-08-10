@@ -184,8 +184,16 @@
       mixpanel.init("1542ee4c0da2b70cf4a08e465a14d3d1", {track_pageview: true});
     }
 
+    /* PRODUCTION HOST GATE.
+       Anything that is not a yourgi.com host is a preview: localhost, file://, the GitHub Pages
+       review link, a Webflow staging domain. Traffic from those is us and our reviewers, not
+       customers, and it must not be mistaken for demand in the one experiment whose entire output
+       is a signup count. Events still fire from previews so the page stays debuggable — they are
+       just tagged test_mode:true so they can be filtered out. Segment is treated more strictly
+       (see below) because identify() creates a real person record. */
+    var YG_IS_PROD = /(^|\.)yourgi\.com$/i.test(location.hostname);
     var mpIsBot = /bot|crawl|spider|headless/i.test(navigator.userAgent);
-    var mpIsTestMode = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+    var mpIsTestMode = !YG_IS_PROD;
     var mpDeviceType = window.innerWidth < 768 ? 'mobile' : 'desktop';
     function trackEvent(name, props) {
       if (mpIsBot) return;
@@ -199,7 +207,17 @@
   analytics.load("kLX6HrP3flHzNRYoyc3meXS5WhGu5N2Z");
   // INTENTIONALLY OMITTED: analytics.page(); — Mixpanel already tracks pageviews on this page.
   }}();
+  /* Segment is gated HARDER than Mixpanel, and deliberately so.
+     identify() does not just log an event — it creates or updates a person record keyed on a real
+     email address, and Segment fans that out to downstream destinations, which can include email
+     tooling. A colleague testing the form on the public review link should not become a contact,
+     and should certainly not receive marketing. Off-production, we log to the console instead so
+     the flow is still verifiable. */
   function sendToSegment(email, traits, eventName, props){
+    if (!YG_IS_PROD) {
+      if (window.console && console.info) console.info('[preview] Segment suppressed:', eventName, email);
+      return;
+    }
     if (!window.analytics || !window.analytics.identify) return;
     window.analytics.identify(email, traits);
     window.analytics.track(eventName, props);

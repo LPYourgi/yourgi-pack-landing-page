@@ -411,6 +411,28 @@ console.log('\n— reset —');
   for (const id of ['restart', 'restart2', 'restart3']) ok(`${id} exists`, !!$(w, id));
 }
 
+// The public review link must not manufacture demand in the experiment's own numbers, and must
+// never turn a reviewer into a Segment person record. Asserted at source level because the
+// harness stubs both analytics libraries out.
+console.log('\n— preview traffic is kept out of production analytics —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('a production host gate exists', /YG_IS_PROD\s*=\s*\/\(\^\|\\\.\)yourgi\\\.com\$\/i\.test\(location\.hostname\)/.test(src));
+  ok('test_mode is driven by that gate, not just localhost', /mpIsTestMode\s*=\s*!YG_IS_PROD/.test(src));
+  ok('test_mode no longer hardcodes localhost only', !/mpIsTestMode\s*=\s*location\.hostname === 'localhost'/.test(src));
+  ok('Segment is suppressed entirely off production', /if \(!YG_IS_PROD\) \{[\s\S]{0,220}?return;/.test(src));
+  ok('the Segment guard sits BEFORE identify()',
+    src.indexOf('if (!YG_IS_PROD)') < src.indexOf('window.analytics.identify(email, traits)'));
+
+  // Sanity-check the regex itself against the hosts that actually matter.
+  const isProd = h => /(^|\.)yourgi\.com$/i.test(h);
+  ok('www.yourgi.com counts as production', isProd('www.yourgi.com'));
+  ok('yourgi.com counts as production', isProd('yourgi.com'));
+  ok('the GitHub Pages review link does NOT', !isProd('lpyourgi.github.io'));
+  ok('localhost does NOT', !isProd('localhost'));
+  ok('a lookalike domain does NOT', !isProd('notyourgi.com'));
+}
+
 console.log('\n— no secrets in page source —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
