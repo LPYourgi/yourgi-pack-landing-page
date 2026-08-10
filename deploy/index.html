@@ -43,8 +43,20 @@
   :root{
     --yellow:#FFBB45; --red:#ED7C59; --plum:#A26191; --field:#D9DFB6;
     --sky:#7FAACD; --bone:#FAF5EA; --black:#000; --navy:#09213C; --line:#e2dccb;
+    /* Brand Sky Blue is approved as a BACKGROUND (with black type). As small text on white it
+       measures 2.46:1 — well under the 4.5:1 WCAG AA needs — so it was failing wherever it was
+       used as an eyebrow or label colour. --sky-ink is a darkened companion for that use only
+       (5.23:1 on white, 4.81:1 on bone). Backgrounds still use --sky.
+       FLAG FOR BRAND: references/visual.md says contrast is unverified; this is one confirmed
+       failure and the derived value needs sign-off. */
+    --sky-ink:#41709B;
+    --muted:#666;      /* replaces #777 — 5.74:1 on white, 5.28:1 on bone */
+    --muted-2:#767676; /* de-emphasised table cells — 4.54:1 on white */
   }
   *{box-sizing:border-box;}
+  /* Available to screen readers, invisible on screen. */
+  .vh{position:absolute!important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
+      clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0;}
   body{margin:0; font-family:'Archivo',system-ui,sans-serif; color:var(--black); background:var(--bone); line-height:1.5;}
   .wrap{max-width:1080px; margin:0 auto; padding:0 20px;}
   h1,h2,h3,.display{font-family:'Oswald',system-ui,sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.01em; line-height:.98; margin:0;}
@@ -53,7 +65,9 @@
   .btn-dark:hover{opacity:.9;}
   .btn-dark:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
   label{font-size:13px; color:#4a4a46; display:block; margin-bottom:5px;}
-  input,select,textarea{width:100%; border:1px solid #cfc8b6; border-radius:8px; padding:0 12px; font-size:15px; font-family:inherit; background:#fff;}
+  /* 16px is not a style choice: iOS Safari zooms the whole page when it focuses an input under
+     16px, which throws the layout sideways mid-form on exactly the device most ad traffic uses. */
+  input,select,textarea{width:100%; border:1px solid #cfc8b6; border-radius:8px; padding:0 12px; font-size:16px; font-family:inherit; background:#fff;}
   input,select{height:44px;}
   textarea{padding:10px 12px; min-height:62px; resize:vertical; line-height:1.4;}
   .req{color:#9a3b1e;}
@@ -63,7 +77,7 @@
   .stepper{display:flex; align-items:center; border:1px solid #cfc8b6; border-radius:8px; background:#fff; overflow:hidden;}
   .stepper button{border:none; background:none; padding:10px 14px; font-size:18px; cursor:pointer; line-height:1;}
   .stepper span{flex:1; text-align:center; font-size:15px; font-weight:600;}
-  .fineprint{font-size:11px; color:#777;}
+  .fineprint{font-size:11.5px; color:var(--muted);}
   /* beta ribbon */
   .beta{background:var(--black); color:var(--bone); font-size:12px; letter-spacing:.02em;}
   .beta .wrap{padding:9px 20px; display:flex; gap:8px; align-items:center; justify-content:center; text-align:center;}
@@ -71,10 +85,10 @@
   /* tier cards */
   .tier-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;}
   .tier{position:relative; border:1px solid #cfc8b6; background:#fff; border-radius:12px; padding:16px 12px 14px; cursor:pointer; font-family:inherit; text-align:left; display:flex; flex-direction:column; gap:6px;}
-  .tier[aria-pressed="true"]{border:2px solid var(--black); background:var(--tint); padding:15px 11px 13px;}
+  .tier[aria-checked="true"]{border:2px solid var(--black); background:var(--tint); padding:15px 11px 13px;}
   .tier-name{font-family:'Oswald',sans-serif; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:.02em;}
   .tier-price{font-family:'Oswald',sans-serif; font-weight:700; font-size:30px; line-height:1;}
-  .tier-price .per{font-family:'Archivo',sans-serif; font-weight:400; font-size:12px; color:#777; letter-spacing:0;}
+  .tier-price .per{font-family:'Archivo',sans-serif; font-weight:400; font-size:12px; color:var(--muted); letter-spacing:0;}
   .tier-blurb{font-size:12px; color:#444; line-height:1.35;}
   /* Per-unit price on each card. Every strong usage-capped subscription (ClassPass, HelloFresh,
      Blue Apron) shows the unit price, because "$149/mo" alone makes the buyer do the division. */
@@ -84,7 +98,7 @@
   .tier-badge{position:absolute; top:-9px; left:12px; background:var(--yellow); border:1px solid var(--black); border-radius:20px; padding:2px 9px; font-family:'Oswald',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.04em;}
   .tier-check{position:absolute; top:8px; right:8px; width:18px; height:18px; display:none;}
   .tier-check svg{width:18px; height:18px; display:block;}
-  .tier[aria-pressed="true"] .tier-check{display:block;}
+  .tier[aria-checked="true"] .tier-check{display:block;}
   .incl{list-style:none; margin:0 0 16px; padding:0; font-size:13px;}
   .incl li{display:flex; gap:8px; align-items:flex-start; margin-bottom:7px; color:#333;}
   .incl li svg{flex:0 0 auto; width:15px; height:15px; margin-top:2px;}
@@ -104,7 +118,7 @@
   section.band{padding:56px 20px;}
   /* how it works */
   .steps .wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
-  .step-num{font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; letter-spacing:.06em; color:var(--sky); text-transform:uppercase; margin-bottom:8px;}
+  .step-num{font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; letter-spacing:.06em; color:var(--sky-ink); text-transform:uppercase; margin-bottom:8px;}
   .steps h3{font-family:'Oswald',sans-serif; font-weight:700; text-transform:none; font-size:19px; margin-bottom:6px;}
   .steps p{font-size:14px; margin:0; color:#333;}
   .steps-head{max-width:1080px; margin:0 auto 32px; padding:0 20px;}
@@ -122,9 +136,11 @@
   .review-card{background:#fff; border:3px solid var(--red); padding:22px; font-size:14px; display:flex; flex-direction:column; gap:16px;}
   .review-top{display:flex; gap:14px; align-items:center;}
   .review-avatar{width:56px; height:56px; border-radius:50%; background:rgba(162,162,162,.7); flex:0 0 auto; object-fit:cover; display:block;}
-  .review-stars{color:#F1B942; letter-spacing:2px; font-size:15px; margin-bottom:4px;}
+  /* #F1B942 measured 1.79:1 on white — under the 3:1 WCAG asks of a meaningful graphic.
+     Darkened, and each rating also carries a visually-hidden text equivalent. */
+  .review-stars{color:#B87D0A; letter-spacing:2px; font-size:15px; margin-bottom:4px;}
   .review-id{font-size:11px;}
-  .review-id .label{font-family:'Oswald',sans-serif; font-weight:600; color:var(--sky); text-transform:uppercase; letter-spacing:.04em; display:block;}
+  .review-id .label{font-family:'Oswald',sans-serif; font-weight:600; color:var(--sky-ink); text-transform:uppercase; letter-spacing:.04em; display:block;}
   .review-id .val{font-size:14px; color:var(--black); display:block; margin-top:2px;}
   .review-divider{border-top:1px solid #000; opacity:.5;}
   .review-quote{font-weight:600; margin:0; line-height:1.4;}
@@ -139,7 +155,7 @@
   table.compare tbody th{font-weight:600; font-size:13.5px; color:#333;}
   table.compare td{text-align:center;}
   table.compare .best{background:#FFF7E4;}
-  table.compare .no{color:#999;}
+  table.compare .no{color:var(--muted-2);}
   /* closing CTA — a long page needs a second door; the top one is off-screen by the FAQ. */
   .closer{background:var(--sky); text-align:center;}
   .closer h2{font-size:34px; margin-bottom:12px;}
@@ -258,16 +274,16 @@
     <div id="signup" class="card">
       <!-- STEP 1: pick a plan + capture what concierge needs to set it up -->
       <div id="step-plan">
-        <h3 style="font-size:18px; margin-bottom:14px;">Pick your routine</h3>
-        <div class="tier-row" id="tiers" role="group" aria-label="Plan">
-          <button class="tier" aria-pressed="false" data-tier="weekly" data-price="99" data-label="Once a Week" style="--tint:#DBEFEF;">
+        <h2 style="font-size:18px; margin-bottom:14px;">Pick your routine</h2>
+        <div class="tier-row" id="tiers" role="radiogroup" aria-label="Choose a plan">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="99" data-label="Once a Week" style="--tint:#DBEFEF;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Once a Week</span>
             <span class="tier-price">$99<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">5 walks a month. For the one day a week you can't get home.</span>
           </button>
-          <button class="tier" aria-pressed="true" data-tier="twice" data-price="149" data-label="Twice a Week" style="--tint:#FFF3D6;">
+          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="149" data-label="Twice a Week" style="--tint:#FFF3D6;">
             <span class="tier-badge">Most picked</span>
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Twice a Week</span>
@@ -275,7 +291,7 @@
             <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">9 walks a month. For the two days you're in the office.</span>
           </button>
-          <button class="tier" aria-pressed="false" data-tier="weekdays" data-price="199" data-label="Weekdays" style="--tint:#F1E9EE;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="199" data-label="Weekdays" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Weekdays</span>
             <span class="tier-price">$199<span class="per">/mo</span></span>
@@ -299,19 +315,19 @@
         <div style="display:flex; gap:12px; margin-bottom:6px;">
           <div style="flex:1;">
             <label for="q-email">Email <span class="req">*</span></label>
-            <input id="q-email" type="email" autocomplete="email" placeholder="you@email.com" aria-required="true">
-            <div class="err-msg" id="e-email">Enter a valid email address.</div>
+            <input id="q-email" type="email" autocomplete="email" placeholder="you@email.com" aria-required="true" aria-describedby="e-email">
+            <div class="err-msg" id="e-email" role="alert">Enter a valid email address.</div>
           </div>
           <div style="flex:1;">
             <label for="q-phone">Phone <span class="req">*</span></label>
-            <input id="q-phone" type="tel" autocomplete="tel" placeholder="(303) 555-0142" aria-required="true">
-            <div class="err-msg" id="e-qphone">Enter a valid 10-digit US phone number.</div>
+            <input id="q-phone" type="tel" autocomplete="tel" placeholder="(303) 555-0142" aria-required="true" aria-describedby="e-qphone">
+            <div class="err-msg" id="e-qphone" role="alert">Enter a valid 10-digit US phone number.</div>
           </div>
         </div>
         <div style="margin-bottom:14px;">
           <label for="q-zip">Zip code <span class="req">*</span></label>
-          <input id="q-zip" type="text" inputmode="numeric" placeholder="80202" aria-required="true" autocomplete="postal-code">
-          <div class="err-msg" id="e-zip">Enter a 5-digit zip.</div>
+          <input id="q-zip" type="text" inputmode="numeric" placeholder="80202" aria-required="true" autocomplete="postal-code" aria-describedby="e-zip">
+          <div class="err-msg" id="e-zip" role="alert">Enter a 5-digit zip.</div>
           <p class="fineprint" style="margin-top:5px;">So we can check we have Pros walking your streets before you pay.</p>
         </div>
 
@@ -412,7 +428,7 @@
       <p>Yourgi Pack is a beta. We're running it to find out whether a monthly plan actually beats booking one walk at a time &mdash; and we'd rather tell you that than pretend it's been around for years.</p>
       <p>What that means for you: your walks are real, your Pro is real and vetted, and the price you sign up at is the price you pay. If we change Yourgi Pack or wind it down, you'll hear from us before your next charge, not after.</p>
       <p>Cancel any month. No contract, no cancellation fee, no phone call required.</p>
-      <p class="fineprint" style="color:#777;">PLACEHOLDER &mdash; Legal and Kai to confirm the wind-down and notice commitments above before launch (&sect;8 gap 5).</p>
+      <p class="fineprint">PLACEHOLDER &mdash; Legal and Kai to confirm the wind-down and notice commitments above before launch (&sect;8 gap 5).</p>
     </div>
   </div>
 </section>
@@ -427,7 +443,7 @@
         <div class="review-top">
           <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f5a3269abf08bdcb2e7_IMG-20250208-WA0004.jpg" alt="">
           <div>
-            <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
             <p class="review-id"><span class="label">Caretaker</span><span class="val">Cody J.</span></p>
             <p class="review-id"><span class="label">Location</span><span class="val">Aurora, CO</span></p>
           </div>
@@ -440,7 +456,7 @@
         <div class="review-top">
           <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f3e249b5c8329a43619_48c3ca1c-5906-4fd2-b808-41bc722f7875-1_all_5225.jpg" alt="">
           <div>
-            <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
             <p class="review-id"><span class="label">Caretaker</span><span class="val">Highline Cat Sitting</span></p>
             <p class="review-id"><span class="label">Location</span><span class="val">Aurora, CO</span></p>
           </div>
@@ -453,7 +469,7 @@
         <div class="review-top">
           <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f252716fe861739854a_Screenshot2026-04-05at16.54.27.png" alt="">
           <div>
-            <div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
             <p class="review-id"><span class="label">Caretaker</span><span class="val">Maeve M.</span></p>
             <p class="review-id"><span class="label">Location</span><span class="val">Denver, CO</span></p>
           </div>
@@ -656,13 +672,30 @@
     }).join('');
   }
 
-  document.querySelectorAll('#tiers .tier').forEach(function(b){
-    b.addEventListener('click',function(){
-      document.querySelectorAll('#tiers .tier').forEach(function(x){x.setAttribute('aria-pressed','false');});
-      b.setAttribute('aria-pressed','true');
-      state.tier=b.dataset.tier; state.price=+b.dataset.price; state.label=b.dataset.label;
-      renderBenefits();
-      trackEvent('Plan Selected',{plan_tier:state.tier,plan_price:state.price});
+  /* Radio-group behaviour. A roving tabindex means Tab moves past the whole group in one press
+     (rather than through all three), and arrow keys move between the options — which is what a
+     keyboard or screen-reader user expects from "choose one", and what aria-checked promises. */
+  var tiers=function(){return [].slice.call(document.querySelectorAll('#tiers .tier'));};
+  function selectTier(b,focus){
+    tiers().forEach(function(x){
+      var on = x===b;
+      x.setAttribute('aria-checked',on?'true':'false');
+      x.tabIndex = on ? 0 : -1;
+    });
+    state.tier=b.dataset.tier; state.price=+b.dataset.price; state.label=b.dataset.label;
+    renderBenefits();
+    if(focus) b.focus();
+    trackEvent('Plan Selected',{plan_tier:state.tier,plan_price:state.price});
+  }
+  tiers().forEach(function(b,i){
+    b.addEventListener('click',function(){selectTier(b,false);});
+    b.addEventListener('keydown',function(e){
+      var list=tiers(), n=list.length, next=null;
+      if(e.key==='ArrowRight'||e.key==='ArrowDown') next=list[(i+1)%n];
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp') next=list[(i-1+n)%n];
+      else if(e.key==='Home') next=list[0];
+      else if(e.key==='End') next=list[n-1];
+      if(next){e.preventDefault(); selectTier(next,true);}
     });
   });
 
@@ -720,7 +753,16 @@
   submitErr.textContent="That didn't send. Give it one more try.";
   $('to-checkout').insertAdjacentElement('afterend',submitErr);
 
-  function show(id){['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});$(id).classList.remove('hidden');}
+  function show(id){
+    ['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});
+    var step=$(id);
+    step.classList.remove('hidden');
+    /* Focus the new panel so the change is announced and the keyboard lands somewhere sensible. */
+    if(id!=='step-plan'){
+      step.setAttribute('tabindex','-1');
+      try{step.focus({preventScroll:true});}catch(e){step.focus();}
+    }
+  }
 
   function validPhone(v){var d=v.replace(/\D/g,'');if(d.length===11&&d[0]==='1')d=d.slice(1);return /^[2-9]\d{2}[2-9]\d{6}$/.test(d);}
   $('q-phone').addEventListener('input',function(){
@@ -732,7 +774,7 @@
     else if(d.length>3)out='('+d.slice(0,3)+') '+d.slice(3);
     else if(d.length>0)out='('+d;
     this.value=out;
-    if(validPhone(this.value)){this.classList.remove('err');$('e-qphone').style.display='none';}
+    if(validPhone(this.value)){this.classList.remove('err');this.setAttribute('aria-invalid','false');$('e-qphone').style.display='none';}
   });
   $('q-phone').addEventListener('blur',function(){
     if(this.value&&!validPhone(this.value)){this.classList.add('err');$('e-qphone').style.display='block';}
@@ -740,12 +782,12 @@
 
   $('q-zip').addEventListener('input',function(){
     this.value=this.value.replace(/\D/g,'').slice(0,5);
-    if(/^\d{5}$/.test(this.value)){this.classList.remove('err');$('e-zip').style.display='none';}
+    if(/^\d{5}$/.test(this.value)){this.classList.remove('err');this.setAttribute('aria-invalid','false');$('e-zip').style.display='none';}
   });
 
   function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}
   $('q-email').addEventListener('input',function(){
-    if(validEmail(this.value)){this.classList.remove('err');$('e-email').style.display='none';}
+    if(validEmail(this.value)){this.classList.remove('err');this.setAttribute('aria-invalid','false');$('e-email').style.display='none';}
   });
   $('q-email').addEventListener('blur',function(){
     if(this.value&&!validEmail(this.value)){this.classList.add('err');$('e-email').style.display='block';}
@@ -772,13 +814,22 @@
     var btn=this, ok=true, email=$('q-email'), phone=$('q-phone'), zip=$('q-zip'), badFields=[];
     trackEvent('Pack Checkout Clicked',{plan_tier:state.tier,plan_price:state.price});
 
-    if(!validEmail(email.value)){email.classList.add('err');$('e-email').style.display='block';ok=false;badFields.push('email');}
-    else{email.classList.remove('err');$('e-email').style.display='none';}
-    if(!validPhone(phone.value)){phone.classList.add('err');$('e-qphone').style.display='block';ok=false;badFields.push('phone');}
-    else{phone.classList.remove('err');$('e-qphone').style.display='none';}
-    if(!/^\d{5}$/.test(zip.value)){zip.classList.add('err');$('e-zip').style.display='block';ok=false;badFields.push('zip');}
-    else{zip.classList.remove('err');$('e-zip').style.display='none';}
-    if(!ok){trackEvent('Validation Failed',{fields:badFields});return;}
+    function mark(el,errId,bad,name){
+      el.classList.toggle('err',bad);
+      el.setAttribute('aria-invalid',bad?'true':'false');
+      $(errId).style.display=bad?'block':'none';
+      if(bad) badFields.push(name);
+      return !bad;
+    }
+    ok = mark(email,'e-email',!validEmail(email.value),'email') && ok;
+    ok = mark(phone,'e-qphone',!validPhone(phone.value),'phone') && ok;
+    ok = mark(zip,'e-zip',!/^\d{5}$/.test(zip.value),'zip') && ok;
+    if(!ok){
+      trackEvent('Validation Failed',{fields:badFields});
+      var first=$({email:'q-email',phone:'q-phone',zip:'q-zip'}[badFields[0]]);
+      if(first) first.focus();   /* land the keyboard on the first thing that needs fixing */
+      return;
+    }
 
     var oom=!inMarket(zip.value);
     submitErr.style.display='none';
@@ -828,12 +879,13 @@
   };
 
   function resetForm(){
-    document.querySelectorAll('#tiers .tier').forEach(function(b){
+    tiers().forEach(function(b){
       var isDefault=b.dataset.tier===DEFAULT_TIER;
-      b.setAttribute('aria-pressed',isDefault?'true':'false');
+      b.setAttribute('aria-checked',isDefault?'true':'false');
+      b.tabIndex = isDefault ? 0 : -1;
       if(isDefault){state.tier=b.dataset.tier;state.price=+b.dataset.price;state.label=b.dataset.label;}
     });
-    ['q-zip','q-email','q-phone'].forEach(function(id){var el=$(id);el.value='';el.classList.remove('err');});
+    ['q-zip','q-email','q-phone'].forEach(function(id){var el=$(id);el.value='';el.classList.remove('err');el.setAttribute('aria-invalid','false');});
     ['e-zip','e-email','e-qphone'].forEach(function(id){$(id).style.display='none';});
     submitErr.style.display='none';
     renderBenefits();

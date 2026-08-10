@@ -66,8 +66,8 @@ console.log('\n— initial render —');
   const w = await boot();
   ok('title is the Pack page', w.document.title === 'Yourgi Pack | Yourgi', w.document.title);
   ok('three plans rendered', w.document.querySelectorAll('#tiers .tier').length === 3);
-  ok('Twice a Week is the default selection', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-pressed') === 'true');
-  ok('exactly one plan is pressed', w.document.querySelectorAll('#tiers .tier[aria-pressed="true"]').length === 1);
+  ok('Twice a Week is the default selection', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
+  ok('exactly one plan is checked', w.document.querySelectorAll('#tiers .tier[aria-checked="true"]').length === 1);
   ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 4);
   ok('plan step visible, others hidden', vis(w, 'step-plan') && !vis(w, 'step-confirm') && !vis(w, 'step-oom') && !vis(w, 'step-cancel'));
   ok('beta framing is on the page', w.document.querySelector('.beta').textContent.includes('beta'));
@@ -204,8 +204,8 @@ console.log('\n— plan switching —');
 {
   const w = await boot();
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  ok('weekdays becomes pressed', $(w, 'tiers').querySelector('[data-tier="weekdays"]').getAttribute('aria-pressed') === 'true');
-  ok('twice is deselected', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-pressed') === 'false');
+  ok('weekdays becomes checked', $(w, 'tiers').querySelector('[data-tier="weekdays"]').getAttribute('aria-checked') === 'true');
+  ok('twice is deselected', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'false');
   ok('benefits swapped to weekdays content', $(w, 'incl').textContent.includes('daycare'));
   $(w, 'tiers').querySelector('[data-tier="weekly"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('benefits swapped again to weekly (3 items)', w.document.querySelectorAll('#incl li').length === 3);
@@ -404,7 +404,7 @@ console.log('\n— reset —');
   await settle();
   $(w, 'restart').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('back on the plan step', vis(w, 'step-plan'));
-  ok('plan reset to Twice a Week', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-pressed') === 'true');
+  ok('plan reset to Twice a Week', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('fields cleared', ['q-zip', 'q-email', 'q-phone'].every(id => $(w, id).value === ''));
 
   // Every dead-end screen offers a way back.
@@ -414,6 +414,114 @@ console.log('\n— reset —');
 // The public review link must not manufacture demand in the experiment's own numbers, and must
 // never turn a reviewer into a Segment person record. Asserted at source level because the
 // harness stubs both analytics libraries out.
+// WCAG AA. The brand guide states its own contrast is unverified (references/visual.md), so this
+// is the check that was missing. Update the table when a colour changes — a failure here means
+// someone reintroduced text a low-vision user cannot read, on a page that takes money.
+const srgb = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+const lum = h => { const v = h.replace('#', '').match(/../g).map(x => srgb(parseInt(x, 16))); return 0.2126*v[0] + 0.7152*v[1] + 0.0722*v[2]; };
+const contrast = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((m, n) => n - m); return (hi + 0.05) / (lo + 0.05); };
+
+console.log('\n— colour contrast (WCAG AA) —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  const WHITE = '#FFFFFF', BONE = '#FAF5EA', NAVY = '#09213C', YELLOW = '#FFBB45', SKY = '#7FAACD', FIELD = '#D9DFB6';
+  // [what, foreground, background, minimum ratio]
+  const pairs = [
+    ['hero headline on yellow',      '#000000', YELLOW, 3.0],
+    ['hero lede on yellow',          '#000000', YELLOW, 4.5],
+    ['body on bone',                 '#000000', BONE,   4.5],
+    ['field label on bone',          '#4a4a46', BONE,   4.5],
+    ['plan blurb on white',          '#444444', WHITE,  4.5],
+    ['per-month suffix on white',    '#666666', WHITE,  4.5],
+    ['fineprint on bone',            '#666666', BONE,   4.5],
+    ['per-walk price on white',      '#2f6b2b', WHITE,  4.5],
+    ['savings text on field green',  '#2c3a1c', FIELD,  4.5],
+    ['step eyebrow on white',        '#41709B', WHITE,  4.5],
+    ['review label on white',        '#41709B', WHITE,  4.5],
+    ['review stars on white',        '#B87D0A', WHITE,  3.0],
+    ['error message on bone',        '#c0392b', BONE,   4.5],
+    ['required asterisk on bone',    '#9a3b1e', BONE,   4.5],
+    ['muted table cell on white',    '#767676', WHITE,  4.5],
+    ['table body on white',          '#333333', WHITE,  4.5],
+    ['closing CTA copy on sky',      '#000000', SKY,    4.5],
+    ['footer legal on navy',         '#b7ae9e', NAVY,   4.5],
+    ['footer body on navy',          BONE,      NAVY,   4.5],
+  ];
+  let worst = null;
+  for (const [what, fg, bg, min] of pairs) {
+    const r = contrast(fg, bg);
+    if (!worst || r < worst[1]) worst = [what, r];
+    ok(`${what} — ${r.toFixed(2)}:1 (needs ${min})`, r >= min);
+  }
+  console.log(`       tightest passing pair: ${worst[0]} at ${worst[1].toFixed(2)}:1`);
+
+  // The audited values must actually be the ones the page uses.
+  ok('page defines the darkened sky token', src.includes('--sky-ink:#41709B'));
+  ok('brand Sky is no longer used as small text', !/color:var\(--sky\)/.test(src), 'still using --sky for text');
+  // Declarations only — the source comments name the old values on purpose, to explain why they went.
+  const declared = (src.match(/color:\s*#[0-9a-f]{3,6}/gi) || []).map(d => d.split(':')[1].trim().toLowerCase());
+  ok('no low-contrast grey is declared any more',
+    !declared.some(c => ['#777777', '#777', '#999999', '#999', '#f1b942'].includes(c)),
+    declared.filter(c => ['#777777', '#777', '#999999', '#999', '#f1b942'].includes(c)));
+}
+
+console.log('\n— keyboard and screen-reader support —');
+{
+  const w = await boot();
+  const src = fs.readFileSync(PAGE, 'utf8');
+
+  // Choosing one of three plans is a radio group, not three independent toggles.
+  ok('plan picker is a radiogroup', $(w, 'tiers').getAttribute('role') === 'radiogroup');
+  const radios = [...w.document.querySelectorAll('#tiers .tier')];
+  ok('each plan is a radio', radios.every(r => r.getAttribute('role') === 'radio'));
+  ok('no stale aria-pressed left behind', !src.includes('aria-pressed'));
+  ok('roving tabindex — only the checked plan is tabbable',
+    radios.filter(r => r.tabIndex === 0).length === 1);
+  ok('the tabbable one is the checked one',
+    radios.find(r => r.tabIndex === 0)?.getAttribute('aria-checked') === 'true');
+
+  // Arrow keys must move the selection, as aria-checked promises.
+  radios[1].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  ok('ArrowRight moves to the next plan', radios[2].getAttribute('aria-checked') === 'true');
+  radios[2].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  ok('and wraps around to the first', radios[0].getAttribute('aria-checked') === 'true');
+  radios[0].dispatchEvent(new w.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+  ok('End jumps to the last plan', radios[2].getAttribute('aria-checked') === 'true');
+  ok('still exactly one checked after keyboard use',
+    radios.filter(r => r.getAttribute('aria-checked') === 'true').length === 1);
+
+  // Errors have to be announced, not just turn red.
+  ok('every error message is a live region',
+    ['e-email', 'e-qphone', 'e-zip'].every(id => $(w, id).getAttribute('role') === 'alert'));
+  ok('every field points at its error text',
+    [['q-email', 'e-email'], ['q-phone', 'e-qphone'], ['q-zip', 'e-zip']]
+      .every(([f, e]) => $(w, f).getAttribute('aria-describedby') === e));
+
+  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('invalid fields are marked aria-invalid',
+    ['q-email', 'q-phone', 'q-zip'].every(id => $(w, id).getAttribute('aria-invalid') === 'true'));
+  ok('focus lands on the first field needing a fix', w.document.activeElement?.id === 'q-email',
+    w.document.activeElement?.id);
+
+  fill(w, { zip: '80202', email: 'a@b.com' });
+  ok('fixing a field clears aria-invalid', $(w, 'q-email').getAttribute('aria-invalid') === 'false');
+
+  // Ratings are meaningful content, so they cannot live only in a gold glyph.
+  ok('star glyphs are hidden from assistive tech',
+    [...w.document.querySelectorAll('.review-stars')].every(s => s.getAttribute('aria-hidden') === 'true'));
+  ok('each review states its rating as text',
+    (w.document.body.textContent.match(/Rated 5 out of 5/g) || []).length === 3);
+
+  // iOS Safari zooms the page when focusing an input under 16px.
+  ok('inputs are 16px so iOS does not zoom mid-form', /input,select,textarea\{[^}]*font-size:16px/.test(src));
+
+  // Heading order: h1 then h2, no skipped level.
+  const levels = [...w.document.querySelectorAll('h1,h2,h3')].map(h => +h.tagName[1]);
+  ok('starts at a single h1', levels.filter(l => l === 1).length === 1);
+  ok('no heading level is skipped', levels.every((l, i) => i === 0 || l - levels[i - 1] <= 1), levels.join(','));
+}
+
 console.log('\n— preview traffic is kept out of production analytics —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
