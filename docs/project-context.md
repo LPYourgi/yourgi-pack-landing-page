@@ -1,7 +1,10 @@
-# Project Context: Subscription Experiment (working name "Yourgi Prime")
+# Project Context: Subscription Experiment (working name "Yourgi Pack")
 **Date:** 10 August 2026
 **Source:** Team discussion — rough auto-transcribed meeting notes, synthesized. Form: verbal meeting transcript, not a written brief.
-**Version:** 1.0
+**Version:** 1.1
+
+**Decisions since v1.0**
+- **10 Aug 2026 — Name.** The offer is now **Yourgi Pack**. The working name in the source discussion was "Yourgi Prime"; renamed by Lauren. Still a working name, not a brand-approved one — Kai owns final naming (§7 q5).
 
 ---
 
