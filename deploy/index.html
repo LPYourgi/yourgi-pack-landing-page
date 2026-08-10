@@ -672,7 +672,11 @@
         §7 q1 rejected as too low, so this link cannot double as the experiment's price test.
         The selected plan does still ride along in client_reference_id, so a mistaken charge is
         traceable after the fact — but this must be fixed before anyone outside the team sees it. */
-  var STRIPE_PLACEHOLDER_LINK = 'https://buy.stripe.com/28E5kD25J8JpawN1bO2ZO00';
+  var STRIPE_PLACEHOLDER_LINK = '';   /* BLANKED ON THE gh-pages REVIEW BRANCH ONLY.
+     This branch is served publicly so people can look at the page. The link it used to hold
+     was a LIVE-mode $50/mo checkout, so anyone opening the review link could have been charged
+     for real. Empty here means STRIPE_READY is false and the CTA is inert by the page's own
+     guard. The real links belong on the product branch, never on this one. */
   var STRIPE_PAYMENT_LINKS = {
     weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real Once a Week link ($99/mo)
     twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real Twice a Week link ($149/mo)
