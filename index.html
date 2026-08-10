@@ -98,7 +98,12 @@
   .beta strong{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:11px; color:var(--yellow);}
   /* tier cards */
   .tier-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;}
-  .tier{position:relative; border:1px solid #cfc8b6; background:#fff; border-radius:12px; padding:16px 12px 14px; cursor:pointer; font-family:inherit; text-align:left; display:flex; flex-direction:column; gap:6px;}
+  /* color is declared, not inherited, and that is not redundant: .tier is a <button>, and a
+     button's text colour comes from the browser's own stylesheet — black on desktop, the system
+     blue on iOS Safari. Without this, .tier-name and .tier-price (the only descendants that set
+     no colour of their own) rendered blue on iPhones while /mo, the per-walk line and the blurb
+     stayed correct, because those three do declare one. */
+  .tier{position:relative; border:1px solid #cfc8b6; background:#fff; border-radius:12px; padding:16px 12px 14px; cursor:pointer; font-family:inherit; color:var(--black); text-align:left; display:flex; flex-direction:column; gap:6px;}
   .tier[aria-checked="true"]{border:2px solid var(--black); background:var(--tint); padding:15px 11px 13px;}
   .tier-name{font-family:'Oswald',sans-serif; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:.02em;}
   .tier-price{font-family:'Oswald',sans-serif; font-weight:700; font-size:30px; line-height:1;}
