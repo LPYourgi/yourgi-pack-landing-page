@@ -1,0 +1,119 @@
+{
+  "_readme": [
+    "THE THREE PACK PLANS, AS STRIPE OBJECTS. Fresh objects — nothing here reuses or edits Chris Mejia's",
+    "'Yourgi Membership' feasibility test (prod_V19cNesnBYgwPl), which is a different offer and not ours.",
+    "",
+    "This file is the single source of truth for what gets created in Stripe, and it is machine-checked",
+    "against the landing page: test/prototype.test.mjs asserts that every tier key, price and label here",
+    "matches the data-tier / data-price / data-label attributes in index.html. That check exists because",
+    "a mismatch between this file and the page is not a cosmetic bug — it bills someone the wrong price.",
+    "Change a price on the page and this file fails until you change it here too, and vice versa.",
+    "",
+    "Amounts are in CENTS, as Stripe expects. $49.00 is 4900.",
+    "",
+    "STATUS: prices are NOT approved (David owns them, blocking decision #1). Create these in a SANDBOX.",
+    "Every object carries status metadata saying so, so nobody finds them later and assumes otherwise."
+  ],
+
+  "shared": {
+    "currency": "usd",
+    "interval": "month",
+    "product_name_prefix": "Yourgi Pack — ",
+
+    "metadata": {
+      "campaign": "pack-landing-page",
+      "owner": "lauren.palma",
+      "source": "yourgi-pack-landing-page",
+      "status": "DRAFT - experiment, prices not approved"
+    },
+
+    "payment_link": {
+      "submit_type": "subscribe",
+
+      "_phone": "Phone is OPTIONAL on the landing page, so this is where concierge actually gets a number. The page promises a callback within one business day; without this, some paying subscribers arrive unreachable.",
+      "phone_number_collection": { "enabled": true },
+
+      "_billing_address": "auto, not required. The page's stated principle is that every required field before payment costs signups — that's why phone was made optional there. Chris's link used 'required'; if Finance needs it for tax, change it here and say why.",
+      "billing_address_collection": "auto",
+
+      "_redirect": "Substitute the real page URL. The final slug is blocking decision #10, so this defaults to the GitHub Pages review URL — correct for sandbox testing, and one field to change later.",
+      "after_completion": {
+        "type": "redirect",
+        "redirect": { "url": "https://lpyourgi.github.io/yourgi-pack-landing-page/?checkout=success" }
+      },
+
+      "_consent": "The page's beta band promises 'Cancel any month, and we'll tell you before your next charge if anything changes.' A recurring charge should say so before the card is entered, not only in the receipt. Wind-down terms are blocking decision #4 — if Legal narrows that promise, this text and the beta band both change together.",
+      "consent_collection": { "terms_of_service": "required" },
+
+      "custom_text": {
+        "terms_of_service_acceptance": {
+          "message": "This is a monthly plan. It renews automatically and charges this card every month until you cancel. Cancel any month from the link on your receipt; cancellation takes effect at the end of the month you've paid for. Yourgi Pack is a limited beta — we'll tell you before your next charge if anything changes."
+        }
+      }
+    }
+  },
+
+  "plans": [
+    {
+      "tier": "weekly",
+      "label": "Walks",
+      "price_usd": 49,
+      "unit_amount": 4900,
+      "product": {
+        "name": "Yourgi Pack — Walks",
+        "description": "Five walks a month. For the one day a week you can't get home."
+      },
+      "price_nickname": "Pack Walks — $49/mo",
+      "_page_benefits": ["Five walks a month", "One charge a month, cancel any month"]
+    },
+    {
+      "tier": "twice",
+      "label": "Any Five",
+      "price_usd": 99,
+      "unit_amount": 9900,
+      "default_on_page": true,
+      "product": {
+        "name": "Yourgi Pack — Any Five",
+        "description": "Five days or nights a month, used however the month goes."
+      },
+      "price_nickname": "Pack Any Five — $99/mo",
+      "_page_benefits": [
+        "Five days or nights a month",
+        "Spend them on whatever the month needs",
+        "One charge a month, cancel any month"
+      ]
+    },
+    {
+      "tier": "weekdays",
+      "label": "Everything",
+      "price_usd": 399,
+      "unit_amount": 39900,
+      "product": {
+        "name": "Yourgi Pack — Everything",
+        "description": "Unlimited care for a month that won't sit still."
+      },
+      "price_nickname": "Pack Everything — $399/mo",
+      "_page_benefits": [
+        "Unlimited days and nights",
+        "Everything we do, all month",
+        "One charge a month, cancel any month"
+      ],
+
+      "_subsidy_note": [
+        "THIS IS THE UNCAPPED PLAN, and §6's subsidy guardrail is currently missing on it — a month of",
+        "nightly house-sitting for $399 with Pros paid full rate is the exposure §6 names by name.",
+        "index.html's head comment already flags it as needing a real answer before this page takes money.",
+        "",
+        "There is a concrete guardrail available in Stripe itself, and Chris's link already used it:",
+        "restrictions.completed_sessions.limit caps how many people can ever complete checkout on a link.",
+        "Setting it turns 'unbounded exposure' into 'exposure bounded by N subscribers' — which is a real",
+        "answer to §6 rather than a copy change, and it's reversible by raising the number.",
+        "",
+        "Left unset here on purpose: N is a business decision, not mine. Set it before live mode."
+      ],
+      "suggested_live_restriction": {
+        "completed_sessions": { "limit": null }
+      }
+    }
+  ]
+}

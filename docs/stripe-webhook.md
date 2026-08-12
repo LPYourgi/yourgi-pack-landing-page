@@ -142,9 +142,18 @@ Everything below has a live-mode equivalent you can redo in about ten minutes on
 
 ### 1.2 Three recurring Products
 
-One per plan, each **recurring / monthly**. These are what the page currently serves, per the
-internal pricing note of 12 Aug 2026 — read `index.html`'s head comment before typing them in, and
-note that **`README.md` still says $99/$149/$199 and is stale.**
+**The exact objects to create are specified in [`stripe/plans.json`](../stripe/plans.json)** — names,
+descriptions, amounts in cents, metadata, and every Payment Link setting. Build from that file rather
+than from this table, and don't retype values from either into the Dashboard by eye.
+
+That manifest is **machine-checked against the page**: the suite asserts every tier key, price, label
+and product description in it matches `index.html`'s `data-tier` / `data-price` / `data-label` and
+on-page copy. Change one without the other and the tests fail. The check is there because a mismatch
+between the manifest and the page bills someone a price they were never shown, which looks like
+nothing at all until a receipt arrives.
+
+For orientation, these are what the page currently serves, per the internal pricing note of
+12 Aug 2026 — read `index.html`'s head comment before typing them in:
 
 | Plan | Price | What it buys | `data-tier` |
 |---|---|---|---|

@@ -29,6 +29,8 @@ paying.
   Power Automate flow, and how a signup gets verified before staff act on it.
 - `webhook/teams-card-*.json` — the Adaptive Cards that flow posts. Not loaded by the page; they're
   pasted into Power Automate.
+- `stripe/plans.json` — **the three plans as Stripe objects.** What gets created in Stripe, and the
+  only place those values should be typed. A test asserts it matches the page's prices and labels.
 - `docs/project-context.md` — **the authoritative source.** Synthesized from the 10 Aug 2026 team
   discussion. Where this doc and the page disagree, this doc wins and the page is wrong.
 

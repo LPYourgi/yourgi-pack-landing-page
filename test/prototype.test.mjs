@@ -730,6 +730,62 @@ console.log('\n— page script is syntactically valid —');
     [...w.document.querySelectorAll('#tiers [data-unit]')].filter(e => e.textContent.trim() !== '').length === 2);
 }
 
+// THE PAGE AND THE STRIPE MANIFEST MUST NOT DRIFT.
+//
+// stripe/plans.json is what gets created in Stripe. index.html is what the customer is told. If the
+// two disagree, somebody is billed a price they were never shown — the most expensive failure this
+// project has available, and one that looks like nothing at all until a receipt arrives. Neither
+// file is allowed to move without the other.
+console.log('\n— Stripe manifest matches the page —');
+{
+  const w = await boot();
+  const manifest = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'stripe', 'plans.json'), 'utf8'));
+  const onPage = [...w.document.querySelectorAll('#tiers .tier')].map(t => ({
+    tier: t.dataset.tier, price: +t.dataset.price, label: t.dataset.label,
+  }));
+
+  ok('manifest covers every plan on the page', manifest.plans.length === onPage.length,
+    `manifest ${manifest.plans.length}, page ${onPage.length}`);
+  ok('tier keys match, in order',
+    JSON.stringify(manifest.plans.map(p => p.tier)) === JSON.stringify(onPage.map(p => p.tier)),
+    { manifest: manifest.plans.map(p => p.tier), page: onPage.map(p => p.tier) });
+
+  for (const [i, plan] of manifest.plans.entries()) {
+    const page = onPage[i] || {};
+    ok(`${plan.tier}: price matches the page ($${plan.price_usd})`, plan.price_usd === page.price,
+      { manifest: plan.price_usd, page: page.price });
+    ok(`${plan.tier}: label matches the page ("${plan.label}")`, plan.label === page.label,
+      { manifest: plan.label, page: page.label });
+    // Stripe takes cents. A dollars/cents slip here is a 100x billing error.
+    ok(`${plan.tier}: unit_amount is the price in cents`, plan.unit_amount === plan.price_usd * 100,
+      { unit_amount: plan.unit_amount, expected: plan.price_usd * 100 });
+    ok(`${plan.tier}: product description is the page's own blurb`,
+      w.document.body.textContent.includes(plan.product.description), plan.product.description);
+  }
+
+  // The default plan is the one most people buy, so the manifest has to agree with the page on which.
+  const manifestDefault = manifest.plans.find(p => p.default_on_page)?.tier;
+  const pageDefault = w.document.querySelector('#tiers .tier[aria-checked="true"]')?.dataset.tier;
+  ok('manifest and page agree on the default plan', manifestDefault === pageDefault,
+    { manifest: manifestDefault, page: pageDefault });
+
+  // These are the two settings the runbook calls out as easy to forget and costly to miss.
+  ok('phone collection is on (the page made phone optional)',
+    manifest.shared.payment_link.phone_number_collection.enabled === true);
+  ok('after-payment redirect carries ?checkout=success',
+    /\?checkout=success$/.test(manifest.shared.payment_link.after_completion.redirect.url),
+    manifest.shared.payment_link.after_completion.redirect.url);
+
+  // Nothing in our manifest may point at Chris's feasibility-test objects.
+  const raw = fs.readFileSync(path.join(HERE, '..', 'stripe', 'plans.json'), 'utf8');
+  ok('does not reuse the membership-c-test objects',
+    !/prod_V19cNesnBYgwPl|price_1U17JRIgv5bQybH7nXIy7G6O|plink_1U17Jm/.test(
+      raw.replace(/"_readme"[\s\S]*?\],/, '')),
+    'manifest references an object from Chris\'s test');
+  ok('manifest is flagged as unapproved pricing',
+    /prices not approved/i.test(manifest.shared.metadata.status), manifest.shared.metadata.status);
+}
+
 console.log('\n— no secrets in page source —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
