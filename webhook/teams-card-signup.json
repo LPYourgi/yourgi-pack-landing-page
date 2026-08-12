@@ -1,0 +1,105 @@
+{
+  "_comment": [
+    "VERIFIED PACK SIGNUP — paste this into the Power Automate action 'Post adaptive card in a chat or channel'.",
+    "Setup and the surrounding flow: docs/stripe-webhook.md. Fires on checkout.session.completed.",
+    "",
+    "EVERY expression below reads outputs('Session') / body('Verify_event_with_Stripe') — the event as",
+    "RE-FETCHED FROM STRIPE — and never triggerBody(). That is the whole point of the verify step: the",
+    "request body arrived from the open internet, the re-fetched copy came from Stripe. If you repoint",
+    "these at triggerBody() to 'simplify', anyone holding the flow URL can post a fake paid signup into",
+    "the channel and concierge will action it.",
+    "",
+    "'Session' is a Compose action holding body('Verify_event_with_Stripe')?['data']?['object'].",
+    "'Ref' is a Compose action holding coalesce(outputs('Session')?['client_reference_id'], 'yg_unknown_unknown_0')",
+    "— the coalesce matters, because a Payment Link opened directly (shared, bookmarked, forwarded)",
+    "carries no client_reference_id and split() on null fails the run."
+  ],
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "PACK SIGNUP — PAID",
+      "weight": "Bolder",
+      "size": "Medium",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "@{formatNumber(div(float(outputs('Session')?['amount_total']), 100), 'C2', 'en-US')}/mo · @{split(outputs('Ref'), '_')[1]} · ZIP @{split(outputs('Ref'), '_')[2]}",
+      "isSubtle": true,
+      "spacing": "None",
+      "wrap": true
+    },
+    {
+      "_comment": "Empty string in live mode, so this block collapses to nothing. Do not delete it — the day someone runs a test card against the live flow, this is the line that stops a fake onboarding.",
+      "type": "TextBlock",
+      "text": "@{if(body('Verify_event_with_Stripe')?['livemode'], '', '**TEST MODE — no real money moved. Do not contact or onboard this person.**')}",
+      "color": "Attention",
+      "weight": "Bolder",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Plan",
+          "value": "@{split(outputs('Ref'), '_')[1]}"
+        },
+        {
+          "_comment": "Taken from Stripe, never from the plan table. This is what the card was actually charged, which is the only number worth putting in front of staff.",
+          "title": "Charged",
+          "value": "@{formatNumber(div(float(outputs('Session')?['amount_total']), 100), 'C2', 'en-US')} @{toUpper(coalesce(outputs('Session')?['currency'], 'usd'))} / month"
+        },
+        {
+          "title": "Email",
+          "value": "@{coalesce(outputs('Session')?['customer_details']?['email'], 'not provided')}"
+        },
+        {
+          "_comment": "Phone is optional on the landing page, so turn on phone collection in the Payment Link itself — otherwise concierge has no number for some paying subscribers.",
+          "title": "Phone",
+          "value": "@{coalesce(outputs('Session')?['customer_details']?['phone'], 'NOT COLLECTED — get one on the call')}"
+        },
+        {
+          "title": "ZIP",
+          "value": "@{split(outputs('Ref'), '_')[2]}"
+        },
+        {
+          "title": "Mode",
+          "value": "@{if(body('Verify_event_with_Stripe')?['livemode'], 'LIVE', 'TEST')}"
+        },
+        {
+          "title": "Next",
+          "value": "Verified paid by Stripe. Call within 1 business day to set their days and introduce their Pro, then issue the coupon so qualifying bookings zero out."
+        }
+      ]
+    },
+    {
+      "_comment": "A signup whose ZIP is 'unknown' did not come through the form, so it never passed the market gate. That is the one case where the page's promise that we can staff the walks has not been checked.",
+      "type": "TextBlock",
+      "text": "@{if(equals(split(outputs('Ref'), '_')[2], 'unknown'), 'This signup did NOT come through the landing page form — the Payment Link was opened directly, so the ZIP market gate never ran. Confirm we have coverage BEFORE promising a Pro.', '')}",
+      "color": "Attention",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "Stripe event @{body('Verify_event_with_Stripe')?['id']} · @{formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm')} UTC",
+      "isSubtle": true,
+      "size": "Small",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open subscription in Stripe",
+      "url": "@{concat('https://dashboard.stripe.com/', if(body('Verify_event_with_Stripe')?['livemode'], '', 'test/'), 'subscriptions/', coalesce(outputs('Session')?['subscription'], ''))}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open customer",
+      "url": "@{concat('https://dashboard.stripe.com/', if(body('Verify_event_with_Stripe')?['livemode'], '', 'test/'), 'customers/', coalesce(outputs('Session')?['customer'], ''))}"
+    }
+  ]
+}
