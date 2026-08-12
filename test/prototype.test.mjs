@@ -14,7 +14,10 @@ let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { cond ? (pass++, console.log('  ok  ', name)) : (fail++, console.log('  FAIL', name, extra ?? '')); };
 
 // Fresh page per scenario so state never leaks between tests.
-async function boot({ search = '', links = null, webhook = null } = {}) {
+// No `webhook` option any more: the page posts to nothing. fetch is still stubbed below so the
+// suite can assert that — a silent outbound POST from this page is exactly what we're guarding
+// against, and you can only catch it by watching for a call that should never come.
+async function boot({ search = '', links = null } = {}) {
   let html = fs.readFileSync(PAGE, 'utf8');
   // Strip the Mixpanel + Segment loader blocks; we install stubs instead so nothing real fires.
   html = html.replace(/<script type="text\/javascript">[\s\S]*?<\/script>/, `<script>
@@ -33,7 +36,6 @@ async function boot({ search = '', links = null, webhook = null } = {}) {
       : `weekly: '${links}w', twice: '${links}t', weekdays: '${links}d'`;
     html = html.replace(LINKS_BLOCK, `var STRIPE_PAYMENT_LINKS = { ${seeded} };`);
   }
-  if (webhook) html = html.replace("var TEAMS_WEBHOOK_URL = '';", `var TEAMS_WEBHOOK_URL = '${webhook}';`);
   // jsdom's location.href is unforgeable, so swap the redirect for a recorder.
   // The "redirect line intact" assertion below guards against this stub drifting from the source.
   if (!html.includes(NAV_LINE)) throw new Error('redirect line changed — update NAV_LINE in the harness');
@@ -73,7 +75,7 @@ console.log('\n— initial render —');
   ok('three plans rendered', w.document.querySelectorAll('#tiers .tier').length === 3);
   ok('Twice a Week is the default selection', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('exactly one plan is checked', w.document.querySelectorAll('#tiers .tier[aria-checked="true"]').length === 1);
-  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 2);
+  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 3);
   ok('plan step visible, others hidden', vis(w, 'step-plan') && !vis(w, 'step-confirm') && !vis(w, 'step-oom') && !vis(w, 'step-cancel'));
   ok('beta framing is on the page', w.document.querySelector('.beta').textContent.includes('beta'));
 }
@@ -125,18 +127,30 @@ console.log('\n— PRD reconciliation guards —');
 
   ok('no plan claims the Yourgi Guarantee (§8 gap 4 — coverage undetermined)',
     !benefitText.includes('guarantee'));
-  ok('no plan promises overnight, boarding, or house-sitting (§7 q3 — poor fit, excluded)',
-    !/overnight|boarding|house.?sit/.test(benefitText), benefitText);
-  ok('no plan is unlimited (§6 — caps are the subsidy guardrail)',
-    !benefitText.includes('unlimited'), benefitText);
+  /* §7 q3 AND §6 BOTH MOVED on Lauren's pricing note of 12 Aug 2026. $49 buys five walks, $99 buys
+     five days or nights of ANY service, $399 buys the month outright. Two guards used to live here:
+     "no plan promises overnight, boarding, or house-sitting" (§7 q3 leaned toward excluding them)
+     and "no plan is unlimited" (§6 — the cap WAS the subsidy guardrail). Both are now false by
+     design, so asserting them would just fail forever. They are replaced by assertions that pin
+     the new shape and, more importantly, keep the unguarded exposure visible in the suite. */
+  ok('the top plan is unlimited — §6 cap guardrail deliberately given up',
+    /unlimited/i.test(benefitText), benefitText);
+  ok('the unguarded §6 subsidy exposure is written down in the page',
+    /WHAT IS NOW UNGUARDED/.test(src) && /§6/.test(src),
+    'head comment must keep naming the unlimited-plan exposure');
+  ok('overnight care is included on the two plans that cover any service, per the FAQ',
+    /a night away comes out of your plan/i.test($(w, 'faq').textContent));
   // The page must not sell a rollover it hasn't decided on — the FAQ still calls it open (§7 q1).
   ok('no plan promises rollover while the FAQ says rollover is undecided',
     !/roll(over| a day| your day| forward)|carry over/.test(benefitText), benefitText);
   ok('the FAQ still flags rollover as an open decision',
     /walks I don't use/i.test($(w, 'faq').textContent) && $(w, 'faq').textContent.includes('PLACEHOLDER'));
-  ok('every plan states a numeric walk cap',
+  /* Was "every plan states a numeric walk cap". Two plans no longer have a walk cap to state: the
+     $99 plan counts days or nights of anything, and the $399 plan counts nothing. What still has
+     to hold is that each plan says plainly what you get, in words a buyer can check. */
+  ok('every plan states what it holds, in countable words or as unlimited',
     [...w.document.querySelectorAll('#tiers .tier')].length === 3 &&
-    allBenefits.every(b => /\d+\s+walks/i.test(b)), allBenefits);
+    allBenefits.every(b => /five walks|five days or nights|unlimited/i.test(b)), allBenefits);
 
   // The hero previously carried an asterisked Guarantee claim. It must not come back.
   const hero = w.document.querySelector('.hero').textContent;
@@ -163,26 +177,33 @@ console.log('\n— subscription-page conventions —');
 
   // Unit price on every card, so nobody has to divide $99 by 9 in their head.
   const units = [...w.document.querySelectorAll('#tiers [data-unit]')].map(e => e.textContent);
-  ok('every plan card shows a per-walk price', units.every(u => /^\$\d+(\.\d\d)? a walk$/.test(u)), units);
-  ok('per-walk price is right for Once a Week ($49 / 5)', units[0] === '$9.80 a walk', units[0]);
-  ok('per-walk price is right for Twice a Week ($99 / 9)', units[1] === '$11 a walk', units[1]);
+  /* Only the two capped plans have a per-use price. The unlimited plan has no denominator, so its
+     slot is deliberately BLANK — a number there would be invented. That blank is the assertion. */
+  ok('the two capped plans show a per-use price', /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[0]) && /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[1]), units);
+  ok('the unlimited plan shows no per-use price at all', units[2] === '', units[2]);
+  ok('per-use price is right for Walks ($49 / 5 walks)', units[0] === '$9.80 a walk', units[0]);
+  ok('per-use price is right for Any Five ($99 / 5 uses)', units[1] === '$19.80 a visit', units[1]);
 
-  /* THE VALUE LADDER IS INVERTED AS OF THE $49/$99/$399 PRICING. This assertion used to read
-     "per-walk price falls as the plan gets bigger" — every strong usage-capped subscription works
-     that way, and the old $99/$149/$199 ladder did ($19.80 > $16.56 > $14.21). At $399 the top
-     plan is $28.50 a walk, so buying MORE walks now costs more per walk. Weekdays only shows a
-     saving at all because 2 daycare days at the $45 list rate carry it.
-     Pinned here so the inversion is a recorded decision, not something the suite stopped noticing.
-     Flip this back to the falling-ladder check if Weekdays is repriced. */
-  const perWalk = units.map(u => parseFloat(u.slice(1)));
-  ok('per-walk price rises with plan size — ladder inverted, see comment',
-    perWalk[0] < perWalk[1] && perWalk[1] < perWalk[2], units);
-  ok('the top plan costs more per walk than booking one at a time ($25)', perWalk[2] > 25, perWalk[2]);
+  /* THE VALUE LADDER STILL DOES NOT REWARD BUYING MORE. This used to assert the per-walk price
+     falls as the plan grows, which the old $99/$149/$199 ladder did ($19.80 > $16.56 > $14.21).
+     Under $49/$99/$399 the entry plan is the cheapest per use ($9.80) and the middle plan costs
+     twice that ($19.80) for the same count, bought back only by being spendable on a night away
+     rather than a walk. The top plan can't be compared at all — no cap, no unit price.
+     Pinned so the shape of the ladder stays a recorded decision. */
+  const perUse = [parseFloat(units[0].slice(1)), parseFloat(units[1].slice(1))];
+  ok('per-use price rises from the entry plan to the middle plan — see comment',
+    perUse[0] < perUse[1], units);
 
   // Savings vs. booking one at a time — the reason to subscribe at all.
   const save = $(w, 'save-line').textContent;
-  ok('savings callout names a per-walk price and a monthly saving', /\$[\d.]+ a walk/.test(save) && /\$\d+ less a month/.test(save), save);
-  ok('default plan saving is $126 ($225 list − $99)', save.includes('$126 less a month'), save);
+  ok('savings callout names a per-use price and a monthly saving', /\$[\d.]+ a (walk|visit)/.test(save) && /\$\d+ less a month/.test(save), save);
+  /* The default plan is spendable on any service, so its saving is a FLOOR priced at the cheapest
+     known rate, not a figure: 5 uses x $25 = $125 list against $99. It must say "at least", and it
+     must never quote a number that assumes the expensive services. See economics() in the page. */
+  ok('default plan saving is floored at $26 and hedged, not overstated',
+    save.includes('at least') && save.includes('$26 less a month'), save);
+  ok('the floored saving points at the upside instead of inventing it',
+    save.includes('more if you spend it on a night away'), save);
 
   // Comparison table: all three plans visible at once without clicking.
   const rows = [...w.document.querySelectorAll('#cmp-body tr')];
@@ -191,11 +212,19 @@ console.log('\n— subscription-page conventions —');
     $(w, 'cmp-p-weekly').textContent === '$49/mo' && $(w, 'cmp-p-twice').textContent === '$99/mo' && $(w, 'cmp-p-weekdays').textContent === '$399/mo');
   const rowByLabel = l => rows.find(r => r.querySelector('th')?.textContent.includes(l));
   const cells = l => [...rowByLabel(l).querySelectorAll('td')].map(td => td.textContent.trim());
-  ok('walk counts match the plans', JSON.stringify(cells('Walks a month')) === JSON.stringify(['5', '9', '14']), cells('Walks a month'));
-  ok('daycare shown only on the top plan', cells('Daycare days a month')[2] === '2' && cells('Daycare days a month')[0] === '—');
-  ok('table states overnight is booked separately', cells('Overnight').every(c => c.includes('Booked separately')));
-  ok('table and card agree on the per-walk price', cells('Works out at')[1] === units[1], [cells('Works out at')[1], units[1]]);
-  ok('middle plan is highlighted in the table', rowByLabel('Walks a month').querySelectorAll('td.best').length === 1);
+  /* The "Walks a month" and "Daycare days a month" rows are gone — only one plan counts walks now.
+     The table reports a common denominator (days or nights) plus what each plan may be spent on. */
+  ok('counts match the plans, with the top one uncapped',
+    JSON.stringify(cells('Days or nights a month')) === JSON.stringify(['5', '5', 'Unlimited']), cells('Days or nights a month'));
+  ok('coverage widens across the three plans',
+    JSON.stringify(cells('What it covers')) === JSON.stringify(['Walks only', 'Any service', 'Everything we do']), cells('What it covers'));
+  ok('overnight is booked separately only on the walks-only plan',
+    cells('Overnight')[0].includes('Booked separately') && cells('Overnight')[1].includes('Included'), cells('Overnight'));
+  ok('the uncapped plan quotes no per-use price and no saving',
+    cells('Works out at')[2] === '—' && cells('You save')[2] === '—', [cells('Works out at')[2], cells('You save')[2]]);
+  ok('table and card agree on the per-use price', cells('Works out at')[1] === units[1], [cells('Works out at')[1], units[1]]);
+  ok('the mixed plan hedges its saving in the table too', cells('You save')[1].startsWith('at least'), cells('You save')[1]);
+  ok('middle plan is highlighted in the table', rowByLabel('Days or nights a month').querySelectorAll('td.best').length === 1);
 
   // A long page needs a second door.
   ok('closing CTA exists', !!$(w, 'closer-cta'));
@@ -230,12 +259,14 @@ console.log('\n— plan switching —');
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('weekdays becomes checked', $(w, 'tiers').querySelector('[data-tier="weekdays"]').getAttribute('aria-checked') === 'true');
   ok('twice is deselected', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'false');
-  ok('benefits swapped to weekdays content', $(w, 'incl').textContent.includes('daycare'));
+  /* "daycare" used to be the sentinel for top-plan-only content. No plan enumerates daycare now,
+     so the sentinel is "unlimited" — the thing only the top plan may say. */
+  ok('benefits swapped to top-plan content', /unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
   $(w, 'tiers').querySelector('[data-tier="weekly"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('benefits swapped again to weekly (2 items)', w.document.querySelectorAll('#incl li').length === 2);
-  ok('no weekdays copy left behind', !$(w, 'incl').textContent.includes('daycare'));
-  ok('daycare appears only on the top plan (§7 q3)',
-    !$(w, 'incl').textContent.includes('daycare'));
+  ok('no top-plan copy left behind', !/unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
+  ok('only the top plan says unlimited — the entry plan is walks only',
+    /five walks/i.test($(w, 'incl').textContent) && !/unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
   ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 399));
 }
 
@@ -268,24 +299,21 @@ console.log('\n— validation —');
   ok('a short zip blocks', vis(w, 'step-plan') && $(w, 'e-zip').style.display === 'block');
 }
 
-// The lead is captured before the Stripe handoff so an abandoned checkout still tells us who
-// was interested. It is NOT a sale — §4 keeps the real sign-up record on the Stripe webhook.
+// The lead is captured before the Stripe handoff so an abandoned checkout still tells us who was
+// interested. It goes to Segment and Mixpanel ONLY — never to a staff channel. It is not a sale,
+// and §4 keeps the staff notification on the Stripe webhook (docs/stripe-webhook.md).
 console.log('\n— lead captured before the Stripe handoff —');
 {
-  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   fill(w, { zip: '80202', email: 'lead@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
   ok('goes to Stripe', w.__nav.length === 1, w.__nav);
-  ok('Teams told once, before the jump', w.__fetches.length === 1);
   ok('Segment identified by email', w.__seg.some(s => s.ev === 'Lead Captured' && s.email === 'lead@example.com'));
   ok('lead flagged in-market', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.out_of_market === false));
-
-  const card = w.__fetches[0].body.attachments[0].content;
-  ok('card is titled CHECKOUT STARTED, not a signup', card.body[0].text === 'PACK CHECKOUT STARTED', card.body[0].text);
-  const status = card.body.find(b => b.type === 'FactSet').facts.find(f => f.title === 'Status').value;
-  ok('card warns this is not yet paid', /NOT yet paid/.test(status), status);
-  ok('card tells staff to confirm in Stripe first', /Confirm the subscription exists in Stripe/.test(status));
+  ok('lead carries the plan', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.plan_tier === 'twice'));
+  ok('captured BEFORE the jump, not after', w.__seg.length > 0 && w.__nav.length === 1);
+  ok('nothing posted to any webhook', w.__fetches.length === 0, w.__fetches);
 }
 
 console.log('\n— phone formatting —');
@@ -323,7 +351,7 @@ console.log('\n— CTA is inert when no Stripe link is configured —');
   ok('no confirmation screen', !vis(w, 'step-confirm'));
   ok('no out-of-market screen', !vis(w, 'step-oom'));
   ok('no navigation to Stripe', w.__nav.length === 0);
-  ok('no Teams post', w.__fetches.length === 0);
+  ok('nothing posted anywhere', w.__fetches.length === 0);
   ok('nothing sent to Segment', w.__seg.length === 0);
   ok('no checkout, lead or signup event tracked',
     !w.__mp.some(([n]) => /Checkout|Lead Captured|Subscription|Submission Failed/.test(n)),
@@ -381,7 +409,7 @@ console.log('\n— every plan routes to its own Stripe link —');
 
 console.log('\n— out of market —');
 {
-  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   fill(w, { zip: '90210', email: 'la@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
@@ -390,10 +418,13 @@ console.log('\n— out of market —');
   ok('copy says no charge was made', $(w, 'step-oom').textContent.includes('not been charged'));
   ok('lead still captured, flagged out_of_market', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.out_of_market === true));
   ok('Out-of-Market Lead Captured tracked', w.__mp.some(([n]) => n === 'Out-of-Market Lead Captured'));
-  const card = w.__fetches[0].body.attachments[0].content;
-  ok('Teams card flagged out-of-area', card.body[0].text === 'OUT-OF-AREA PACK INTEREST', card.body[0].text);
-  const status = card.body.find(b => b.type === 'FactSet').facts.find(f => f.title === 'Status').value;
-  ok('card tells staff not to enroll or charge', /do NOT attempt to enroll or charge/.test(status), status);
+  ok('no webhook post for a refused sale', w.__fetches.length === 0, w.__fetches);
+  // A refused sale is a dead end the visitor can come back from, so the CTA has to be usable again.
+  // This used to be handled by a .finally() on the Teams post; now the button is only parked on the
+  // one path that actually leaves the page.
+  ok('CTA not left parked mid-submit',
+    $(w, 'to-checkout').textContent === 'Continue to payment' && !$(w, 'to-checkout').hasAttribute('disabled'),
+    $(w, 'to-checkout').textContent);
 }
 
 console.log('\n— market gate coverage —');
@@ -414,34 +445,62 @@ console.log('\n— market gate coverage —');
   }
 }
 
-console.log('\n— Teams card contents —');
+// THE PAGE NOTIFIES NOBODY, AND THAT IS THE DESIGN.
+//
+// The staff notification lives on a Stripe webhook (docs/stripe-webhook.md), which fires only after
+// Stripe has taken the money. This page fires before it, so the most it could ever say is "someone
+// reached checkout" — and a channel mixing that with real payments is a channel where concierge
+// onboards and coupons somebody who never paid.
+//
+// The second reason is a leak: a Power Automate URL carries its own SAS token and this file is
+// public page source. Anyone holding it can post fake signups into the channel. So both the absence
+// of the post and the absence of a URL are pinned here.
+console.log('\n— the page posts to no channel of its own —');
 {
-  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   fill(w, { zip: '80202', email: 'hook@example.com', phone: '3035550142' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('posts once', w.__fetches.length === 1);
-  const facts = w.__fetches[0].body.attachments[0].content.body.find(b => b.type === 'FactSet').facts;
-  const get = t => facts.find(f => f.title === t)?.value;
-  ok('card carries the plan', get('Plan') === 'Weekdays ($399/mo)', get('Plan'));
-  ok('card carries email', get('Email') === 'hook@example.com');
-  ok('card carries formatted phone', get('Phone') === '(303) 555-0142', get('Phone'));
-  ok('card carries zip', get('ZIP') === '80202');
-  ok('card no longer carries dogs or schedule', !get('Dogs') && !get('Days wanted'));
+  ok('a completed submit posts nothing anywhere', w.__fetches.length === 0, w.__fetches);
+  ok('but the lead is still recorded', w.__seg.some(s => s.ev === 'Lead Captured' && s.props.plan_tier === 'weekdays'));
+  ok('and the visitor still reaches Stripe', w.__nav.length === 1, w.__nav);
+
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('no TEAMS_WEBHOOK_URL config left in the page', !/TEAMS_WEBHOOK_URL/.test(src));
+  ok('no notifyTeams function left in the page', !/notifyTeams/.test(src));
+  ok('no Power Automate endpoint committed',
+    !/powerplatform\.com|logic\.azure\.com|powerautomate\.com|webhook\.office\.com/.test(src));
+  ok('no Adaptive Card built client-side', !/vnd\.microsoft\.card\.adaptive/.test(src));
+  ok('the page makes no outbound POST at all', !/fetch\s*\(/.test(src));
+  ok('the reason is written down where someone will find it',
+    /STRIPE WEBHOOK/.test(src) && /docs\/stripe-webhook\.md/.test(src));
+  // The lead signal must survive the removal — dropping the Teams post was not meant to cost us
+  // the abandonment data, which for a willingness-to-pay test is most of the signal.
+  ok('captureLead still feeds Segment', /function captureLead\(oom\)\{/.test(src) && /'Lead Captured'/.test(src));
 }
 
-console.log('\n— webhook failure surfaces an error —');
+// With the outbound POST gone, nothing in this handler can fail at runtime — so the error paths that
+// existed to cover a failed post (response_not_ok, network_error) are gone too, rather than being
+// left in place as unreachable branches that imply a failure mode the page no longer has.
+// What remains is the missing-link hard stop. It is deliberately unreachable while STRIPE_READY
+// demands all three links, so it is pinned at source level: it exists to make sure a future config
+// slip can never be mistaken for a completed signup.
+console.log('\n— the only failure path left is a missing Stripe link —');
 {
-  const w = await boot({ links: 'https://buy.stripe.com/test_', webhook: 'https://example.test/hook' });
-  w.fetch = () => Promise.resolve({ ok: false });
-  fill(w, { zip: '80202', email: 'fail@example.com' });
-  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  await settle();
-  ok('stays on the plan step', vis(w, 'step-plan'));
-  ok('no Segment lead on failure', w.__seg.length === 0);
-  ok('Submission Failed tracked', w.__mp.some(([n, p]) => n === 'Submission Failed' && p.reason === 'response_not_ok'));
-  ok('button re-enabled', !$(w, 'to-checkout').hasAttribute('disabled'));
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('missing-link stop still present',
+    /reason:'missing_payment_link'/.test(src) && /if\(!url\)\{/.test(src));
+  ok('it shows the error instead of a confirmation screen',
+    /reason:'missing_payment_link'\}\);\s*submitErr\.style\.display='block';/.test(src));
+  ok('no dead post-failure branches left behind',
+    !/response_not_ok/.test(src) && !/network_error/.test(src));
+  ok('no promise chain left around a call that no longer exists',
+    !/\.then\(function\(r\)\{/.test(src) && !/\.finally\(/.test(src));
+  // The button is parked only on the path that leaves the page, and never un-parked, so a second
+  // click cannot open a second checkout session while the navigation is in flight.
+  ok('the CTA is parked only on the way to Stripe',
+    /handOffToStripe\(url\);/.test(src) && !/btn\.removeAttribute\('disabled'\)/.test(src));
 }
 
 console.log('\n— return from Stripe —');
@@ -623,8 +682,10 @@ console.log('\n— page script is syntactically valid —');
   // An unescaped apostrophe inside a single-quoted JS string is the specific way this breaks.
   const w = await boot();
   ok('the script actually ran (benefits rendered)', w.document.querySelectorAll('#incl li').length > 0);
+  /* Only the two capped plans get a unit price — the unlimited plan's slot is meant to stay empty,
+     so "every slot filled" is no longer the smoke test. Two filled is. */
   ok('the script actually ran (prices computed)',
-    [...w.document.querySelectorAll('#tiers [data-unit]')].every(e => e.textContent.trim() !== ''));
+    [...w.document.querySelectorAll('#tiers [data-unit]')].filter(e => e.textContent.trim() !== '').length === 2);
 }
 
 console.log('\n— no secrets in page source —');
@@ -636,7 +697,9 @@ console.log('\n— no secrets in page source —');
   ok('no publishable key — card entry stays on Stripe', !/pk_(live|test)_/.test(src));
   ok('no Stripe.js on the page', !/js\.stripe\.com/.test(src));
   ok('concierge webhook NOT reused', !src.includes('powerplatform.com'));
-  ok('Teams webhook still unset', /var TEAMS_WEBHOOK_URL = '';/.test(src));
+  // The restricted key the Stripe webhook flow uses lives in Power Automate, never here.
+  ok('no restricted Stripe key', !/rk_(live|test)_/.test(src));
+  ok('no Stripe webhook signing secret', !/whsec_/.test(src));
 }
 
 // The page ships with ONE placeholder Payment Link reused for all three plans. Both facts are

@@ -23,9 +23,18 @@
     The top plan is $399, which works out to $28.50 a walk — more than the $25 pay-as-you-go
     walk rate in LIST_RATES, so its "you save" figure rests entirely on the 2 daycare days.
     Needs David and §7 q1 revisited before this goes to paid traffic.
-  - Every plan is CAPPED, not unlimited. The cap is the subsidy guardrail §6 asks for.
-  - Dog walking is the spine of all three plans; daycare appears only at the top (§7 q3).
-    Boarding and house-sitting are OUT, and the FAQ says so plainly.
+  - THE TOP PLAN IS UNLIMITED, and boarding and house-sitting are IN on the top two plans.
+    Both of those reverse what this page used to say, on Lauren's internal pricing note of
+    12 Aug 2026: $49 buys five walks, $99 buys five days or nights of anything, $399 buys the
+    month outright. This RESOLVES §7 q1 and q2 rather than overriding them — q1 had "a flat
+    'unlimited' price" and "packages that cap usage, up to 4-5 uses" as the two live options and
+    this picks both, one per tier; q2's option (a) is exactly this walking-to-everything ladder.
+    §7 q3's lean ("overnight likely excluded") is what got reversed.
+    WHAT IS NOW UNGUARDED: §6 wants guardrails so a flat fee can't be spent on disproportionately
+    expensive services, and says the specific guardrails are undefined. The cap used to BE that
+    guardrail. On the $399 plan there is no longer one — a month of nightly house-sitting is the
+    exposure §6 names, with Pros paid full rate throughout. That needs a real answer before this
+    page takes money, and it is not a copy problem.
   - NO membership-specific Yourgi Guarantee claim appears anywhere on this page. §8 gap 4 says
     coverage is undetermined and legally risky. Do not add one until Legal rules. The
     Guarantee band from the concierge page was REPLACED by an honest beta band.
@@ -39,8 +48,9 @@
     this page sees traffic. Empty the links and the CTA goes inert rather than faking a sale.
   - Sign-up itself finishes on Stripe. This page validates, checks coverage by ZIP, captures the
     lead, then hands off; it never takes a card and never confirms a subscription on its own.
-  - TEAMS_WEBHOOK_URL is empty. It must point at a NEW channel, never the concierge order-form
-    channel (§7 q6).
+  - Staff notifications DO NOT come from this page. They come from a Stripe webhook, so Teams only
+    ever hears about payments Stripe has actually taken — see docs/stripe-webhook.md. Do not add a
+    Power Automate URL back into this file; it is a credential and this file is public.
   - The zip gate is INHERITED from the concierge page and geography is undefined in the PRD
     (§8 gap 8). It is kept because charging someone we cannot staff is the worse failure.
     Confirm the market list before launch.
@@ -359,7 +369,7 @@
            value prop being carried is Connection (one matched Pro), NOT the Guarantee — see head
            comment. Kai still owns the final polish (§7 q5). -->
       <h1>STOP RE-HIRING<br>A STRANGER<br>EVERY WEEK.</h1>
-      <p class="lede">Pick how often your dog goes out. We match you to one Pro who learns the routine &mdash; the gate that sticks, the block they pull toward, the cat two doors down.</p>
+      <p class="lede">Pick how much care your month needs. We match you to one Pro who learns the routine &mdash; the gate that sticks, the block they pull toward, the cat two doors down.</p>
       <p class="lede">Then it just runs. One charge a month, nothing to rebook, cancel any month.</p>
     </div>
 
@@ -368,27 +378,27 @@
       <div id="step-plan">
         <h2 style="font-size:18px; margin-bottom:14px;">Pick your routine</h2>
         <div class="tier-row" id="tiers" role="radiogroup" aria-label="Choose a plan">
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Once a Week" style="--tint:#DBEFEF;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Walks" style="--tint:#DBEFEF;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Once a Week</span>
+            <span class="tier-name">Walks</span>
             <span class="tier-price">$49<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">5 walks a month. For the one day a week you can't get home.</span>
+            <span class="tier-blurb">Five walks a month. For the one day a week you can't get home.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Twice a Week" style="--tint:#FFF3D6;">
+          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Any Five" style="--tint:#FFF3D6;">
             <span class="tier-badge">Most picked</span>
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Twice a Week</span>
+            <span class="tier-name">Any Five</span>
             <span class="tier-price">$99<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">9 walks a month. For the two days you're in the office.</span>
+            <span class="tier-blurb">Five days or nights a month, used however the month goes.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Weekdays" style="--tint:#F1E9EE;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Everything" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Weekdays</span>
+            <span class="tier-name">Everything</span>
             <span class="tier-price">$399<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">14 walks plus 2 daycare days. For a full week back at work.</span>
+            <span class="tier-blurb">Unlimited care for a month that won't sit still.</span>
           </button>
         </div>
 
@@ -489,7 +499,7 @@
 <section class="band" id="compare">
   <div class="wrap" style="max-width:820px;">
     <h2 style="font-size:30px; margin-bottom:6px;">Side by side</h2>
-    <p style="font-size:14px; color:#444; margin:0 0 22px;">Every plan is capped, so there's no surprise at the end of the month. Need more than your plan holds? Book it the normal way.</p>
+    <p style="font-size:14px; color:#444; margin:0 0 22px;">One charge a month, whichever you pick. Need more than your plan holds? Book it the normal way.</p>
     <div class="compare-card">
       <div class="compare-wrap">
         <table class="compare">
@@ -596,7 +606,7 @@
     <!-- NOTE: there is deliberately NO "does the Yourgi Guarantee apply?" item here. We cannot
          answer it yet (§8 gap 4) and raising a question we can't answer is worse than the silence.
          Add it back the day Legal rules — customers will ask either way. -->
-    <div class="faq-item"><h3>Is boarding or overnight care included?</h3><p>No. Yourgi Pack covers walks, and daycare on the Weekdays plan. Overnight stays and house-sitting are booked and paid for the normal way &mdash; they're not part of a plan.</p></div>
+    <div class="faq-item"><h3>Is boarding or overnight care included?</h3><p>On Any Five and Everything, yes &mdash; a night away comes out of your plan the same as a walk does. Walks covers walking only, so book a night the normal way and pay for that night.</p></div>
     <!-- PROPOSED ANSWER, not approved. ClassPass — the closest operator to this model — rolls
          unused credits forward capped at one cycle's worth. It kills the "I'll waste it" objection
          without creating an unbounded liability. Recommended default; needs sign-off (§7 q1). -->
@@ -613,7 +623,7 @@
 <section class="band closer">
   <div class="wrap">
     <h2>Stop arranging it every week.</h2>
-    <p>Pick a routine, and next week's walks are already handled.</p>
+    <p>Pick a routine, and next week is already handled.</p>
     <button class="btn-dark" id="closer-cta">Pick your routine</button>
   </div>
 </section>
@@ -707,21 +717,27 @@
     return !!STRIPE_PAYMENT_LINKS[k];
   });
 
-  /* Where signup notifications post. Deliberately EMPTY. §7 q6 leans toward a NEW dedicated
-     Teams channel, separate from the concierge team's order-form channel — subscription signups
-     are not bookings and must not land in a booking queue. Set a destination (new Power Automate
-     flow -> its own channel) before launch. When empty, the Teams post is skipped and only
-     Segment/Mixpanel fire.
+  /* THERE IS NO TEAMS WEBHOOK ON THIS PAGE, deliberately.
 
-     Note: if the Stripe webhook in §4 ends up posting signups server-side, this client-side post
-     is redundant and should be dropped rather than duplicated. */
-  var TEAMS_WEBHOOK_URL = '';
+     §4 puts the staff notification on a STRIPE WEBHOOK — an event Stripe only sends after it has
+     taken the money. This page cannot know that. The most it can honestly say is "someone reached
+     checkout", and a channel that mixes those two messages is a channel where concierge onboards
+     and coupons somebody who never paid. That is the expensive mistake here, so Teams hears from
+     Stripe and from nobody else.
+
+     The lead signal is not lost: captureLead below still sends it to Segment and Mixpanel, which
+     is where drop-off belongs. See docs/stripe-webhook.md for the flow that posts to Teams.
+
+     Do not reintroduce a webhook URL here. A Power Automate URL carries its own SAS token, this
+     file is public page source, and anyone holding that URL can post fake signups into the
+     channel. A test asserts it hasn't come back. */
 
   /* Benefit bullets shown under the plan row.
      Every plan is CAPPED and walking-led. The caps are not a UI detail — they are the subsidy
      guardrail §6 asks for. An "unlimited" plan at these prices is exactly the exposure the team
-     flagged (someone booking $200/night house-sitting on a flat fee). Do not add an unlimited
-     plan without a separate decision. NO Guarantee bullet — see the head comment.
+     flagged (someone booking $200/night house-sitting on a flat fee). THAT PLAN NOW EXISTS — the
+     $399 tier is unlimited, so this page no longer carries the guardrail it used to. See the head
+     comment; §6 needs a real answer. NO Guarantee bullet — see the head comment.
 
      NO ROLLOVER BULLET either. Rollover is undecided (§7 q1) and the FAQ says so; promising it
      here would make the page contradict itself on the one question most likely to decide whether
@@ -734,9 +750,9 @@
      are dropped here: "We call you to set your days" (setup is self-serve now — see Step 2) and
      "Your slot holds when your Pro fills up" (an unconfirmed service promise, §8 gap 6). */
   var PLAN_BENEFITS = {
-    weekly:   ['5 walks a month', 'The same Pro every week'],
-    twice:    ['9 walks a month', 'The same Pro every week'],
-    weekdays: ['14 walks a month', '2 daycare days a month', 'The same Pro, plus a named backup']
+    weekly:   ['Five walks a month', 'The same Pro every week'],
+    twice:    ['Five days or nights a month', 'Spend them on whatever the month needs', 'The same Pro every week'],
+    weekdays: ['Unlimited days and nights', 'Everything we do, all month', 'The same Pro, plus a named backup']
   };
 
   /* What each plan actually contains, and what those services cost booked one at a time.
@@ -747,11 +763,29 @@
      look: they set the savings figure a customer sees AND they are the clearest read on subsidy
      exposure (§6). If a plan's "you save" number looks alarming, that IS the subsidy — it's not a
      display bug. Check the Weekdays plan against what we pay Pros before anyone signs off. */
-  var LIST_RATES = { walk: 25, daycare: 45 };   // TODO — pay-as-you-go price per walk / per daycare day
+  /* PLACEHOLDER RATES, and now an incomplete set. Walk and daycare are guesses that need David's
+     real numbers (§7 q1). Boarding and house-sitting have NO rate here at all, and the Any Five
+     plan can be spent on them — see the floor logic in economics(). §6's worry is a $200/night
+     house-sitting booking against a flat fee, so that rate is the one that matters most. */
+  var LIST_RATES = { walk: 25, daycare: 45 };   // TODO — real rates, plus boarding + sitting
+
+  /* WHAT EACH PLAN HOLDS. Three different shapes, which is why economics() below is not a single
+     division any more:
+
+       weekly   — 5 walks. Countable, one service, one known rate. The old model.
+       twice    — 5 uses of ANY service, walking through overnight. Countable, but its cash value
+                  depends on which services get used, so there is no single list total.
+       weekdays — unlimited for the month. No cap, therefore no list total and no per-use price.
+
+     The keys are unchanged (weekly / twice / weekdays) even though the plans are no longer
+     weekly / twice-weekly / weekdays. They are load-bearing in three other places — the
+     STRIPE_PAYMENT_LINKS map, the cmp-p-* element ids, and the plan_tier value on every analytics
+     event — so renaming them is a mechanical refactor with real breakage risk, not a copy change.
+     Display names live in data-label. Rename the keys in one deliberate pass or not at all. */
   var PLAN_UNITS = {
-    weekly:   { walks: 5,  daycare: 0 },
-    twice:    { walks: 9,  daycare: 0 },
-    weekdays: { walks: 14, daycare: 2 }
+    weekly:   { walks: 5, daycare: 0 },
+    twice:    { uses: 5, anyService: true },
+    weekdays: { unlimited: true }
   };
 
   /* ========================================================================== */
@@ -765,16 +799,43 @@
   var money=function(n){return '$'+(Math.round(n*100)/100).toFixed(n%1?2:0);};
   var priceOf=function(t){var el=document.querySelector('#tiers [data-tier="'+t+'"]');return el?+el.dataset.price:0;};
 
-  /* The same arithmetic behind the card's unit price, the savings callout, and the table. */
+  /* The same arithmetic behind the card's unit price, the savings callout, and the table.
+
+     THE SAVINGS CLAIM MUST NEVER OVERSTATE. It is a number about money on a page that takes money,
+     so each plan shape is handled on its own terms rather than forced through one division:
+
+       Countable, one service (weekly) — exact. list total = walks x walk rate.
+       Countable, any service (twice) — the customer decides the mix, so the value is a RANGE, not
+         a figure. We floor it at the CHEAPEST known service rate, which is the least the plan can
+         possibly be worth, and the callout says "at least". Spent on overnight care the real
+         saving is far larger; understating is the safe direction, and it is honest either way.
+       Unlimited (weekdays) — there is no cap, so there is no list total and no per-use price.
+         Both come back null and every renderer omits them rather than printing a made-up figure.
+         Do NOT invent a denominator here to make the row look complete.
+
+     `exact:false` is the flag renderers use to add the "at least" hedge. */
   function economics(tier){
-    var u=PLAN_UNITS[tier]||{walks:0,daycare:0}, price=priceOf(tier);
-    var listTotal=u.walks*LIST_RATES.walk + u.daycare*LIST_RATES.daycare;
-    return {
-      units:u, price:price, listTotal:listTotal,
-      perWalk: u.walks ? price/u.walks : 0,
-      saves: listTotal-price,
-      pct: listTotal ? Math.round(((listTotal-price)/listTotal)*100) : 0
-    };
+    var u=PLAN_UNITS[tier]||{}, price=priceOf(tier);
+
+    if(u.unlimited){
+      return {units:u, price:price, unlimited:true, uses:null, perUse:null, unitNoun:'',
+              listTotal:null, saves:null, pct:null, exact:false};
+    }
+
+    if(u.anyService){
+      var cheapest=Math.min(LIST_RATES.walk, LIST_RATES.daycare);
+      var floorTotal=u.uses*cheapest;
+      return {units:u, price:price, unlimited:false, uses:u.uses,
+              perUse:price/u.uses, unitNoun:'visit',
+              listTotal:floorTotal, saves:floorTotal-price,
+              pct: floorTotal?Math.round(((floorTotal-price)/floorTotal)*100):0, exact:false};
+    }
+
+    var listTotal=u.walks*LIST_RATES.walk + (u.daycare||0)*LIST_RATES.daycare;
+    return {units:u, price:price, unlimited:false, uses:u.walks+(u.daycare||0),
+            perUse: u.walks?price/u.walks:0, unitNoun:'walk',
+            listTotal:listTotal, saves:listTotal-price,
+            pct: listTotal?Math.round(((listTotal-price)/listTotal)*100):0, exact:true};
   }
 
   function renderBenefits(){
@@ -783,9 +844,18 @@
       return '<li>'+CHECK_SVG+'<span>'+b+'</span></li>';
     }).join('');
     var e=economics(state.tier);
-    $('save-line').innerHTML = e.saves>0
-      ? 'About <em>'+money(e.perWalk)+' a walk</em> &mdash; roughly <em>'+money(e.saves)+' less a month</em> than booking these one at a time.'
-      : 'Same as booking one at a time &mdash; you\'re paying for the routine, not a discount.';
+    if(e.unlimited){
+      /* No cap, so no per-use price and no savings figure exist to quote. Sell what is actually
+         true instead: the ceiling is gone. */
+      $('save-line').innerHTML = 'No cap and nothing to count &mdash; use it as much as the month needs.';
+    } else if(e.saves>0){
+      $('save-line').innerHTML = 'About <em>'+money(e.perUse)+' a '+e.unitNoun+'</em> &mdash; '
+        + (e.exact ? 'roughly ' : 'at least ')
+        + '<em>'+money(e.saves)+' less a month</em> than booking these one at a time'
+        + (e.exact ? '.' : ', more if you spend it on a night away.');
+    } else {
+      $('save-line').innerHTML = 'Same as booking one at a time &mdash; you\'re paying for the routine, not a discount.';
+    }
   }
 
   /* Per-walk price on every card, so the buyer never has to divide. */
@@ -793,7 +863,9 @@
     document.querySelectorAll('#tiers .tier').forEach(function(b){
       var slot=b.querySelector('[data-unit]'); if(!slot) return;
       var e=economics(b.dataset.tier);
-      slot.textContent = e.perWalk ? money(e.perWalk)+' a walk' : '';
+      /* Blank on the unlimited plan — dividing by no cap has no answer, and a plausible-looking
+         number here would be invented. The blurb carries that card instead. */
+      slot.textContent = e.perUse ? money(e.perUse)+' a '+e.unitNoun : '';
     });
   }
 
@@ -811,21 +883,29 @@
     });
     /* cls marks a row's role: cmp-money is the value argument, cmp-rule opens the
        what's-included group with a heavier line. */
+    /* ROWS FOLLOW THE PLAN SHAPES, not a single unit type. "Days or nights a month" is the honest
+       common denominator now that one plan counts walks, one counts any service, and one counts
+       nothing. Every cell that would need a number the plan does not have prints an em dash. */
     var rows=[
-      {label:'Walks a month',
-       val:function(e){return String(e.units.walks);}},
-      {label:'Daycare days a month',
-       val:function(e){return e.units.daycare?String(e.units.daycare):'<span class="no">&mdash;</span>';}},
+      {label:'What it covers',
+       val:function(e){return e.unlimited ? 'Everything we do'
+                            : e.units.anyService ? 'Any service' : '<span class="no">Walks only</span>';}},
+      {label:'Days or nights a month',
+       val:function(e){return e.unlimited ? 'Unlimited' : String(e.uses);}},
       {label:'Works out at', cls:'cmp-money',
-       val:function(e){return e.perWalk?money(e.perWalk)+' a walk':'&mdash;';}},
+       val:function(e){return e.perUse?money(e.perUse)+' a '+e.unitNoun:'<span class="no">&mdash;</span>';}},
       {label:'You save vs. one at a time', cls:'cmp-money',
-       val:function(e){return e.saves>0?money(e.saves)+' <span class="pct">('+e.pct+'%)</span>':'<span class="no">&mdash;</span>';}},
+       val:function(e){
+         if(e.saves===null||e.saves<=0) return '<span class="no">&mdash;</span>';
+         /* "At least" on the mixed plan — the floor, never the ceiling. See economics(). */
+         return (e.exact?'':'at least ')+money(e.saves)+' <span class="pct">('+e.pct+'%)</span>';
+       }},
       {label:'One matched Pro', cls:'cmp-rule',
        val:function(){return CMP_YES;}},
       {label:'Named backup Pro',
        val:function(e,t){return t==='weekdays'?CMP_YES:CMP_NO;}},
       {label:'Overnight &amp; boarding',
-       val:function(){return '<span class="no">Booked separately</span>';}}
+       val:function(e){return e.units.walks ? '<span class="no">Booked separately</span>' : CMP_YES;}}
     ];
     $('cmp-body').innerHTML=rows.map(function(r){
       var cells=order.map(function(t){
@@ -891,41 +971,25 @@
   var MARKET_ZIPS=[733,885];
   function inMarket(zip){var p=+zip.slice(0,3);return MARKET_ZIPS.indexOf(p)>-1||MARKET_RANGES.some(function(r){return p>=r[0]&&p<=r[1];});}
 
-  /* Posts the captured lead to a Teams channel via Power Automate.
+  /* Records the lead in the analytics tools. Nothing here notifies staff — see the note above.
 
-     IMPORTANT: this fires BEFORE payment, so a card here means "someone reached checkout", NOT
-     "someone paid". §4 puts the real sign-up notification on a STRIPE WEBHOOK, and Stripe stays
-     the source of truth for who actually subscribed. The card says so in as many words, because
-     the failure mode is concierge onboarding somebody who never completed checkout.
+     This fires BEFORE payment, so it means "someone reached checkout", NOT "someone paid". It is
+     still worth firing: a visitor who abandons on Stripe's hosted page never appears in Stripe at
+     all, and for an experiment measuring willingness to pay, that drop-off is part of the answer.
+     It just isn't news a staff channel can act on.
 
-     Resolves immediately when no webhook is configured, so the rest of the flow still runs. */
-  function notifyTeams(oom){
-    if(!TEAMS_WEBHOOK_URL) return Promise.resolve({ok:true,skipped:true});
-    var payload={
-      type:'message',
-      attachments:[{
-        contentType:'application/vnd.microsoft.card.adaptive',
-        content:{
-          '$schema':'http://adaptivecards.io/schemas/adaptive-card.json',
-          type:'AdaptiveCard', version:'1.4',
-          body:[
-            {type:'TextBlock',text:oom?'OUT-OF-AREA PACK INTEREST':'PACK CHECKOUT STARTED',weight:'Bolder',size:'Medium'},
-            {type:'TextBlock',text:state.label+' in '+$('q-zip').value+(oom?' — no coverage, no payment taken':' — $'+state.price+'/mo, sent to Stripe'),isSubtle:true,spacing:'None',wrap:true},
-            {type:'FactSet',facts:[
-              {title:'Plan',value:state.label+' ($'+state.price+'/mo)'},
-              {title:'Email',value:$('q-email').value},
-              {title:'Phone',value:$('q-phone').value},
-              {title:'ZIP',value:$('q-zip').value},
-              {title:'Status',value:oom
-                ?'Outside coverage. Log as future interest — do NOT attempt to enroll or charge.'
-                :'Sent to Stripe — NOT yet paid. Confirm the subscription exists in Stripe before onboarding or issuing a coupon.'}
-            ]},
-            {type:'TextBlock',text:'Submitted '+new Date().toISOString()+' via the Pack landing page',isSubtle:true,size:'Small',wrap:true}
-          ]
-        }
-      }]
+     Synchronous on purpose. There is no request left to fail here, so there is no failure state to
+     invent — analytics.js owns its own queueing and retries. */
+  function captureLead(oom){
+    var traits={
+      email:$('q-email').value,
+      phone:$('q-phone').value,
+      zip:$('q-zip').value,
+      source:'webflow_marketing_site',
+      form_type:'subscription_landing_page'
     };
-    return fetch(TEAMS_WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    sendToSegment(traits.email,traits,'Lead Captured',
+      Object.assign({},traits,{plan_tier:state.tier,plan_price:state.price,out_of_market:oom}));
   }
 
   var submitErr=document.createElement('div');
@@ -1036,49 +1100,39 @@
 
     var oom=!inMarket(zip.value);
     submitErr.style.display='none';
-    var prevText=btn.textContent;
+
+    /* Capture BEFORE handing off to Stripe. Someone who abandons on Stripe's page still tells us
+       they were interested and in which plan — for an experiment measuring willingness to pay,
+       that drop-off is part of the answer. It is NOT a sale; see captureLead. */
+    captureLead(oom);
+
+    if(oom){
+      /* Refused sale. Captured, told honestly, never sent to Stripe. */
+      trackEvent('Out-of-Market Lead Captured',{plan_tier:state.tier,book_zip_code:zip.value});
+      show('step-oom');
+      return;
+    }
+
+    var url=checkoutUrl(email.value, zip.value);
+    if(!url){
+      /* Unreachable while STRIPE_READY requires all three links — kept as a hard stop so that a
+         future config slip can never be mistaken for a completed signup. */
+      trackEvent('Submission Failed',{plan_tier:state.tier,reason:'missing_payment_link'});
+      submitErr.style.display='block';
+      return;
+    }
+
+    /* Park the button only now, and do not un-park it. Every path above this line is synchronous
+       and hands the visitor back a working form; from here the tab is leaving for Stripe, and the
+       one thing left worth preventing is a second click opening a second checkout session while
+       the navigation is still in flight. */
     btn.textContent='One sec...';
     btn.setAttribute('disabled','');
     btn.style.pointerEvents='none';
 
-    /* Capture BEFORE handing off to Stripe. Someone who abandons on Stripe's page still tells us
-       they were interested and in which plan — for an experiment measuring willingness to pay,
-       that drop-off is part of the answer. It is NOT a sale; see the note on notifyTeams. */
-    notifyTeams(oom).then(function(r){
-      if(!(r&&r.ok)){
-        trackEvent('Submission Failed',{plan_tier:state.tier,reason:'response_not_ok'});
-        submitErr.style.display='block';
-        return;
-      }
-      var traits={email:email.value,phone:phone.value,zip:zip.value,source:'webflow_marketing_site',form_type:'subscription_landing_page'};
-      sendToSegment(email.value,traits,'Lead Captured',Object.assign({},traits,{plan_tier:state.tier,plan_price:state.price,out_of_market:oom}));
-
-      if(oom){
-        /* Refused sale. Captured, told honestly, never sent to Stripe. */
-        trackEvent('Out-of-Market Lead Captured',{plan_tier:state.tier,book_zip_code:zip.value});
-        show('step-oom');
-        return;
-      }
-
-      var url=checkoutUrl(email.value, zip.value);
-      if(!url){
-        /* Unreachable while STRIPE_READY requires all three links — kept as a hard stop so that a
-           future config slip can never be mistaken for a completed signup. */
-        trackEvent('Submission Failed',{plan_tier:state.tier,reason:'missing_payment_link'});
-        submitErr.style.display='block';
-        return;
-      }
-      trackEvent('Checkout Started',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
-      try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price}));}catch(e){}
-      handOffToStripe(url);
-    }).catch(function(){
-      trackEvent('Submission Failed',{plan_tier:state.tier,reason:'network_error'});
-      submitErr.style.display='block';
-    }).finally(function(){
-      btn.textContent=prevText;
-      btn.removeAttribute('disabled');
-      btn.style.pointerEvents='';
-    });
+    trackEvent('Checkout Started',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
+    try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price}));}catch(e){}
+    handOffToStripe(url);
   };
 
   function resetForm(){
@@ -1100,9 +1154,11 @@
   /* Handles the return trip from Stripe. Set each Payment Link's "After payment" redirect to
      this page with ?checkout=success appended.
      IMPORTANT: this URL parameter is a UI signal only — anyone can type it. It is NOT proof of
-     payment, which is why 'Subscription Started' below is flagged verified:false. Stripe's
-     Dashboard (or the webhook in §4) is the source of truth for who actually subscribed.
-     Do not report signup counts from Mixpanel alone. */
+     payment, which is why 'Subscription Started' below is flagged verified:false. Stripe is the
+     source of truth for who actually subscribed: its Dashboard, and the webhook that posts
+     verified signups into Teams (docs/stripe-webhook.md). Count signups from those, never from
+     this event. It is kept because the gap between it and the verified count is itself useful —
+     that difference is people typing the URL, refreshing, or sharing the link. */
   (function handleReturn(){
     var p=new URLSearchParams(location.search).get('checkout');
     if(!p) return;

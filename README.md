@@ -1,7 +1,7 @@
 # Subscription Landing Page — "Yourgi Pack"
 
 A standalone landing page testing one question: **will people pay a recurring monthly fee for pet care?**
-Visitor picks one of three walking plans, gives us enough to reach them, and **completes a real purchase
+Visitor picks one of three care plans, gives us enough to reach them, and **completes a real purchase
 through Stripe**. Everything after checkout is manual — concierge issues coupons and sets the schedule up
 by hand.
 
@@ -23,35 +23,50 @@ paying.
   shortcuts to the post-Stripe screens. Send reviewers here. **Never goes into Webflow**, and a test
   keeps it out of `deploy/` and out of `index.html`.
 - `deploy/index.html` — identical copy of `index.html`, ready to drop into a static host. A test asserts they match.
-- `test/prototype.test.mjs` — 137 headless checks. See "Testing".
-- `docs/handoff.md` — start-here onboarding, open decisions, and the Stripe wiring steps.
+- `test/prototype.test.mjs` — the headless check suite. See "Testing".
+- `docs/handoff.md` — start-here onboarding and open decisions.
+- `docs/stripe-webhook.md` — **the build runbook for Stripe → Teams.** Products, Payment Links, the
+  Power Automate flow, and how a signup gets verified before staff act on it.
+- `webhook/teams-card-*.json` — the Adaptive Cards that flow posts. Not loaded by the page; they're
+  pasted into Power Automate.
 - `docs/project-context.md` — **the authoritative source.** Synthesized from the 10 Aug 2026 team
   discussion. Where this doc and the page disagree, this doc wins and the page is wrong.
 
 ## What the page offers
 
-Three plans, walking-led, every one of them capped. Prices sit inside the $100–$200 band the team floated
-(§7 q1 called $50/month too low). **The numbers are structurally sound but not approved** — David owns
-pricing.
+Three plans on a coverage ladder: walking only, then any service, then everything uncapped. **The numbers are
+not approved** — David owns pricing, and the note below lists what still has no answer.
 
 | Plan | Price | Included |
 |---|---|---|
-| Once a Week | $49/mo | 5 walks a month |
-| Twice a Week (default) | $99/mo | 9 walks a month |
-| Weekdays | $399/mo | 14 walks + 2 daycare days |
+| Walks | $49/mo | Five walks a month, walking only |
+| Any Five (default) | $99/mo | Five days or nights a month, any service |
+| Everything | $399/mo | Unlimited, all month |
 
-> **Pricing changed 12 Aug 2026** from $99 / $149 / $199 to the figures above, taken from the Figma
-> and confirmed by Lauren. This overrides §7 q1, which rejected $50 as too low and floated
-> $100–$200, and reverses the "no $49 plan" line in `docs/handoff.md`. Two consequences to carry
-> into that conversation with David: the per-walk ladder now **rises** with plan size ($9.80 →
-> $11 → $28.50), and Weekdays at $28.50 a walk is above the $25 pay-as-you-go rate. Re-open §7 q1.
+> **The offer changed shape on 12 Aug 2026**, from three capped walking plans at $99 / $149 / $199 to
+> the coverage ladder above. From Lauren's internal pricing note, via the Figma.
+>
+> **This resolves §7 q1 and §7 q2 rather than overriding them.** q1 had exactly two options live —
+> "a flat 'unlimited' price per service" and "packages that cap usage… up to 4–5 uses" — and this
+> picks both, one per tier. q2's option (a) is this walking-to-everything ladder. What *did* get
+> reversed is §7 q3's lean that overnight care be excluded, and the "no $49 plan" line in
+> `docs/handoff.md`.
+>
+> **Two things now need real answers, and neither is a copy problem:**
+> 1. **§6's subsidy guardrail is gone on the top plan.** The cap *was* the guardrail. A month of
+>    nightly house-sitting on the $399 plan is precisely the exposure §6 names, with Pros paid full
+>    rate throughout. §6 says the specific guardrails are undefined — they now have to be defined.
+> 2. **`LIST_RATES` has no boarding or house-sitting rate**, and the $99 plan can be spent on both.
+>    Until those land, the page floors that plan's saving at the cheapest known rate and hedges it
+>    (see below). David owns this.
 
 Four structural choices, each traceable to the PRD:
 
-- **Capped, never unlimited.** The cap *is* the subsidy guardrail §6 asks for. An unlimited plan at these
-  prices is exactly the exposure the team flagged — someone booking $200/night house-sitting on a flat fee.
-- **Walking is the spine; daycare only at the top.** §7 q3's lean. Boarding and house-sitting are out, and
-  the FAQ says so in plain words rather than staying quiet about it.
+- **~~Capped, never unlimited.~~ Reversed 12 Aug 2026.** The top plan is unlimited, so the page no longer
+  carries the guardrail §6 asked for. Kept in this list, struck through, because it was a real constraint and
+  its removal is the single biggest open risk on the page — see the pricing note above.
+- **A coverage ladder, not a frequency ladder.** Walking only → any service → everything. §7 q2's option (a).
+  Boarding and overnight are **in** on the top two plans, and the FAQ says so plainly.
 - **No Yourgi Guarantee claim anywhere on the page.** §8 gap 4 says coverage is undetermined and legally
   risky. The concierge page's Guarantee band was replaced with an honest beta band. With the nav gone, the
   only Guarantee text a visitor sees is the unchanged site-wide footer, which claims nothing about plans.
@@ -82,8 +97,9 @@ it answers it for a fraction of the risk.
 
 **Applied to the page:**
 
-- **Per-unit price on every card** ("$11 a walk"). Standard wherever usage is capped — ClassPass,
-  HelloFresh, Blue Apron all do it, because "$99/mo" alone makes the buyer do the division.
+- **Per-unit price on the capped cards** ("$19.80 a visit"). Standard wherever usage is capped — ClassPass,
+  HelloFresh, Blue Apron all do it, because "$99/mo" alone makes the buyer do the division. The uncapped plan
+  shows nothing there, because there is no denominator.
 - **Savings vs. booking one at a time**, in dollars and percent. Concrete dollar amounts beat bare
   percentages.
 - **Side-by-side comparison table** so all three plans are visible at once. In the signup card you can only
@@ -108,29 +124,42 @@ it answers it for a fraction of the risk.
 
 ### ⚠️ The savings row exposed a pricing problem
 
-Making the discount visible doubles as a subsidy check. **The $49 / $99 / $399 pricing moved the exposure
-off the top plan and onto the two cheap ones.** At the placeholder rates:
+Making the discount visible doubles as a subsidy check, and **under the coverage ladder the savings figure
+stops being computable on two of the three plans.** At the placeholder rates:
 
-| Plan | List value | Price | Giveaway | Per walk |
+| Plan | List value | Price | Giveaway | Per use |
 |---|---|---|---|---|
-| Once a Week | $125 | $49 | **$76 (61%)** | $9.80 |
-| Twice a Week | $225 | $99 | **$126 (56%)** | $11.00 |
-| Weekdays | $440 | $399 | $41 (9%) | $28.50 |
+| Walks | $125 (5 × $25) | $49 | **$76 (61%)** | $9.80 a walk |
+| Any Five | **unknown — floored at $125** | $99 | at least $26 (21%) | $19.80 a visit |
+| Everything | **no cap, no list value** | $399 | not quotable | — |
 
-Two things fall out of this that are worth a decision rather than a shrug. **The subsidy is now concentrated
-in the default plan** — Twice a Week is pre-selected and gives away $126/month per subscriber, so the plan
-most people will buy is the most expensive one to serve. And **the value ladder is inverted**: buying more
-walks costs more per walk, and Weekdays at $28.50 is above the $25 pay-as-you-go rate, so a customer who does
-the arithmetic finds the top plan is worse than booking one at a time. It only shows a saving at all because
-2 daycare days at $45 carry it. §5 says the experiment may run underwater deliberately, so this may be
-fine — but it should be a decision someone makes, not an accident of three round numbers. The rates driving
+**Any Five can't be priced against a list total**, because the customer decides the mix — five walks is worth
+$125, five nights of house-sitting is worth several times that, and `LIST_RATES` has no overnight rate at all.
+The page floors it at the cheapest known service and says "at least $26… more if you spend it on a night
+away." That understates deliberately: a savings claim is a claim about money, and the safe direction is down.
+**Everything has no cap, so it has no list value, no per-use price, and no savings figure** — those cells are
+em dashes rather than invented numbers.
+
+Three things fall out of this that are worth a decision rather than a shrug. **The value ladder still doesn't
+reward buying more** — $9.80 a walk on the entry plan against $19.80 a visit on the middle one, for the same
+count; the middle plan is only better if you spend it on something pricier than a walk, which is exactly what
+the page can't yet quantify. **The unlimited plan's exposure is unbounded by construction**, which is §6's
+worry with the guardrail removed. And **the headline saving on the default plan reads as 21%**, the weakest of
+the three, purely because we can't yet price what makes it good. Real boarding and sitting rates would fix the
+third problem and quantify the first two. §5 says the experiment may run underwater deliberately, so this may
+be fine — but it should be a decision someone makes, not an artifact of missing rates. The rates driving
 it live in `LIST_RATES` in `index.html` and need David's real figures.
 
 ## Status
 
-**MVP, not production.** It runs in **dry-run mode** out of the box: no Stripe links are configured, so
-"Continue to payment" captures the lead and shows the confirmation screen without charging anyone. Nothing
-here has been priced, brand-reviewed, or legally approved.
+**MVP, not production.** No Stripe links are configured on this branch, so "Continue to payment" is
+**inert** — it does nothing at all rather than faking a sale. Nothing here has been priced,
+brand-reviewed, or legally approved.
+
+**Staff notifications come from Stripe, not from this page.** The page posts to no channel of its
+own: it captures the lead to Segment and Mixpanel, then hands off. A Stripe webhook is what puts a
+signup into Teams, because Stripe is the only party that knows money actually moved. That flow is
+**specified but not yet built** — see [`docs/stripe-webhook.md`](docs/stripe-webhook.md).
 
 ## Blocking decisions — nothing ships until these land
 
@@ -143,10 +172,11 @@ Full detail in `docs/project-context.md` §7 (Open Questions) and §8 (Gaps). Co
 | 3 | **Guarantee coverage** for subscription bookings. Until this lands, no Guarantee claim goes on the page. | Kai / Legal |
 | 4 | **Wind-down terms** — the beta band promises notice before the next charge. Confirm we can hold that. | Legal / Kai |
 | 5 | **Geography** — the zip gate is inherited, not decided. See below. | Undecided |
-| 6 | **Stripe access provisioning** for Lauren to wire up the plans. | Facilitator |
+| 6 | ~~**Stripe access provisioning** for Lauren.~~ **Granted 12 Aug 2026.** Wiring steps: [`docs/stripe-webhook.md`](docs/stripe-webhook.md). | ~~Facilitator~~ done |
 | 7 | **Concierge capacity** — the page promises a callback within one business day. Confirm the team can. | Concierge lead |
 | 8 | **Success metric** — no target, baseline, or kill threshold defined. | Facilitator / Scott |
-| 9 | **Notification channel** — a new dedicated Teams channel, never the concierge order-form channel. | Jeff |
+| 9 | **Notification channel** — a new dedicated Teams channel, never the concierge order-form channel. Needed before the Stripe webhook can be pointed anywhere; the flow can be built and tested against a private channel first. | Jeff |
+| 11 | **Power Automate premium licence** for Lauren — the webhook flow needs the HTTP trigger and HTTP action, both premium connectors. Check before building; there's a weaker fallback if the answer is no. | Facilitator / IT |
 | 10 | Page slug, National 2 font + official logo lockup, dog-walking reviews to replace the boarding/cat ones. | Webflow / brand |
 
 ### One deliberate disagreement with the PRD
@@ -180,14 +210,26 @@ survives the switch.
 npm install jsdom && node test/prototype.test.mjs
 ```
 
-Covers plan switching, validation, phone/zip masking, the market gate, the optional schedule field, dry-run
-behavior, per-plan Stripe URL routing, out-of-market handling, webhook payload and failure, both
-return-from-Stripe states, and deploy/canonical sync.
+Covers plan switching, validation, phone/zip masking, the market gate, the optional schedule field, the
+inert-CTA state, per-plan Stripe URL routing, out-of-market handling, both return-from-Stripe states,
+and deploy/canonical sync.
+
+It also asserts a set of **negatives about notifications**: that the page posts to no channel of its
+own, that no Power Automate endpoint or Stripe key is committed to page source, and that the page
+makes no outbound `POST` at all. Those exist because the notification path deliberately lives on a
+Stripe webhook instead ([`docs/stripe-webhook.md`](docs/stripe-webhook.md)) — the page fires before
+payment and can only report intent, so anything it sent to a staff channel would be a signup that
+might never happen. If one of those fails, someone has moved notifications back onto the page.
 
 It also carries a **PRD reconciliation guard** block that fails if the page drifts back toward the pre-PRD
-scaffold — a price outside the band, an "unlimited" plan, a boarding promise, a Guarantee claim, a rollover
-promise the FAQ contradicts, or "pet parent" in customer-facing copy. If one of those fails, re-read the PRD
-before "fixing" the test.
+scaffold — a Guarantee claim, a rollover promise the FAQ contradicts, or "pet parent" in customer-facing copy.
+If one of those fails, re-read the PRD before "fixing" the test.
+
+Three of those guards were **deliberately inverted on 12 Aug 2026** rather than deleted, because the decisions
+underneath them changed: the price band (§7 q1), the "no unlimited plan" rule (§6), and the boarding exclusion
+(§7 q3). They now pin the *new* intended state and assert that the removed §6 guardrail is still named in the
+page source, so the exposure can't quietly stop being mentioned. Invert them again only with the same kind of
+explicit decision.
 
 The suite stubs Mixpanel, Segment, and `fetch`, so **it never fires a real side effect** — keep it that way.
 
