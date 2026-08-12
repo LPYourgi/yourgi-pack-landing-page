@@ -165,12 +165,16 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 - **The rollover answer on the page is PROPOSED, not approved.** It follows ClassPass — roll forward, capped
   at one cycle. If Legal or David lands somewhere else, the FAQ and the plan benefits both need updating, and
   a test enforces that they can't contradict each other.
-- **The page makes one promise the match team has to keep.** That whoever turns up has met your pet before,
-  and that you know who's coming ahead of time. That rests on a group of Pros being held per subscriber, and
-  §8 gap 6 says the load is unscoped — confirm with Jeff / the bookings team or soften the FAQ answer.
-  (Two earlier promises are gone: the one-business-day callback went with the move to self-serve booking, and
-  "one matched Pro who stays on your days, plus a named backup on the top plan" was corrected on 12 Aug 2026 —
-  matching is to several Pros, not one.)
+- **⚠️ The page's headline no longer matches the offer.** "Stop re-hiring a stranger every week" was carrying
+  the Connection value prop, and on 12 Aug 2026 that premise was removed — a plan makes no promise about who
+  turns up or whether they've met your pet (§8 gap 3). Every continuity claim has been stripped from the body
+  copy and a test blocks another from appearing, but **the H1 was left standing on purpose**: replacing it is a
+  positioning decision and Kai owns final copy (§7 q5). **Single Platform** — one plan spanning walking through
+  overnight, one charge — is the value prop that's actually true and available. This is the first thing to
+  settle if you're picking this page up.
+- **The page now makes no promise the match team has to keep.** All three are gone: the one-business-day
+  callback went with the move to self-serve booking, "one matched Pro plus a named backup" was wrong, and
+  "Pros who already know your pet" was wrong too. Keep it that way until §8 gap 3 is written down.
 - **Rollover is still unanswered** and is flagged PLACEHOLDER in the FAQ. It's the question most likely to
   decide whether someone signs up, and the plan benefits deliberately do *not* promise it — a test enforces
   that the two can't contradict each other. This needs a real answer, not a vague one.

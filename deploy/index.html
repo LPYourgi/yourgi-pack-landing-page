@@ -365,17 +365,25 @@
 <header class="hero">
   <div class="wrap">
     <div>
-      <!-- COPY: written against the yourgi-brand skill. The move is stranger -> my people, and the
-           value prop being carried is Connection, NOT the Guarantee — see head comment.
-           CONNECTION IS PLURAL, as of 12 Aug 2026. It used to be carried here as "one matched Pro";
-           matching is to several Pros. That is closer to the brand guide, not further from it — the
-           Connection prop there is "the best-matching 1-5 providers" and the creative hook is "Your
-           pet's people". The H1 survives the change untouched because what it rejects is being
-           handed a STRANGER, not being handed more than one person: a group who already know your
-           pet is still the opposite of re-hiring. Kai owns the final polish (§7 q5). -->
+      <!-- ⚠️ THIS H1 IS NO LONGER SUPPORTED BY THE OFFER. READ BEFORE EDITING ANYTHING NEARBY.
+           The page was built carrying the brand's Connection value prop — you stop hiring strangers
+           because you get your people. On 12 Aug 2026 that premise was removed in two steps: first
+           "one matched Pro" was wrong (matching is to several), then "Pros who already know your pet"
+           was wrong too. A plan buys CARE; nothing establishes that the Pro on a plan booking has met
+           the pet before. Every continuity claim has been stripped from the body copy accordingly.
+           That leaves this headline asserting the one thing the page can no longer demonstrate.
+           It was left standing rather than quietly rewritten because replacing it is a positioning
+           decision, not a copy fix, and Kai owns final copy (§7 q5). Of the brand's three value
+           props: the Guarantee is blocked (§8 gap 4, legal), Connection is now unsupportable, and
+           SINGLE PLATFORM is the one that survives and is true — one plan spanning walking through
+           overnight across Yourgi's network, one charge. That is the honest basis for a new headline.
+           Do not restore a continuity promise here to make the headline true again. Fix the headline.
+      -->
       <h1>STOP RE-HIRING<br>A STRANGER<br>EVERY WEEK.</h1>
-      <p class="lede">Pick how much care your month needs. We match you to your pet's people &mdash; local Pros who learn the routine, the gate that sticks, the block they pull toward, the cat two doors down.</p>
-      <p class="lede">Then it just runs. One charge a month, nothing to rebook, cancel any month.</p>
+      <p class="lede">Pick how much care your month needs and pay for it once. Then book it as the month goes &mdash; the day you can't get home, the week you're back at the office, the trip you couldn't get out of.</p>
+      <!-- "nothing to rebook" was here until 12 Aug 2026. It contradicted Step 2 of #how, which now
+           has the customer booking each time. What's true is that they never hand over a card again. -->
+      <p class="lede">Then it just runs. One charge a month, no card at the door, cancel any month.</p>
     </div>
 
     <div id="signup" class="card">
@@ -483,7 +491,7 @@
     <div>
       <div class="step-num">Step 1</div>
       <h3>Pick your routine</h3>
-      <p>Plans are sized by how often your dog actually goes out, not by tiers we made up. Move up, move down, or cancel any month.</p>
+      <p>Plans are sized by how much care your month actually needs, not by tiers we made up. Move up, move down, or cancel any month.</p>
     </div>
     <div>
       <div class="step-num">Step 2</div>
@@ -492,8 +500,8 @@
     </div>
     <div>
       <div class="step-num">Step 3</div>
-      <h3>Nobody has to remember</h3>
-      <p>Same days every week, covered by people who already know your pet. Care comes out of your plan &mdash; nothing to book, nothing to pay at the door, no Sunday-night scramble.</p>
+      <h3>Nothing to settle up</h3>
+      <p>Care comes out of the plan you already paid for &mdash; nothing to pay at the door, no working out what you owe, no Sunday-night scramble.</p>
     </div>
   </div>
 </section>
@@ -618,13 +626,13 @@
     <div class="faq-item"><h3>What happens to walks I don't use?</h3><p><strong>PROPOSED, not yet approved</strong> &mdash; unused walks roll into next month, up to one month's worth. A quiet month doesn't cost you anything; you just can't stockpile them forever.</p></div>
     <div class="faq-item"><h3>Can I cancel?</h3><p>Any month, from the link on your receipt. Your plan runs through the month you've already paid for. PLACEHOLDER &mdash; confirm against the live Stripe cancellation behaviour.</p></div>
     <div class="faq-item"><h3>Can I change plans?</h3><p>PLACEHOLDER &mdash; confirm upgrade/downgrade timing and whether Stripe prorates the difference.</p></div>
-    <!-- ANSWER CHANGED 12 Aug 2026 (Lauren): matching is to several Pros, not one. This used to say
-         "we match you to one local Pro and keep them on your days", which was the page's own
-         narrowing — the brand guide's Connection value prop is "the best-matching 1-5 providers".
-         SERVICE PROMISE, unconfirmed: that whoever turns up has met your pet before depends on the
-         match team holding a group per subscriber. §8 gap 6 says that load is unscoped. Confirm with
-         Jeff / the bookings team, or soften this line. -->
-    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Not always the same one, and that's deliberate. We match you to a few local Pros rather than a single person, so your Tuesday never hangs on one calendar. Whoever comes has met your pet before, and you'll know who it is ahead of time.</p></div>
+    <!-- ANSWER REWRITTEN TWICE ON 12 Aug 2026 (Lauren). It first promised one matched Pro kept on
+         your days; then several Pros who already know your pet. Both were wrong. What this now says
+         is limited to what the page has actually established elsewhere: you book (Step 2), and the
+         concierge will help you find someone if you'd rather not choose. It makes NO claim that a
+         Pro has met your pet before, because nothing supports one — Gap 3 in the PRD. Do not add a
+         familiarity or continuity promise back here without the match model being written down. -->
+    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Not necessarily. A plan pays for the care, not for one particular person, so you may see different Pros over a month. The booking is yours to make &mdash; if someone works out, book them again. If you'd rather not pick, our concierge will help you find someone.</p></div>
     <div class="faq-item"><h3>What if I need an extra walk one week?</h3><p>Book it the normal way and pay for that one walk. Your plan isn't a cap on how much care you can get &mdash; it's the part that repeats.</p></div>
   </div>
 </section>
@@ -761,9 +769,14 @@
      are dropped here: "We call you to set your days" (setup is self-serve now — see Step 2) and
      "Your slot holds when your Pro fills up" (an unconfirmed service promise, §8 gap 6). */
   var PLAN_BENEFITS = {
-    weekly:   ['Five walks a month', 'Pros who already know your pet'],
-    twice:    ['Five days or nights a month', 'Spend them on whatever the month needs', 'Pros who already know your pet'],
-    weekdays: ['Unlimited days and nights', 'Everything we do, all month', 'Pros who already know your pet']
+    /* NO CLAIM ABOUT WHO SHOWS UP. Three versions of that bullet have now been wrong: "The same Pro
+       every week", then "The same Pro, plus a named backup", then "Pros who already know your pet".
+       A plan buys CARE, not continuity with a particular person, and nothing has established that a
+       Pro on a plan booking has met the pet before. Until the match model is documented (Gap 3), the
+       bullets say only what the plan mechanically includes plus how it is billed — both verifiable. */
+    weekly:   ['Five walks a month', 'One charge a month, cancel any month'],
+    twice:    ['Five days or nights a month', 'Spend them on whatever the month needs', 'One charge a month, cancel any month'],
+    weekdays: ['Unlimited days and nights', 'Everything we do, all month', 'One charge a month, cancel any month']
   };
 
   /* What each plan actually contains, and what those services cost booked one at a time.
@@ -911,11 +924,11 @@
          /* "At least" on the mixed plan — the floor, never the ceiling. See economics(). */
          return (e.exact?'':'at least ')+money(e.saves)+' <span class="pct">('+e.pct+'%)</span>';
        }},
-      /* WAS two rows: "One matched Pro" (yes on all three) and "Named backup Pro" (top plan only).
-         Both described a single-Pro model with a designated understudy. Matching is to a GROUP of
-         Pros, so the backup row has nothing left to differentiate — being covered when one Pro is
-         away is inherent to the group, not a feature of the $399 plan. One row, true everywhere. */
-      {label:'Pros who know your pet', cls:'cmp-rule',
+      /* WAS three successive rows about who shows up: "One matched Pro" + "Named backup Pro", then
+         "Pros who know your pet". All were unsupported — see PLAN_BENEFITS. There is no verified
+         claim about the Pro on a plan booking, so the table makes none. It keeps carrying the
+         cmp-rule class, which is what opens the what's-included group with the heavier line. */
+      {label:'Cancel any month', cls:'cmp-rule',
        val:function(){return CMP_YES;}},
       {label:'Overnight &amp; boarding',
        val:function(e){return e.units.walks ? '<span class="no">Booked separately</span>' : CMP_YES;}}

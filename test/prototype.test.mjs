@@ -160,10 +160,28 @@ console.log('\n— PRD reconciliation guards —');
     claims.match(/[^.?]*(\bone (matched|local)? ?Pro\b|the same Pro\b)[^.?]*/i)?.[0]);
   ok('no named-backup promise survives — cover is inherent to the group, not a top-plan feature',
     !/named backup/i.test(visible), visible.match(/[^.]*named backup[^.]*/i)?.[0]);
-  ok('the FAQ answers the same-Pro question plurally and says so plainly',
-    /not always the same one/i.test($(w, 'faq').textContent));
-  ok('every plan credits Pros who know the pet',
-    allBenefits.every(b => /pros who already know your pet/i.test(b)), allBenefits);
+  ok('the FAQ answers the same-Pro question honestly, without a continuity promise',
+    /not necessarily/i.test($(w, 'faq').textContent));
+
+  /* NO CONTINUITY OR FAMILIARITY CLAIM ANYWHERE IN THE BODY COPY. Three versions of this claim have
+     now been wrong in a single day — "the same Pro every week", "the same Pro plus a named backup",
+     and "Pros who already know your pet". A plan buys care; nothing establishes who turns up or that
+     they have met the pet (Gap 3). This is the guard that stops a fourth version appearing, because
+     every one of them read like good copy and none of them was true.
+     The H1 is exempt and still says STOP RE-HIRING A STRANGER — see the comment above it. It is
+     knowingly unsupported and awaiting a positioning decision from Kai, not an oversight. */
+  const heroH1 = w.document.querySelector('.hero h1').textContent;
+  const bodyMinusH1 = claims.replace(heroH1, '');
+  ok('no claim that a Pro knows or has met the pet',
+    !/(already )?know(s)? your (pet|dog)|has met your (pet|dog)|learns? the routine/i.test(bodyMinusH1),
+    bodyMinusH1.match(/[^.?]*(know your (pet|dog)|met your (pet|dog)|learns? the routine)[^.?]*/i)?.[0]);
+  ok('no claim that the customer never has to rebook — Step 2 has them booking',
+    !/nothing to rebook/i.test(claims), claims.match(/[^.?]*nothing to rebook[^.?]*/i)?.[0]);
+  ok('the H1 is still the known-unsupported one, and the reason is written down',
+    /STOP RE-HIRING/.test(heroH1) && /THIS H1 IS NO LONGER SUPPORTED BY THE OFFER/.test(src),
+    'if the H1 was replaced, delete this assertion and the comment above it');
+  ok('plan bullets state only mechanics and billing',
+    allBenefits.every(b => /one charge a month, cancel any month/i.test(b)), allBenefits);
   // The page must not sell a rollover it hasn't decided on — the FAQ still calls it open (§7 q1).
   ok('no plan promises rollover while the FAQ says rollover is undecided',
     !/roll(over| a day| your day| forward)|carry over/.test(benefitText), benefitText);
