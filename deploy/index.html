@@ -424,7 +424,10 @@
              checkouts. The link itself lives in STRIPE_PAYMENT_LINKS, never in markup. -->
         <p class="fineprint" style="text-align:center; margin-top:8px;">Next: <strong>Stripe</strong> takes your email and card on their secure page. Your card never touches Yourgi.</p>
         <p class="fineprint" style="text-align:center; margin-top:4px;">Billed monthly. Cancel any month from the link on your receipt.</p>
-        <p class="fineprint" style="text-align:center; margin-top:4px;">Once you're in, someone from our team calls to set up your days and match your Pro.</p>
+        <!-- A third line used to sit here: "Once you're in, someone from our team calls to set up
+             your days and match your Pro." Dropped to match the Figma (4014:156, hidden), which
+             moves setup from a concierge callback to self-serve booking — see the Step 2 copy. -->
+
       </div>
 
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
@@ -464,8 +467,8 @@
     </div>
     <div>
       <div class="step-num">Step 2</div>
-      <h3>We call you</h3>
-      <p>Someone from our team calls within a day to set your days and match you with one local Pro. You meet them before anything's booked.</p>
+      <h3>Book yourself</h3>
+      <p>Book yourself with a special coupon code, or ask our concierge for help finding a Pro.</p>
     </div>
     <div>
       <div class="step-num">Step 3</div>
@@ -518,26 +521,20 @@
   </div>
 </section>
 
-<!-- WAS the Yourgi Guarantee band on the concierge page. REPLACED, deliberately.
-     §8 gap 4: whether the Guarantee covers subscription bookings is undetermined and is the
-     highest-priority legal gap. A Guarantee band on a page taking recurring money reads as a
-     coverage claim whether or not it says so. This band does the trust job honestly instead.
-     If Legal confirms coverage, this is the place to put the Guarantee back. -->
-<section class="band straight" id="trust">
-  <div class="wrap">
-    <div class="polaroid-wrap">
-      <img class="polaroid" src="https://cdn.prod.website-files.com/6818d81fbac209b16f28ed8b/6a6c20af693690449c2f28d0_yourgi-guarantee-pro-image.png" alt="A Yourgi Pro out on a walk with a dog">
-    </div>
-    <div>
-      <div class="g-eyebrow">Straight up</div>
-      <h2>This plan is new. Here's the deal.</h2>
-      <p>Yourgi Pack is a beta. We're running it to find out whether a monthly plan actually beats booking one walk at a time &mdash; and we'd rather tell you that than pretend it's been around for years.</p>
-      <p>What that means for you: your walks are real, your Pro is real and vetted, and the price you sign up at is the price you pay. If we change Yourgi Pack or wind it down, you'll hear from us before your next charge, not after.</p>
-      <p>Cancel any month. No contract, no cancellation fee, no phone call required.</p>
-      <p class="fineprint">PLACEHOLDER &mdash; Legal and Kai to confirm the wind-down and notice commitments above before launch (&sect;8 gap 5).</p>
-    </div>
-  </div>
-</section>
+<!-- THE "STRAIGHT UP" BAND USED TO SIT HERE, between Side by side and the reviews. Removed to
+     match the Figma, where the whole frame is hidden (4019:165). It replaced the concierge page's
+     Yourgi Guarantee band and carried the beta disclosure: plan is new, price you sign up at is
+     the price you pay, you hear from us before a change, cancel any month.
+
+     TWO THINGS THAT WENT WITH IT, both worth a decision rather than silence:
+       - The beta disclosure now lives ONLY in the ribbon at the top of the page. §8 gap 5 wants
+         enrolled subscribers told honestly that this is a test that may end; one ribbon line is
+         thinner cover for that than a band was.
+       - §8 gap 4 (does the Guarantee cover subscription bookings?) is still open, so this is
+         still NOT the place to put a Guarantee band back until Legal rules.
+     Full previous copy is in git history — see the commit that removed it.
+     The .straight / .polaroid / .g-eyebrow rules are left in the stylesheet on purpose, so this
+     band can come back without rebuilding it. -->
 
 <section class="band" style="background:#fff;">
   <div class="wrap">
@@ -727,10 +724,13 @@
      The quantity bullets follow from the plan structure. The rest ("first pick of times", "named
      backup") are service promises the concierge team has to actually keep — confirm with them
      before launch (§8 gap 6). */
+  /* TRIMMED TO MATCH THE FIGMA (4010:126). Two bullets were hidden on the default tier there and
+     are dropped here: "We call you to set your days" (setup is self-serve now — see Step 2) and
+     "Your slot holds when your Pro fills up" (an unconfirmed service promise, §8 gap 6). */
   var PLAN_BENEFITS = {
-    weekly:   ['5 walks a month', 'The same Pro every week', 'We call you to set your days'],
-    twice:    ['9 walks a month', 'The same Pro every week', 'We call you to set your days', 'Your slot holds when your Pro fills up'],
-    weekdays: ['14 walks a month', '2 daycare days a month', 'The same Pro, plus a named backup', 'Your slot holds when your Pro fills up']
+    weekly:   ['5 walks a month', 'The same Pro every week'],
+    twice:    ['9 walks a month', 'The same Pro every week'],
+    weekdays: ['14 walks a month', '2 daycare days a month', 'The same Pro, plus a named backup']
   };
 
   /* What each plan actually contains, and what those services cost booked one at a time.

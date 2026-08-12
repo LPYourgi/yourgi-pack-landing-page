@@ -73,7 +73,7 @@ console.log('\n— initial render —');
   ok('three plans rendered', w.document.querySelectorAll('#tiers .tier').length === 3);
   ok('Twice a Week is the default selection', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('exactly one plan is checked', w.document.querySelectorAll('#tiers .tier[aria-checked="true"]').length === 1);
-  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 4);
+  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 2);
   ok('plan step visible, others hidden', vis(w, 'step-plan') && !vis(w, 'step-confirm') && !vis(w, 'step-oom') && !vis(w, 'step-cancel'));
   ok('beta framing is on the page', w.document.querySelector('.beta').textContent.includes('beta'));
 }
@@ -197,11 +197,12 @@ console.log('\n— form scope —');
   ok('email, phone and zip — in that order', JSON.stringify(inputs) === JSON.stringify(['q-email', 'q-phone', 'q-zip']), inputs);
   ok('all three are marked required', ['q-email', 'q-phone', 'q-zip'].every(id => $(w, id).getAttribute('aria-required') === 'true'));
 
-  // §4 puts service setup on a 1:1 follow-up call, so these are questions for that call.
-  ok('no dog count — that is a setup-call question (§4)', !$(w, 'pets-val'));
-  ok('no schedule box — that is a setup-call question (§4)', !$(w, 'q-schedule'));
-  ok('the page says a person calls to set the days up',
-    planStep.textContent.toLowerCase().includes('calls to set up your days'));
+  // Days and dog count are still off this form — but as of the Figma pass they are self-serve at
+  // booking, not questions for a concierge callback. See the Step 2 copy in #how.
+  ok('no dog count — not asked at signup', !$(w, 'pets-val'));
+  ok('no schedule box — not asked at signup', !$(w, 'q-schedule'));
+  ok('signup no longer promises a concierge callback',
+    !planStep.textContent.toLowerCase().includes('calls to set up your days'));
   ok('zip is explained as a coverage check', planStep.textContent.includes('before you pay'));
 }
 
@@ -213,7 +214,7 @@ console.log('\n— plan switching —');
   ok('twice is deselected', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'false');
   ok('benefits swapped to weekdays content', $(w, 'incl').textContent.includes('daycare'));
   $(w, 'tiers').querySelector('[data-tier="weekly"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  ok('benefits swapped again to weekly (3 items)', w.document.querySelectorAll('#incl li').length === 3);
+  ok('benefits swapped again to weekly (2 items)', w.document.querySelectorAll('#incl li').length === 2);
   ok('no weekdays copy left behind', !$(w, 'incl').textContent.includes('daycare'));
   ok('daycare appears only on the top plan (§7 q3)',
     !$(w, 'incl').textContent.includes('daycare'));
