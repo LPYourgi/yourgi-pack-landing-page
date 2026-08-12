@@ -65,8 +65,13 @@ back. A test asserts the claim hasn't crept back in.
 
 ## Current status
 
-**Dry-run.** `STRIPE_PAYMENT_LINKS` is empty, so "Continue to payment" captures the lead and shows the
-confirmation screen **without charging anyone**. 137 headless checks pass.
+**Inert.** `STRIPE_PAYMENT_LINKS` is empty on this branch, so "Continue to payment" does nothing at all —
+no validation, no capture, no confirmation screen. That's deliberate: the dry-run success screen this page
+used to show told reviewers "You're in." when no subscription existed anywhere, which put invented
+conversions into the one number the experiment exists to measure.
+
+**Stripe → Teams is specified but not built.** See [`stripe-webhook.md`](stripe-webhook.md). Stripe access
+landed 12 Aug 2026; the remaining prerequisites are a Power Automate premium licence and a channel from Jeff.
 
 ## How the flow works
 
@@ -124,9 +129,19 @@ publishable keys are safe in page source; secret keys are not. The test suite as
   the source of truth for who actually subscribed** — do not report signup counts from Mixpanel alone. The
   planned fix is already in §4: a **Stripe webhook** posting each signup into a dedicated Teams channel.
   That webhook, not this page, is what makes signups trustworthy.
-- **`TEAMS_WEBHOOK_URL` is intentionally empty**, and given the above it may stay that way — if the Stripe
-  webhook handles notifications server-side, this page's client-side post is redundant and should be dropped
-  rather than duplicated. Either way it must not reuse the concierge team's order-form channel (§7 q6).
+- **~~`TEAMS_WEBHOOK_URL` is intentionally empty.~~ Resolved 12 Aug 2026: the page's Teams post was
+  removed** rather than duplicated, exactly as the line above anticipated. Teams now hears only from the
+  Stripe webhook, so every card in the channel is a payment Stripe has already taken. The lead and
+  abandonment signal still goes to Segment and Mixpanel, which is where drop-off belongs. It must still not
+  reuse the concierge team's order-form channel (§7 q6) — that's Jeff's call, blocking decision #9.
+- **The webhook's verification is deliberately weaker than Stripe's own.** Stripe signs each request with
+  an HMAC; Power Automate can't compute one without a premium inline-code action or an Azure Function, and
+  neither belongs in a project whose page is one static file with no build step. Instead the flow re-fetches
+  the event from the Stripe API by ID, which proves the event is real — nobody can invent a payment — but
+  not that a given *request* came from Stripe. Someone holding both the flow URL and a real event ID could
+  replay it and post a duplicate card. That's a nuisance, not a loss. **If this graduates from experiment
+  to product, replace the flow with a small function doing real signature verification.** Reasoning in
+  `stripe-webhook.md`.
 - **Two of the three plans can no longer state a real saving.** The comparison table computes savings from
   `LIST_RATES`, which has a walk rate and a daycare rate and nothing else.
   - **Walks** is exact: $125 of walking for $49, a $76 (61%) giveaway.
@@ -150,9 +165,12 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 - **The rollover answer on the page is PROPOSED, not approved.** It follows ClassPass — roll forward, capped
   at one cycle. If Legal or David lands somewhere else, the FAQ and the plan benefits both need updating, and
   a test enforces that they can't contradict each other.
-- **The page makes three promises the concierge team has to keep.** A callback within one business day, one
-  matched Pro who stays on your days, and a named backup on the top plan. §8 gap 6 says nobody has scoped
-  that load. Either confirm the team can hold these or soften the copy — don't ship a promise nobody agreed to.
+- **The page makes one promise the match team has to keep.** That whoever turns up has met your pet before,
+  and that you know who's coming ahead of time. That rests on a group of Pros being held per subscriber, and
+  §8 gap 6 says the load is unscoped — confirm with Jeff / the bookings team or soften the FAQ answer.
+  (Two earlier promises are gone: the one-business-day callback went with the move to self-serve booking, and
+  "one matched Pro who stays on your days, plus a named backup on the top plan" was corrected on 12 Aug 2026 —
+  matching is to several Pros, not one.)
 - **Rollover is still unanswered** and is flagged PLACEHOLDER in the FAQ. It's the question most likely to
   decide whether someone signs up, and the plan benefits deliberately do *not* promise it — a test enforces
   that the two can't contradict each other. This needs a real answer, not a vague one.

@@ -140,6 +140,30 @@ console.log('\n— PRD reconciliation guards —');
     'head comment must keep naming the unlimited-plan exposure');
   ok('overnight care is included on the two plans that cover any service, per the FAQ',
     /a night away comes out of your plan/i.test($(w, 'faq').textContent));
+
+  /* MATCHING IS TO SEVERAL PROS, NOT ONE — Lauren, 12 Aug 2026, now recorded in the PRD's Decisions
+     block. There was NO guard on this before, which is how the page carried "one matched Pro" in
+     four places while the PRD never said it. It is the page's central promise, so it gets one now.
+     A single-Pro claim is not a wording slip: it contradicts the offer and it is the kind of thing
+     a well-meaning copy pass would put back. */
+  /* Rendered text ONLY — body.textContent includes the inline <script>, and the source comments
+     discuss the retired single-Pro model on purpose so the next reader knows what changed. */
+  const body = w.document.body.cloneNode(true);
+  body.querySelectorAll('script, style').forEach(n => n.remove());
+  const visible = body.textContent;
+  /* The FAQ still ASKS "Do I get the same Pro every time?" — that is the question customers actually
+     ask, in their words, and dropping it would duck the objection instead of answering it. What must
+     not appear is the page ASSERTING a single Pro, so the question is excluded and the rest checked. */
+  const claims = visible.replace(/Do I get the same Pro every time\?/g, '');
+  ok('the page never claims a single assigned Pro',
+    !/one (matched |local )?Pro\b/i.test(claims) && !/the same Pro\b/i.test(claims),
+    claims.match(/[^.?]*(\bone (matched|local)? ?Pro\b|the same Pro\b)[^.?]*/i)?.[0]);
+  ok('no named-backup promise survives — cover is inherent to the group, not a top-plan feature',
+    !/named backup/i.test(visible), visible.match(/[^.]*named backup[^.]*/i)?.[0]);
+  ok('the FAQ answers the same-Pro question plurally and says so plainly',
+    /not always the same one/i.test($(w, 'faq').textContent));
+  ok('every plan credits Pros who know the pet',
+    allBenefits.every(b => /pros who already know your pet/i.test(b)), allBenefits);
   // The page must not sell a rollover it hasn't decided on — the FAQ still calls it open (§7 q1).
   ok('no plan promises rollover while the FAQ says rollover is undecided',
     !/roll(over| a day| your day| forward)|carry over/.test(benefitText), benefitText);
