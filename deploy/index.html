@@ -709,11 +709,28 @@
         plan would look almost right on a receipt. Fix the links before anyone sees this page.
         The selected plan does still ride along in client_reference_id, so a mistaken charge is
         traceable after the fact — but this must be fixed before anyone outside the team sees it. */
-  var STRIPE_PLACEHOLDER_LINK = '';   /* BLANKED ON THE gh-pages REVIEW BRANCH ONLY.
-     This branch is served publicly so people can look at the page. The link it used to hold
-     was a LIVE-mode $50/mo checkout, so anyone opening the review link could have been charged
-     for real. Empty here means STRIPE_READY is false and the CTA is inert by the page's own
-     guard. The real links belong on the product branch, never on this one. */
+  var STRIPE_PLACEHOLDER_LINK = '';   /* BLANK ON EVERY BRANCH, AND STAYING THAT WAY UNTIL THE REAL
+     PER-PLAN LINKS EXIST. Empty means STRIPE_READY is false and the CTA is inert by the page's own
+     guard below — it does nothing at all rather than faking a sale.
+
+     It used to hold one shared LIVE-mode Payment Link charging $50/mo for a product called "Yourgi
+     Membership", which is not any of the three plans on this page. That was blanked on 12 Aug 2026
+     because gh-pages is served publicly and anyone opening the review link could have been charged
+     for real. This comment previously said "blanked on the gh-pages review branch ONLY, the real
+     links belong on the product branch" — that stopped being true when these commits went to main,
+     and there were no real links on any branch to belong there anyway.
+
+     THIS IS A LIVE-MODE LINK was the warning that sat on the removed one, and it stays written here
+     in those exact words because it is the thing to check before pasting anything back: a live link
+     is buy.stripe.com/<id> and a test-mode link carries a test_ prefix. The removed one had no such
+     prefix, which is precisely how it went unnoticed.
+
+     Lauren is building the actual Stripe setup now (12 Aug 2026); stripe/plans.json is the source of
+     truth for the objects, docs/stripe-webhook.md is the runbook. When the links exist, paste them
+     into STRIPE_PAYMENT_LINKS below — one per plan, never one shared link. Two things to get right:
+       - Stay in sandbox/test mode while the page is under review.
+       - The entry plan is $49 and the removed placeholder charged $50. A mispasted link would produce
+         a charge that looks almost right on a receipt, so verify each link against its own plan. */
   var STRIPE_PAYMENT_LINKS = {
     weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real Once a Week link ($49/mo)
     twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real Twice a Week link ($99/mo)
