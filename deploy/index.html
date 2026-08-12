@@ -17,7 +17,12 @@
   Stripe-hosted checkout. Fulfillment after that is MANUAL (concierge issues coupons, per §4).
 
   RECONCILED AGAINST THE PRD — the four conflicts the README flagged are now fixed:
-  - Pricing sits in the $99-$199 band (§7 q1 called $50 too low, floated $100-$200).
+  - Pricing is $49 / $99 / $399, set in the Figma pass and applied here on Lauren's call.
+    THIS REOPENS A SETTLED DECISION: §7 q1 rejected $50 as too low and floated $100-$200, and
+    docs/handoff.md records "no $49 plan" as a resolved conflict. The entry plan is now $49.
+    The top plan is $399, which works out to $28.50 a walk — more than the $25 pay-as-you-go
+    walk rate in LIST_RATES, so its "you save" figure rests entirely on the 2 daycare days.
+    Needs David and §7 q1 revisited before this goes to paid traffic.
   - Every plan is CAPPED, not unlimited. The cap is the subsidy guardrail §6 asks for.
   - Dog walking is the spine of all three plans; daycare appears only at the top (§7 q3).
     Boarding and house-sitting are OUT, and the FAQ says so plainly.
@@ -110,7 +115,7 @@
   .tier-price .per{font-family:'Archivo',sans-serif; font-weight:400; font-size:12px; color:var(--muted); letter-spacing:0;}
   .tier-blurb{font-size:12px; color:#444; line-height:1.35;}
   /* Per-unit price on each card. Every strong usage-capped subscription (ClassPass, HelloFresh,
-     Blue Apron) shows the unit price, because "$149/mo" alone makes the buyer do the division. */
+     Blue Apron) shows the unit price, because "$99/mo" alone makes the buyer do the division. */
   .tier-unit{font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; color:#2f6b2b; letter-spacing:0;}
   .save{margin:0 0 16px; padding:9px 11px; background:var(--field); border-radius:8px; font-size:12.5px; font-weight:600; color:#2c3a1c;}
   .save em{font-style:normal; font-weight:700;}
@@ -363,25 +368,25 @@
       <div id="step-plan">
         <h2 style="font-size:18px; margin-bottom:14px;">Pick your routine</h2>
         <div class="tier-row" id="tiers" role="radiogroup" aria-label="Choose a plan">
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="99" data-label="Once a Week" style="--tint:#DBEFEF;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Once a Week" style="--tint:#DBEFEF;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Once a Week</span>
-            <span class="tier-price">$99<span class="per">/mo</span></span>
+            <span class="tier-price">$49<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">5 walks a month. For the one day a week you can't get home.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="149" data-label="Twice a Week" style="--tint:#FFF3D6;">
+          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Twice a Week" style="--tint:#FFF3D6;">
             <span class="tier-badge">Most picked</span>
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Twice a Week</span>
-            <span class="tier-price">$149<span class="per">/mo</span></span>
+            <span class="tier-price">$99<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">9 walks a month. For the two days you're in the office.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="199" data-label="Weekdays" style="--tint:#F1E9EE;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Weekdays" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Weekdays</span>
-            <span class="tier-price">$199<span class="per">/mo</span></span>
+            <span class="tier-price">$399<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">14 walks plus 2 daycare days. For a full week back at work.</span>
           </button>
@@ -670,8 +675,9 @@
         checkout that can take real money. Swap in a test-mode link while this is under review.
      2. EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES — and it charges $50/mo for a product called
         "Yourgi Membership", which is not any of the three plans on this page. So all three cards
-        ($99 / $149 / $199) currently hand off to a $50/mo checkout. $50 is also the exact figure
-        §7 q1 rejected as too low, so this link cannot double as the experiment's price test.
+        ($49 / $99 / $399) currently hand off to a $50/mo checkout. Note the entry plan is now $49,
+        within a dollar of what this placeholder charges — so a mistaken charge on the Once a Week
+        plan would look almost right on a receipt. Fix the links before anyone sees this page.
         The selected plan does still ride along in client_reference_id, so a mistaken charge is
         traceable after the fact — but this must be fixed before anyone outside the team sees it. */
   var STRIPE_PLACEHOLDER_LINK = '';   /* BLANKED ON THE gh-pages REVIEW BRANCH ONLY.
@@ -680,9 +686,9 @@
      for real. Empty here means STRIPE_READY is false and the CTA is inert by the page's own
      guard. The real links belong on the product branch, never on this one. */
   var STRIPE_PAYMENT_LINKS = {
-    weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real Once a Week link ($99/mo)
-    twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real Twice a Week link ($149/mo)
-    weekdays: STRIPE_PLACEHOLDER_LINK    // TODO — real Weekdays link ($199/mo)
+    weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real Once a Week link ($49/mo)
+    twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real Twice a Week link ($99/mo)
+    weekdays: STRIPE_PLACEHOLDER_LINK    // TODO — real Weekdays link ($399/mo)
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record
@@ -751,7 +757,7 @@
   /* ========================================================================== */
 
   var DEFAULT_TIER = 'twice';
-  var state={tier:DEFAULT_TIER,price:149,label:'Twice a Week',pets:1};
+  var state={tier:DEFAULT_TIER,price:99,label:'Twice a Week',pets:1};
   var $=function(id){return document.getElementById(id);};
 
   var CHECK_SVG='<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';

@@ -36,9 +36,15 @@ pricing.
 
 | Plan | Price | Included |
 |---|---|---|
-| Once a Week | $99/mo | 5 walks a month |
-| Twice a Week (default) | $149/mo | 9 walks a month |
-| Weekdays | $199/mo | 14 walks + 2 daycare days |
+| Once a Week | $49/mo | 5 walks a month |
+| Twice a Week (default) | $99/mo | 9 walks a month |
+| Weekdays | $399/mo | 14 walks + 2 daycare days |
+
+> **Pricing changed 12 Aug 2026** from $99 / $149 / $199 to the figures above, taken from the Figma
+> and confirmed by Lauren. This overrides §7 q1, which rejected $50 as too low and floated
+> $100–$200, and reverses the "no $49 plan" line in `docs/handoff.md`. Two consequences to carry
+> into that conversation with David: the per-walk ladder now **rises** with plan size ($9.80 →
+> $11 → $28.50), and Weekdays at $28.50 a walk is above the $25 pay-as-you-go rate. Re-open §7 q1.
 
 Four structural choices, each traceable to the PRD:
 
@@ -68,7 +74,7 @@ player sells what Yourgi Pack sells:**
 | [Rover](https://www.rover.com/dog-walking/) | **No subscription at all** — "Repeat Weekly" recurring bookings with auto-billing at normal rates | The recurring-revenue outcome without prepayment. Some walkers discount recurring bookings themselves. |
 | [ClassPass](https://help.classpass.com/hc/en-us/articles/209367426-Do-my-credits-roll-over) | Monthly credits for third-party services, **rollover capped at one cycle's worth** | The closest structural analog to Yourgi Pack, and the source of our proposed rollover answer. |
 
-Nobody in pet care is selling a prepaid, capped bundle at $99–$199. That's either the opportunity or the
+Nobody in pet care is selling a prepaid, capped bundle at $49–$399. That's either the opportunity or the
 warning — worth putting in front of David and Scott either way, because **there is a materially cheaper
 experiment available**: a Wag-style ~$10–20/mo discount membership tests willingness to pay for a
 relationship with roughly none of the subsidy exposure in §6. It answers a slightly different question, but
@@ -76,8 +82,8 @@ it answers it for a fraction of the risk.
 
 **Applied to the page:**
 
-- **Per-unit price on every card** ("$16.56 a walk"). Standard wherever usage is capped — ClassPass,
-  HelloFresh, Blue Apron all do it, because "$149/mo" alone makes the buyer do the division.
+- **Per-unit price on every card** ("$11 a walk"). Standard wherever usage is capped — ClassPass,
+  HelloFresh, Blue Apron all do it, because "$99/mo" alone makes the buyer do the division.
 - **Savings vs. booking one at a time**, in dollars and percent. Concrete dollar amounts beat bare
   percentages.
 - **Side-by-side comparison table** so all three plans are visible at once. In the signup card you can only
@@ -102,10 +108,21 @@ it answers it for a fraction of the risk.
 
 ### ⚠️ The savings row exposed a pricing problem
 
-Making the discount visible doubles as a subsidy check, and the Weekdays plan does not survive it. At the
-placeholder rates, it bundles **$440 of services for $199 — a 55% giveaway, about $241/month of subsidy per
-subscriber**, before Yourgi has paid the Pro anything less than full rate. Once a Week gives away 21%, which
-reads like a normal bulk discount. §5 says the experiment may run underwater deliberately, so this may be
+Making the discount visible doubles as a subsidy check. **The $49 / $99 / $399 pricing moved the exposure
+off the top plan and onto the two cheap ones.** At the placeholder rates:
+
+| Plan | List value | Price | Giveaway | Per walk |
+|---|---|---|---|---|
+| Once a Week | $125 | $49 | **$76 (61%)** | $9.80 |
+| Twice a Week | $225 | $99 | **$126 (56%)** | $11.00 |
+| Weekdays | $440 | $399 | $41 (9%) | $28.50 |
+
+Two things fall out of this that are worth a decision rather than a shrug. **The subsidy is now concentrated
+in the default plan** — Twice a Week is pre-selected and gives away $126/month per subscriber, so the plan
+most people will buy is the most expensive one to serve. And **the value ladder is inverted**: buying more
+walks costs more per walk, and Weekdays at $28.50 is above the $25 pay-as-you-go rate, so a customer who does
+the arithmetic finds the top plan is worse than booking one at a time. It only shows a saving at all because
+2 daycare days at $45 carry it. §5 says the experiment may run underwater deliberately, so this may be
 fine — but it should be a decision someone makes, not an accident of three round numbers. The rates driving
 it live in `LIST_RATES` in `index.html` and need David's real figures.
 

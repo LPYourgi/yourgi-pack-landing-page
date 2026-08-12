@@ -103,9 +103,17 @@ console.log('\n— PRD reconciliation guards —');
   const src = fs.readFileSync(PAGE, 'utf8');
   const prices = [...w.document.querySelectorAll('#tiers .tier')].map(t => +t.dataset.price);
 
-  ok('every price is inside the $100–$200 band the team floated (§7 q1)',
-    prices.every(p => p >= 99 && p <= 200), prices);
-  ok('no $50-class plan (§7 q1 called $50 too low)', prices.every(p => p > 50), prices);
+  /* §7 q1 IS DELIBERATELY OVERRIDDEN — Lauren's call, 12 Aug 2026, applying the Figma pricing.
+     These two guards used to assert prices sat in the $100–$200 band and that no plan was in the
+     $50 class, because §7 q1 rejected $50 as too low and docs/handoff.md recorded "no $49 plan"
+     as a resolved conflict. The Figma set $49 / $99 / $399 and that was confirmed over the flag.
+     The guards are kept, inverted, so the override stays visible instead of vanishing: they now
+     pin the exact prices the page is supposed to be serving. Change them only with the same kind
+     of explicit decision, and re-open §7 q1 with David when you do. */
+  ok('prices are the Figma set: $49 / $99 / $399 (§7 q1 overridden — see comment)',
+    JSON.stringify(prices) === JSON.stringify([49, 99, 399]), prices);
+  ok('the §7 q1 override is written down in the page itself',
+    /THIS REOPENS A SETTLED DECISION/.test(src) && /§7 q1/.test(src), 'head comment missing the override note');
 
   // Walk the rendered benefits for every plan, not just the default.
   const allBenefits = [];
@@ -153,24 +161,34 @@ console.log('\n— subscription-page conventions —');
 {
   const w = await boot();
 
-  // Unit price on every card, so nobody has to divide $149 by 9 in their head.
+  // Unit price on every card, so nobody has to divide $99 by 9 in their head.
   const units = [...w.document.querySelectorAll('#tiers [data-unit]')].map(e => e.textContent);
   ok('every plan card shows a per-walk price', units.every(u => /^\$\d+(\.\d\d)? a walk$/.test(u)), units);
-  ok('per-walk price is right for Once a Week ($99 / 5)', units[0] === '$19.80 a walk', units[0]);
-  ok('per-walk price is right for Twice a Week ($149 / 9)', units[1] === '$16.56 a walk', units[1]);
-  ok('per-walk price falls as the plan gets bigger (a real value ladder)',
-    parseFloat(units[0].slice(1)) > parseFloat(units[1].slice(1)) && parseFloat(units[1].slice(1)) > parseFloat(units[2].slice(1)), units);
+  ok('per-walk price is right for Once a Week ($49 / 5)', units[0] === '$9.80 a walk', units[0]);
+  ok('per-walk price is right for Twice a Week ($99 / 9)', units[1] === '$11 a walk', units[1]);
+
+  /* THE VALUE LADDER IS INVERTED AS OF THE $49/$99/$399 PRICING. This assertion used to read
+     "per-walk price falls as the plan gets bigger" — every strong usage-capped subscription works
+     that way, and the old $99/$149/$199 ladder did ($19.80 > $16.56 > $14.21). At $399 the top
+     plan is $28.50 a walk, so buying MORE walks now costs more per walk. Weekdays only shows a
+     saving at all because 2 daycare days at the $45 list rate carry it.
+     Pinned here so the inversion is a recorded decision, not something the suite stopped noticing.
+     Flip this back to the falling-ladder check if Weekdays is repriced. */
+  const perWalk = units.map(u => parseFloat(u.slice(1)));
+  ok('per-walk price rises with plan size — ladder inverted, see comment',
+    perWalk[0] < perWalk[1] && perWalk[1] < perWalk[2], units);
+  ok('the top plan costs more per walk than booking one at a time ($25)', perWalk[2] > 25, perWalk[2]);
 
   // Savings vs. booking one at a time — the reason to subscribe at all.
   const save = $(w, 'save-line').textContent;
   ok('savings callout names a per-walk price and a monthly saving', /\$[\d.]+ a walk/.test(save) && /\$\d+ less a month/.test(save), save);
-  ok('default plan saving is $76 ($225 list − $149)', save.includes('$76 less a month'), save);
+  ok('default plan saving is $126 ($225 list − $99)', save.includes('$126 less a month'), save);
 
   // Comparison table: all three plans visible at once without clicking.
   const rows = [...w.document.querySelectorAll('#cmp-body tr')];
   ok('comparison table rendered', rows.length >= 6, rows.length);
   ok('table headers carry each price',
-    $(w, 'cmp-p-weekly').textContent === '$99/mo' && $(w, 'cmp-p-twice').textContent === '$149/mo' && $(w, 'cmp-p-weekdays').textContent === '$199/mo');
+    $(w, 'cmp-p-weekly').textContent === '$49/mo' && $(w, 'cmp-p-twice').textContent === '$99/mo' && $(w, 'cmp-p-weekdays').textContent === '$399/mo');
   const rowByLabel = l => rows.find(r => r.querySelector('th')?.textContent.includes(l));
   const cells = l => [...rowByLabel(l).querySelectorAll('td')].map(td => td.textContent.trim());
   ok('walk counts match the plans', JSON.stringify(cells('Walks a month')) === JSON.stringify(['5', '9', '14']), cells('Walks a month'));
@@ -218,7 +236,7 @@ console.log('\n— plan switching —');
   ok('no weekdays copy left behind', !$(w, 'incl').textContent.includes('daycare'));
   ok('daycare appears only on the top plan (§7 q3)',
     !$(w, 'incl').textContent.includes('daycare'));
-  ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 199));
+  ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 399));
 }
 
 // Validation only runs once there is a Stripe handoff to protect — with no links the CTA is inert
@@ -406,7 +424,7 @@ console.log('\n— Teams card contents —');
   ok('posts once', w.__fetches.length === 1);
   const facts = w.__fetches[0].body.attachments[0].content.body.find(b => b.type === 'FactSet').facts;
   const get = t => facts.find(f => f.title === t)?.value;
-  ok('card carries the plan', get('Plan') === 'Weekdays ($199/mo)', get('Plan'));
+  ok('card carries the plan', get('Plan') === 'Weekdays ($399/mo)', get('Plan'));
   ok('card carries email', get('Email') === 'hook@example.com');
   ok('card carries formatted phone', get('Phone') === '(303) 555-0142', get('Phone'));
   ok('card carries zip', get('ZIP') === '80202');
@@ -636,10 +654,12 @@ console.log('\n— the shipped Stripe link is a flagged placeholder —');
     /THIS IS A LIVE-MODE LINK/.test(src) && !/buy\.stripe\.com\/test_/.test(src));
   ok('the source says out loud that the billed price is not the advertised price',
     /EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES/.test(src));
-  // The observed price is recorded because it is the whole problem: $50/mo is not one of the three
-  // plans, and it is the figure §7 q1 rejected. If the link is repointed, this must be re-checked.
-  ok('the observed $50/mo charge is written down, with the §7 q1 conflict named',
-    /\$50\.00 every month/.test(src) && /\$50 is also the exact figure/.test(src) && /§7 q1 rejected/.test(src));
+  /* The observed price is recorded because it is the whole problem: $50/mo is not one of the three
+     plans. This got WORSE with the $49/$99/$399 pricing — the entry plan is now $49, a dollar off
+     what the placeholder actually charges, so a wrong charge would pass a glance at a receipt.
+     If the link is repointed, re-check this. */
+  ok('the observed $50/mo charge is written down, with the $49 near-collision named',
+    /\$50\.00 every month/.test(src) && /within a dollar of what this placeholder charges/.test(src));
   ok('the head comment warns a reader before they open the config',
     /LIVE-mode\s+link[\s\S]{0,300}must be fixed before\s+this page sees traffic/.test(src));
   ok('every plan still carries a TODO for its own link',

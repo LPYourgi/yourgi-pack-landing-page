@@ -24,11 +24,11 @@ here; they're the product.
 
 ## The offer, and why it's shaped this way
 
-Three capped, walking-led plans at $99 / $149 / $199. Every structural choice traces to the PRD:
+Three capped, walking-led plans at $49 / $99 / $399. Every structural choice traces to the PRD:
 
 | Choice | Why | Source |
 |---|---|---|
-| $99–$199, no $49 plan | $50 was called too low; $100–$200 floated | §7 q1 |
+| ~~$99–$199, no $49 plan~~ → **$49 / $99 / $399** | **OVERRIDDEN 12 Aug 2026** (Figma pass, Lauren's call). §7 q1 rejected $50 as too low and floated $100–$200; the entry plan is now $49. Re-open with David — see the pricing note in README.md | §7 q1 |
 | Capped, never "unlimited" | The cap **is** the subsidy guardrail — an unlimited plan is the $200/night house-sitting exposure | §6 |
 | Walking on every plan, daycare only at the top | Walking is repeatable and the best subscription fit | §7 q3 |
 | Boarding/overnight explicitly excluded, and the FAQ says so | Occasional and trip-driven — a poor subscription fit | §7 q3 |
@@ -112,12 +112,15 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 - **`TEAMS_WEBHOOK_URL` is intentionally empty**, and given the above it may stay that way — if the Stripe
   webhook handles notifications server-side, this page's client-side post is redundant and should be dropped
   rather than duplicated. Either way it must not reuse the concierge team's order-form channel (§7 q6).
-- **The Weekdays plan gives away 55%.** The comparison table computes savings from `LIST_RATES`, and at the
-  placeholder rates Weekdays bundles $440 of services for $199 — roughly $241/month of subsidy per
-  subscriber, with Pros still paid full rate (§6). Once a Week gives away 21%, which looks like an ordinary
-  bulk discount. §5 permits running underwater, so this may be intentional — but it should be chosen, not
-  inherited from three round numbers. **The savings row is a subsidy check as much as a conversion device;
-  read it that way when the real rates land.**
+- **The default plan gives away 56%, and the value ladder is inverted.** The comparison table computes
+  savings from `LIST_RATES`. Under the $49 / $99 / $399 pricing the exposure sits on the cheap plans, not the
+  top one: Once a Week gives away $76 (61%), Twice a Week — the pre-selected default — gives away $126 (56%),
+  and Weekdays only $41 (9%), with Pros still paid full rate (§6). So **the plan most people will buy is the
+  most expensive one to serve.** Separately, per-walk cost now *rises* with plan size ($9.80 → $11 → $28.50),
+  and Weekdays at $28.50 is above the $25 pay-as-you-go walk rate — the top plan is worse than booking one at
+  a time for anyone who checks. §5 permits running underwater, so this may be intentional — but it should be
+  chosen, not inherited. **The savings row is a subsidy check as much as a conversion device; read it that way
+  when the real rates land.**
 - **`LIST_RATES` is a placeholder that customers can see.** It drives the per-walk price, the savings
   callout, and the table. Wrong rates mean an overstated discount on a page taking real money. David's real
   pay-as-you-go numbers go in before launch.
