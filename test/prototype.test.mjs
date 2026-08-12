@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 // Resolved relative to this file so the suite travels with the project.
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PAGE = path.join(HERE, '..', 'index.html');
-const DEPLOY = path.join(HERE, '..', 'deploy', 'index.html');
 const NAV_LINE = 'target.location.href=url;';
 // The whole Stripe config object, so the harness can seed per-plan links or blank them out.
 const LINKS_BLOCK = /var STRIPE_PAYMENT_LINKS = \{[\s\S]*?\n  \};/;
@@ -905,17 +904,13 @@ console.log('\n— review harness is separate from the product —');
   const srcNoComments = src.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
   ok('the landing page does not link to, load, or frame the harness', !srcNoComments.includes('preview.html'),
     srcNoComments.match(/.{0,40}preview\.html.{0,40}/)?.[0]);
-  ok('harness is not in deploy/ (only index.html ships)',
-    !fs.existsSync(path.join(HERE, '..', 'deploy', 'preview.html')));
 }
 
-console.log('\n— deploy copy is in sync —');
-{
-  const canonical = fs.readFileSync(PAGE, 'utf8');
-  const deployed = fs.existsSync(DEPLOY) ? fs.readFileSync(DEPLOY, 'utf8') : null;
-  ok('deploy/index.html exists', deployed !== null);
-  ok('deploy/index.html matches index.html', deployed === canonical);
-}
+/* The "deploy copy is in sync" block lived here — three checks that deploy/index.html existed and
+   matched index.html byte for byte. deploy/ was deleted on 12 Aug 2026: it was a hand-maintained
+   duplicate that nothing read. GitHub Pages serves index.html from the branch root, there is no CI
+   or CNAME, and index.html is already the file that goes into Webflow. All the copy did was add a
+   `cp` step to forget and a test to fail when you forgot it. index.html is the only page now. */
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

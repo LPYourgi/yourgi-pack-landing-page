@@ -24,18 +24,23 @@ here; they're the product.
 
 ## The offer, and why it's shaped this way
 
-A coverage ladder at $49 / $99 / $399: five walks, then five days or nights of any service, then the month
-uncapped. Changed 12 Aug 2026 from three capped walking plans at $99 / $149 / $199.
+A coverage ladder: **$49** five walks (walking only), **$99** five days or nights of any service,
+**$399** unlimited for the month. `stripe/plans.json` is the machine-checked source of truth for the numbers.
 
 | Choice | Why | Source |
 |---|---|---|
-| ~~$99–$199, no $49 plan~~ → **$49 / $99 / $399** | **CHANGED 12 Aug 2026** (Lauren's pricing note, via the Figma). §7 q1 rejected $50 as too low and floated $100–$200; the entry plan is now $49 | §7 q1 |
-| ~~Capped, never "unlimited"~~ → **top plan is unlimited** | **REVERSED 12 Aug 2026.** The cap **was** the §6 subsidy guardrail. $399 all-you-can-eat is the $200/night house-sitting exposure §6 names, and §6 says the replacement guardrails are undefined. **Highest open risk on the page** | §6 |
-| ~~Walking on every plan, daycare only at the top~~ → **coverage ladder** | **CHANGED.** Walking only → any service → everything. This is §7 q2's option (a) | §7 q2 |
-| ~~Boarding/overnight excluded~~ → **included on the top two plans** | **REVERSED 12 Aug 2026.** §7 q3 leaned toward excluding them as a poor subscription fit; the new $99 and $399 plans both cover a night away | §7 q3 |
-| **No Guarantee claim anywhere on the page** | Coverage is undetermined and legally risky | §8 gap 4 |
+| Prices are $49 / $99 / $399, not approved | David owns pricing | §7 q1 |
+| A coverage ladder, not a walking-frequency ladder | Walking only → any service → everything | §7 q2 |
+| Overnight and boarding included on the top two plans | | §7 q3 |
+| **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $399, with Pros paid full rate, is the exposure §6 names. **Highest open risk here** | §6, gap 10 |
+| **The page claims nothing about who shows up** | A plan buys care, not continuity with a person. Don't add a familiarity promise back — a test blocks it | gap 3 |
+| No Guarantee claim anywhere on the page | Coverage is undetermined and legally risky | §8 gap 4 |
 | Beta framing above the fold | Enrolled subscribers need an off-ramp and honest comms | §8 gap 5 |
-| One optional "which days?" free-text box | Concierge sets each subscriber up by hand and needs this to make the call | §4, §7 q4 |
+
+> These reversed several earlier decisions on 12 Aug 2026 — the price band, the "capped, never unlimited"
+> rule, the boarding exclusion, and the single-matched-Pro promise. **The reasoning and the dates live in
+> `project-context.md`'s Decisions block**, which is authoritative; git history has the copy that changed.
+> Not repeated here.
 
 **The Guarantee band from the concierge page is gone.** A Guarantee band on a page taking recurring money
 reads as a coverage claim whether or not it says so. It was replaced with a "Straight up: this plan is new"
@@ -113,7 +118,7 @@ the Payment Links, the Power Automate flow, and the test plan. In outline:
    (it checks each plan routes to its own link).
 5. Build the **Power Automate flow** that turns `checkout.session.completed` into a Teams card, and point
    a Stripe webhook endpoint at it.
-6. Re-run `node test/prototype.test.mjs`, then `cp index.html deploy/index.html`.
+6. Re-run `node test/prototype.test.mjs`.
 
 There is **no `TEAMS_WEBHOOK_URL` any more** — that step used to be here and was removed on 12 Aug 2026.
 The page notifies nobody; the Stripe webhook does. A Power Automate URL is a credential and this file is
@@ -190,7 +195,7 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 
 ## Editing
 
-Plain HTML/CSS/JS, no build step. Keep `deploy/index.html` in sync with the canonical `index.html` — a test
+Plain HTML/CSS/JS, no build step. `index.html` is the only page — a test
 enforces it. Run all customer-facing copy through the `yourgi-brand` skill; Kai owns the final polish (§7 q5).
 
 Questions → Lauren Palma (lauren.palma@destpet.com).

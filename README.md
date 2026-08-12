@@ -21,8 +21,7 @@ paying.
 - `index.html` — the page (canonical). Double-click to open, or serve it (see below).
 - `preview.html` — **review harness.** Frames the page with a mobile / tablet / desktop toggle and
   shortcuts to the post-Stripe screens. Send reviewers here. **Never goes into Webflow**, and a test
-  keeps it out of `deploy/` and out of `index.html`.
-- `deploy/index.html` — identical copy of `index.html`, ready to drop into a static host. A test asserts they match.
+  keeps it out of `index.html`.
 - `test/prototype.test.mjs` — the headless check suite. See "Testing".
 - `docs/handoff.md` — start-here onboarding and open decisions.
 - `docs/stripe-webhook.md` — **the build runbook for Stripe → Teams.** Products, Payment Links, the
@@ -45,28 +44,20 @@ not approved** — David owns pricing, and the note below lists what still has n
 | Any Five (default) | $99/mo | Five days or nights a month, any service |
 | Everything | $399/mo | Unlimited, all month |
 
-> **The offer changed shape on 12 Aug 2026**, from three capped walking plans at $99 / $149 / $199 to
-> the coverage ladder above. From Lauren's internal pricing note, via the Figma.
->
-> **This resolves §7 q1 and §7 q2 rather than overriding them.** q1 had exactly two options live —
-> "a flat 'unlimited' price per service" and "packages that cap usage… up to 4–5 uses" — and this
-> picks both, one per tier. q2's option (a) is this walking-to-everything ladder. What *did* get
-> reversed is §7 q3's lean that overnight care be excluded, and the "no $49 plan" line in
-> `docs/handoff.md`.
->
-> **Two things now need real answers, and neither is a copy problem:**
-> 1. **§6's subsidy guardrail is gone on the top plan.** The cap *was* the guardrail. A month of
->    nightly house-sitting on the $399 plan is precisely the exposure §6 names, with Pros paid full
->    rate throughout. §6 says the specific guardrails are undefined — they now have to be defined.
-> 2. **`LIST_RATES` has no boarding or house-sitting rate**, and the $99 plan can be spent on both.
->    Until those land, the page floors that plan's saving at the cheapest known rate and hedges it
->    (see below). David owns this.
+> **Decisions and their history live in [`docs/project-context.md`](docs/project-context.md)**, which is
+> authoritative. This file describes the repo; it doesn't re-argue the offer.
 
-Four structural choices, each traceable to the PRD:
+Three open risks worth knowing before you touch anything, all tracked in the PRD:
 
-- **~~Capped, never unlimited.~~ Reversed 12 Aug 2026.** The top plan is unlimited, so the page no longer
-  carries the guardrail §6 asked for. Kept in this list, struck through, because it was a real constraint and
-  its removal is the single biggest open risk on the page — see the pricing note above.
+- **The top plan is uncapped and nothing guards it.** A usage cap used to be §6's subsidy guardrail. A month
+  of nightly house-sitting on $399, with Pros paid full rate, is the exposure §6 names verbatim. PRD gap 10,
+  highest priority.
+- **The headline doesn't match the offer.** "Stop re-hiring a stranger every week" was carrying the Connection
+  value prop, and a plan makes no promise about who turns up (PRD gap 3). Left standing on purpose — replacing
+  it is a positioning call and Kai owns copy (§7 q5). **Single Platform** is the prop that's actually true.
+- **`LIST_RATES` has no boarding or sitting rate**, and the $99 plan can be spent on both, so its saving is a
+  floored estimate rather than a figure. See the subsidy section below.
+
 - **A coverage ladder, not a frequency ladder.** Walking only → any service → everything. §7 q2's option (a).
   Boarding and overnight are **in** on the top two plans, and the FAQ says so plainly.
 - **No Yourgi Guarantee claim anywhere on the page.** §8 gap 4 says coverage is undetermined and legally
@@ -209,12 +200,15 @@ survives the switch.
 ## Testing
 
 ```bash
-npm install jsdom && node test/prototype.test.mjs
+npm install && node test/prototype.test.mjs
 ```
 
+`package.json` pins the one dependency (jsdom). It used to be gitignored, so a fresh clone couldn't run this
+at all — fixed 12 Aug 2026.
+
 Covers plan switching, validation, phone/zip masking, the market gate, the optional schedule field, the
-inert-CTA state, per-plan Stripe URL routing, out-of-market handling, both return-from-Stripe states,
-and deploy/canonical sync.
+inert-CTA state, per-plan Stripe URL routing, out-of-market handling, both return-from-Stripe states, and
+the `stripe/plans.json` manifest agreeing with the page on every price and label.
 
 It also asserts a set of **negatives about notifications**: that the page posts to no channel of its
 own, that no Power Automate endpoint or Stripe key is committed to page source, and that the page

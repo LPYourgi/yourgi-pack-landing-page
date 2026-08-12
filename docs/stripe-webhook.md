@@ -379,7 +379,7 @@ Only after prices are approved (blocking decision #1) and Jeff has named the cha
 2. Swap the key in the flow's HTTP action and add a **live-mode** webhook endpoint in Stripe.
 3. Put the live Payment Links into `index.html` **on the product branch, not `gh-pages`.** This
    branch is served publicly and must never carry a live payment link.
-4. `node test/prototype.test.mjs`, then `cp index.html deploy/index.html`.
+4. `node test/prototype.test.mjs`.
 5. Do one real purchase yourself and refund it. The card should say `Mode: LIVE`.
 
 ---
