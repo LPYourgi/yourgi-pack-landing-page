@@ -762,8 +762,22 @@ console.log('\n— typography —');
   ok('the licensed builds are used, never Klim\'s -test- trial fonts',
     /national-2-regular\.woff2/.test(src) && !/national-2[a-z-]*-test-/.test(src),
     src.match(/national-2[a-z-]*-test-[a-z]+\.\w+/g));
-  ok('the card\'s benefit bullets are National 2 Regular 13',
-    /#incl li\{font-family:'National 2'[^}]*font-size:13px[^}]*font-weight:400/.test(src));
+  ok('the card\'s benefit bullets are National 2 Regular 14',
+    /#incl li\{font-family:'National 2'[^}]*font-size:14px[^}]*font-weight:400/.test(src));
+  /* NATIONAL 2 IS NOW THE PAGE DEFAULT, not a one-element exception. Frame 4077:222 was migrated
+     off Oswald entirely on 13 Aug 2026, so the guard is that the stand-in has not crept back into
+     the body or the display face. */
+  ok('body text defaults to National 2', /body\{margin:0; font-family:'National 2'/.test(src));
+  ok('h1/h2 are National 2 Condensed', /h1,h2,\.display\{font-family:'National 2 Condensed'/.test(src));
+  ok('Oswald is no longer set on anything',
+    !/font-family:'Oswald'/.test(src.replace(/\/\*[\s\S]*?\*\//g, '')),
+    src.match(/[^;{]*font-family:'Oswald'[^;}]*/g));
+  /* Archivo survives in exactly three places in the frame, and they are easy to "tidy" away by
+     someone finishing the migration: the comparison table's row labels (4077:310), the footer
+     tagline (4077:422), and the bold lead-in of the footer Guarantee line (4077:424). Pinned so
+     that removing them is a decision rather than a sweep. */
+  const archivoHoldouts = (src.match(/font-family:'Archivo',(?:system-ui|sans-serif)/g) || []).length;
+  ok('the three Archivo holdouts from the frame are still Archivo', archivoHoldouts === 3, archivoHoldouts);
   /* The hero list is scoped by class. `.hero .incl` reaches into the card because the card is
      inside the hero element — if this fails, the card's bullets have silently changed size.
      Comments are stripped first: the note explaining this bug necessarily quotes the selector

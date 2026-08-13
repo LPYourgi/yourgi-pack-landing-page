@@ -333,6 +333,46 @@ wrong price** — it is the single most expensive mistake available in this file
 While the placeholder single-link state is in place, four tests in the "flagged placeholder" block
 fail on purpose. Replacing the links is what makes them pass.
 
+### 1.3b Reconcile against the T&Cs — Legal wrote us a Stripe checklist
+
+`Yourgi_Pack_Terms_and_Conditions_DRAFT_5` (Emily Farabi, 13 Aug 2026) carries an **Annex A** that
+maps clauses to the Stripe settings they depend on: *"Every clause below describes behavior that
+Stripe controls. The clause is only true if the Stripe Dashboard is configured to match it."* Read it
+before configuring anything. The doc is marked **DRAFT — DO NOT PUBLISH**, so treat what follows as
+what we'd have to reconcile, not as settled.
+
+**Three conflicts with what we've built:**
+
+| | Terms say | We have |
+|---|---|---|
+| **Full Coverage price** | **$499** (Schedule 1) | **$399** on the page, in `plans.json`, and in Stripe |
+| **Refunds** | 12.1: monthly fees are **non-refundable**; no credit for partial months or unused allowance, with named exceptions in 12.2 | FAQ offers a discretionary refund for the current month |
+| **"Link on your receipt"** | Annex A row 11: *Stripe receipts do not contain a portal link by default* | FAQ and the Stripe terms text both tell people to cancel from that link |
+
+That last one fails on first contact: two pieces of customer-facing copy point at a link Stripe
+doesn't put there. Terms 9.1 also leaves a placeholder for a permanent cancellation URL, and notes a
+portal session link expires — so the permanent URL needs a page that generates one.
+
+**Settings the terms require that we haven't set:**
+
+- **Customer emails** — successful payments, failed payments, **and upcoming renewal** (7.5, Annex row 2).
+  A renewal reminder is a commitment in the terms, not a nicety.
+- **Retries** — 8 attempts over 2 weeks is Stripe's default and what 8.1 assumes; confirm the end
+  behaviour matches 8.4.
+- **Disputes → cancel** (10.1(d)). Stripe keeps cycling by default, creating further disputed charges.
+- **Cancellation-reason collection** in the portal (9.5) — optional for the customer, and cheap
+  churn data for a test whose whole purpose is measuring whether people stay.
+- **Tax** (7.6) — Stripe Tax enabled, or handled manually.
+
+**What we already got right:** cancel at period end rather than immediately (9.2 — Stripe's API
+default is immediate, so this had to be set), self-serve cancellation in the portal (9.1), and a
+recurring monthly price anchored at creation (7.2).
+
+**The item Legal calls the most important in the Annex** isn't a Stripe setting at all — it's row 14.
+The Plus Coupon must be bound to the subscriber's Yourgi account. `max_redemptions` caps redemptions
+**across all customers**, so an unbound 5-use code can be burned by five strangers. That's the
+mechanism the whole product runs on, and it sits outside this repo.
+
 ### 1.4 Point the terms checkbox at the real Terms & Conditions
 
 All three Payment Links already set `consent_collection.terms_of_service: required`, so checkout shows

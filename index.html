@@ -61,7 +61,11 @@
   - Reviews are real but are boarding/cat-sitting reviews. Swap in dog-walking reviews.
   - Event names need a lexicon check before they carry real traffic.
 -->
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- OSWALD IS GONE (13 Aug 2026). It stood in for National 2 across this page; frame 4077:222 no
+     longer uses it anywhere, so nothing here sets it and downloading it would be dead weight.
+     Archivo stays for two reasons: three nodes in the frame are still set in it, and it is the
+     fallback in every National 2 stack below. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* ===== NATIONAL 2 — THE REAL BRAND FACE ====================================================
      National 2 (Klim Type Foundry) is Yourgi's typeface: Condensed ExtraBold for headlines,
@@ -113,14 +117,27 @@
   /* Available to screen readers, invisible on screen. */
   .vh{position:absolute!important; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden;
       clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0;}
-  body{margin:0; font-family:'Archivo',system-ui,sans-serif; color:var(--black); background:var(--bone); line-height:1.5;}
+  /* ===== TYPE: NATIONAL 2 THROUGHOUT, COPIED FROM FRAME 4077:222 =============================
+     Every family and size below is read off that frame, node by node, on 13 Aug 2026. The frame
+     was fully migrated to National 2 between the copy sync earlier that day and this pass — Oswald
+     no longer appears in it at all, and Archivo survives in exactly three places (noted at each).
+     Archivo stays as the fallback everywhere so a CDN failure degrades to the old stand-in.
+
+     WHEN RE-SYNCING: read the frame again rather than trusting this comment. It has already gone
+     stale once inside a single day. */
+  body{margin:0; font-family:'National 2','Archivo',system-ui,sans-serif; color:var(--black); background:var(--bone); line-height:1.5;}
   .wrap{max-width:1080px; margin:0 auto; padding:0 20px;}
-  h1,h2,h3,.display{font-family:'Oswald',system-ui,sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.01em; line-height:.98; margin:0;}
+  /* h1/h2 are National 2 CONDENSED ExtraBold; h3 is National 2 Bold, NOT condensed. That is the
+     frame's own split — every section h2 (steps 4077:278, compare 4077:286, FAQ 4077:402, closer
+     4077:412, trust 4104:1059) is condensed, while the step headings (4015:148) and FAQ questions
+     (4021:205) are the plain Bold. */
+  h1,h2,.display{font-family:'National 2 Condensed','National 2','Archivo',system-ui,sans-serif; font-weight:800; text-transform:uppercase; letter-spacing:.01em; line-height:.98; margin:0;}
+  h3{font-family:'National 2','Archivo',system-ui,sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.01em; line-height:.98; margin:0;}
   a{color:inherit;}
-  .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'Oswald',sans-serif; font-weight:700; font-size:18px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
+  .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
   .btn-dark:hover{opacity:.9;}
   .btn-dark:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
-  label{font-size:13px; color:#4a4a46; display:block; margin-bottom:5px;}
+  label{font-size:12px; color:#4a4a46; display:block; margin-bottom:5px;}
   /* 16px is not a style choice: iOS Safari zooms the whole page when it focuses an input under
      16px, which throws the layout sideways mid-form on exactly the device most ad traffic uses. */
   input,select,textarea{width:100%; border:1px solid #cfc8b6; border-radius:8px; padding:0 12px; font-size:16px; font-family:inherit; background:#fff;}
@@ -136,11 +153,12 @@
   .stepper{display:flex; align-items:center; border:1px solid #cfc8b6; border-radius:8px; background:#fff; overflow:hidden;}
   .stepper button{border:none; background:none; padding:10px 14px; font-size:18px; cursor:pointer; line-height:1;}
   .stepper span{flex:1; text-align:center; font-size:15px; font-weight:600;}
-  .fineprint{font-size:12px; color:var(--muted);}
+  .fineprint{font-size:11.5px; color:var(--muted);}
   /* beta ribbon */
   .beta{background:var(--black); color:var(--bone); font-size:12px; letter-spacing:.02em;}
   .beta .wrap{padding:9px 20px; display:flex; gap:8px; align-items:center; justify-content:center; text-align:center;}
-  .beta strong{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:12px; color:var(--yellow);}
+  /* 11px, not 12 — 4077:235 sets the "NEW & IN TESTING" run at 11px/0.66px tracking (=.06em). */
+  .beta strong{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.06em; font-size:11px; color:var(--yellow);}
   /* tier cards */
   .tier-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;}
   /* color is declared, not inherited, and that is not redundant: .tier is a <button>, and a
@@ -150,20 +168,20 @@
      stayed correct, because those three do declare one. */
   .tier{position:relative; border:1px solid #cfc8b6; background:#fff; border-radius:12px; padding:16px 12px 14px; cursor:pointer; font-family:inherit; color:var(--black); text-align:left; display:flex; flex-direction:column; gap:6px;}
   .tier[aria-checked="true"]{border:2px solid var(--black); background:var(--tint); padding:15px 11px 13px;}
-  .tier-name{font-family:'Oswald',sans-serif; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:.02em;}
-  .tier-price{font-family:'Oswald',sans-serif; font-weight:700; font-size:30px; line-height:1;}
-  .tier-price .per{font-family:'Archivo',sans-serif; font-weight:400; font-size:12px; color:var(--muted); letter-spacing:0;}
+  .tier-name{font-family:'National 2 Condensed','National 2',sans-serif; font-weight:800; font-size:16px; text-transform:uppercase; letter-spacing:.02em;}
+  .tier-price{font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:32px; line-height:1;}
+  .tier-price .per{font-family:'National 2','Archivo',sans-serif; font-weight:400; font-size:12px; color:var(--muted); letter-spacing:0;}
   .tier-blurb{font-size:12px; color:#444; line-height:1.35;}
   /* Per-unit price on each card. Every strong usage-capped subscription (ClassPass, HelloFresh,
      Blue Apron) shows the unit price, because "$99/mo" alone makes the buyer do the division. */
-  .tier-unit{font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#2f6b2b; letter-spacing:0;}
-  .save{margin:0 0 16px; padding:9px 11px; background:var(--field); border-radius:8px; font-size:12.5px; font-weight:600; color:#2c3a1c;}
+  .tier-unit{font-family:'National 2','Archivo',sans-serif; font-size:12px; font-weight:700; color:#2f6b2b; letter-spacing:0;}
+  .save{margin:0 0 16px; padding:9px 11px; background:var(--field); border-radius:8px; font-size:12px; font-weight:700; color:#2c3a1c;}
   .save em{font-style:normal; font-weight:700;}
-  .tier-badge{position:absolute; top:-9px; left:12px; background:var(--yellow); border:1px solid var(--black); border-radius:20px; padding:2px 9px; font-family:'Oswald',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
+  .tier-badge{position:absolute; top:-9px; left:12px; background:var(--yellow); border:1px solid var(--black); border-radius:20px; padding:2px 9px; font-family:'National 2 Condensed','National 2',sans-serif; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
   .tier-check{position:absolute; top:8px; right:8px; width:18px; height:18px; display:none;}
   .tier-check svg{width:18px; height:18px; display:block;}
   .tier[aria-checked="true"] .tier-check{display:block;}
-  .incl{list-style:none; margin:0 0 16px; padding:0; font-size:13px;}
+  .incl{list-style:none; margin:0 0 16px; padding:0; font-size:14px;}
   .incl li{display:flex; gap:8px; align-items:flex-start; margin-bottom:7px; color:#333;}
   .incl li svg{flex:0 0 auto; width:15px; height:15px; margin-top:2px;}
   /* THE HERO LIST IS THE SAME COMPONENT AT A DIFFERENT WEIGHT (Figma 4104:977 vs the card's
@@ -190,33 +208,36 @@
      system serif. Scoped to #incl (the card list) alone: the hero list above is still Archivo, so
      these two lists now differ in typeface as well as weight. That is deliberate but temporary —
      it resolves when the whole page moves to National 2. */
-  #incl li{font-family:'National 2','Archivo',system-ui,sans-serif; font-size:13px; font-weight:400;}
+  #incl li{font-family:'National 2','Archivo',system-ui,sans-serif; font-size:14px; font-weight:400;}
   /* nav — logo only, deliberately. See the comment on the <nav> block. */
   nav{background:var(--bone); border-bottom:1px solid var(--line);}
   nav .wrap{display:flex; align-items:center; height:64px;}
-  .logo{font-family:'Oswald',sans-serif; font-weight:700; font-size:24px; letter-spacing:.02em;}
+  .logo{font-family:'National 2 Condensed','National 2',sans-serif; font-weight:700; font-size:24px; letter-spacing:.02em;}
   .logo-img{height:30px; width:auto; display:block;}
   footer img{display:block;}
   /* hero */
   .hero{background:var(--yellow);}
   .hero .wrap{display:grid; grid-template-columns:1.05fr .95fr; gap:32px; padding:48px 20px; align-items:start;}
-  .hero h1{font-size:52px;}
-  .lede{font-size:17px; margin:16px 0 4px; max-width:430px;}
+  /* 64px, from 4104:972 — was 52px. The Figma sets it in National 2 Condensed ExtraBold; .n2-display
+     on the element supplies the face. Mobile still steps down at the 820px breakpoint below: the
+     frame only specifies Desktop 1440, so the responsive sizes are ours, not the design's. */
+  .hero h1{font-size:64px;}
+  .lede{font-size:16px; margin:16px 0 4px; max-width:430px;}
   .card{background:var(--bone); border-radius:16px; padding:22px; box-shadow:0 1px 0 rgba(0,0,0,.06);}
   /* sections */
   section.band{padding:56px 20px;}
   /* how it works */
   .steps .wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
-  .step-num{font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; letter-spacing:.06em; color:var(--sky-ink); text-transform:uppercase; margin-bottom:8px;}
-  .steps h3{font-family:'Oswald',sans-serif; font-weight:700; text-transform:none; font-size:19px; margin-bottom:6px;}
-  .steps p{font-size:14px; margin:0; color:#333;}
+  .step-num{font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; color:var(--sky-ink); text-transform:uppercase; margin-bottom:8px;}
+  .steps h3{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:none; font-size:16px; margin-bottom:6px;}
+  .steps p{font-size:16px; margin:0; color:#333;}
   .steps-head{max-width:1080px; margin:0 auto 32px; padding:0 20px;}
-  .steps-head h2{font-size:34px;}
+  .steps-head h2{font-size:32px;}
   /* honest-beta band (replaces the concierge page's Guarantee band — see head comment) */
   .straight .wrap{display:grid; grid-template-columns:260px 1fr; gap:44px; align-items:center;}
   .polaroid{width:100%; border:4px solid #fff; border-radius:2px; overflow:hidden; transform:rotate(-7deg); box-shadow:0 12px 28px rgba(0,0,0,.16); display:block;}
   .polaroid img{display:block; width:100%; height:auto;}
-  .g-eyebrow{font-family:'Oswald',sans-serif; font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;}
+  .g-eyebrow{font-family:'National 2 Condensed','National 2',sans-serif; font-weight:800; font-size:15px; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;}
   .straight h2{font-size:36px; margin-bottom:16px;}
   .straight p{font-size:15px; color:#333; margin:0 0 10px;}
   .straight p:last-child{margin-bottom:0;}
@@ -229,7 +250,7 @@
      Darkened, and each rating also carries a visually-hidden text equivalent. */
   .review-stars{color:#B87D0A; letter-spacing:2px; font-size:15px; margin-bottom:4px;}
   .review-id{font-size:12px;}
-  .review-id .label{font-family:'Oswald',sans-serif; font-weight:600; color:var(--sky-ink); text-transform:uppercase; letter-spacing:.04em; display:block;}
+  .review-id .label{font-family:'National 2','Archivo',sans-serif; font-weight:600; color:var(--sky-ink); text-transform:uppercase; letter-spacing:.04em; display:block;}
   .review-id .val{font-size:14px; color:var(--black); display:block; margin-top:2px;}
   .review-divider{border-top:1px solid #000; opacity:.5;}
   .review-quote{font-weight:600; margin:0; line-height:1.4;}
@@ -255,7 +276,7 @@
        long value cannot widen a column (or shrink the plans to pay for it).
      - overflow:hidden on cells, so nothing paints outside its own column. */
   table.compare{width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed;
-                font-size:14px; min-width:600px; background:#fff;}
+                font-size:16px; min-width:600px; background:#fff;}
   table.compare th, table.compare td{overflow:hidden;}
   table.compare th, table.compare td{padding:13px 16px; text-align:left;}
   table.compare td{text-align:center; font-variant-numeric:tabular-nums;}
@@ -268,13 +289,16 @@
   table.compare thead th{padding:36px 16px 15px; vertical-align:bottom; text-align:center;
                          border-bottom:2px solid var(--black);}
   table.compare thead th:first-child{border-bottom-color:#ded6c2;}
-  .cmp-plan{display:block; font-family:'Oswald',sans-serif; font-weight:700; text-transform:uppercase;
-            font-size:13px; letter-spacing:.04em; color:#333;}
-  .cmp-price{display:block; font-family:'Oswald',sans-serif; font-weight:700; font-size:25px;
+  .cmp-plan{display:block; font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:uppercase;
+            font-size:16px; letter-spacing:.02em; color:#333;}
+  /* The third column carries wider tracking than the other two in the frame (4077:305 is .64px
+     against .32px) — reproduced rather than normalised. */
+  table.compare thead th:last-child .cmp-plan{letter-spacing:.04em;}
+  .cmp-price{display:block; font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:24px;
              line-height:1.05; letter-spacing:.01em; margin-top:3px;}
   .cmp-flag{position:absolute; top:9px; left:50%; transform:translateX(-50%); background:var(--yellow);
             border:1px solid var(--black); border-radius:20px; padding:2px 10px;
-            font-family:'Oswald',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase;
+            font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase;
             letter-spacing:.04em; white-space:nowrap;}
   /* The row-label column is the table's y-axis — it stays put while the plans scroll under it.
      Two shadows, not decoration: 1px right is the column divider, and -3px left is white paint
@@ -284,7 +308,7 @@
   table.compare thead th:first-child, table.compare tbody th[scope="row"]{
     position:sticky; left:0; z-index:3; background:#fff; background-clip:padding-box;
     box-shadow:1px 0 0 #efeade, -3px 0 0 #fff;
-    font-weight:600; font-size:13.5px; color:#333;}
+    font-family:'Archivo',system-ui,sans-serif; font-weight:600; font-size:16px; color:#333;}
   table.compare td{position:relative; z-index:1;}
   /* Column widths are fixed rather than content-derived, so the label column can't grow to
      crowd out the plans it is labelling. */
@@ -304,33 +328,38 @@
   .cmp-yes svg{display:block; width:19px; height:19px;}
   /* closing CTA — a long page needs a second door; the top one is off-screen by the FAQ. */
   .closer{background:var(--sky); text-align:center;}
-  .closer h2{font-size:34px; margin-bottom:12px;}
-  .closer p{font-size:15px; max-width:460px; margin:0 auto 20px;}
-  .closer .btn-dark{padding:16px 34px; font-size:20px;}
+  .closer h2{font-size:32px; margin-bottom:12px;}
+  .closer p{font-size:16px; max-width:460px; margin:0 auto 20px;}
+  .closer .btn-dark{padding:16px 34px; font-size:24px;}
   /* faq */
   .faq-item{border-bottom:1px solid var(--line); padding:16px 0;}
-  .faq-item h3{font-family:'Oswald',sans-serif; font-weight:700; text-transform:none; font-size:18px; margin-bottom:6px;}
+  .faq-item h3{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:none; font-size:16px; margin-bottom:6px;}
   /* MEASURE CAP — brand rule, not a taste call. references/visual.md sets body copy at 30–60
      characters per rendered line, with "ideal paragraph width = font size × 24". At 14px that's
      ~336px; these answers were running the full 760px of the container, about 105 characters a
      line. The hero lede already caps at 430px for 17px type (408 by the formula), so this brings
      the FAQ in line with what the rest of the page already does. */
-  .faq-item p{font-size:14px; margin:0; color:#333; max-width:350px;}
+  .faq-item p{font-size:16px; margin:0; color:#333; max-width:350px;}
   /* footer */
   footer{background:var(--navy); color:var(--bone); padding:44px 20px 28px;}
   .foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:24px;}
-  footer h4{font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; letter-spacing:.06em; margin:0 0 12px; color:#d8cfbf;}
-  footer ul{list-style:none; margin:0; padding:0; font-size:14px;}
+  footer h4{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:uppercase; font-size:16px; letter-spacing:.06em; margin:0 0 12px; color:#d8cfbf;}
+  footer ul{list-style:none; margin:0; padding:0; font-size:16px;}
   footer li{margin-bottom:8px;}
   footer li a{text-decoration:none;}
-  footer .tag{font-family:'Oswald',sans-serif; font-weight:700; font-size:20px; text-transform:uppercase;}
-  footer .tagline{color:var(--yellow); font-weight:700; font-size:16px; margin:10px 0 0;}
+  footer .tag{font-family:'National 2 Condensed','National 2',sans-serif; font-weight:700; font-size:20px; text-transform:uppercase;}
+  /* ARCHIVO HOLDOUT 1 of 3 — the frame still sets the tagline in Archivo Bold 16 (4077:422). */
+  footer .tagline{font-family:'Archivo',system-ui,sans-serif; color:var(--yellow); font-weight:700; font-size:16px; margin:10px 0 0;}
   /* 520px at 12px ran ~87 characters a line, over the 30–60 the brand sets. 290px is the
      font size × 24 measure. The WORDING of the Guarantee paragraph is a separate problem — it
      states the remedy ("a coupon code toward your next booking"), which is exactly the mechanic
      the brand guide says not to put in copy while the Guarantee's legal boundaries are
      undocumented. Flagged, not rewritten: this is inherited site furniture and Legal owns it. */
   footer .legal{font-size:12px; color:#b7ae9e; margin-top:10px; max-width:290px;}
+  /* ARCHIVO HOLDOUT 2 of 3 — inside one paragraph the frame sets the bold lead-in "The Yourgi
+     Guarantee." in Archivo Bold 12 (4077:424) and the sentence after it in National 2 Regular 12.
+     Holdout 3 is the comparison table's row labels, above. */
+  footer .legal strong{font-family:'Archivo',system-ui,sans-serif;}
   footer .legal a{color:var(--bone);}
   .foot-social{display:flex; gap:12px; margin-top:16px;}
   .foot-social a{width:30px; height:30px; border-radius:50%; border:1px solid #435066; display:flex; align-items:center; justify-content:center;}
@@ -486,7 +515,7 @@
     <div id="signup" class="card">
       <!-- STEP 1: pick a plan + capture what concierge needs to set it up -->
       <div id="step-plan">
-        <h2 style="font-size:18px; margin-bottom:14px;">Pick your routine</h2>
+        <h2 style="font-size:16px; margin-bottom:14px;">Pick your routine</h2>
         <div class="tier-row" id="tiers" role="radiogroup" aria-label="Choose a plan">
           <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Two Anything" style="--tint:#DBEFEF;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -623,7 +652,7 @@
      the same PLAN_UNITS config as the cards so the two can never disagree. -->
 <section class="band" id="compare">
   <div class="wrap" style="max-width:820px;">
-    <h2 style="font-size:30px; margin-bottom:6px;">Which plan is right for your pet?</h2>
+    <h2 style="font-size:32px; margin-bottom:6px;">Which plan is right for your pet?</h2>
     <!-- max-width is the measure cap from references/visual.md (font size × 24) — see .faq-item p -->
     <p style="font-size:14px; color:#444; margin:0 0 22px; max-width:350px;">Whether your pet needs coverage just twice a month, or if you have higher frequency needs, we have a plan for you.</p>
     <div class="compare-card">
@@ -691,8 +720,8 @@
      git history has it if the testimonials come back. -->
 <section class="band" style="background:#fff;">
   <div class="wrap" style="max-width:390px;">
-    <h2 style="font-size:30px; margin-bottom:12px;">Why Yourgi Plus?</h2>
-    <p style="font-size:15px; margin:0; max-width:350px;">Most pet parents have a system that works until it does not. The neighbor moves, the regular sitter books up, the trip comes together on Wednesday. Then you are scrambling. Yourgi Plus exists so there is always someone to call. You get a Concierge who knows your pet and your standards, sorts out who is available, and comes back with a confirmed booking. Not a directory to search. A person who handles it.</p>
+    <h2 style="font-size:40px; margin-bottom:12px;">Why Yourgi Plus?</h2>
+    <p style="font-size:16px; margin:0; max-width:350px;">Most pet parents have a system that works until it does not. The neighbor moves, the regular sitter books up, the trip comes together on Wednesday. Then you are scrambling. Yourgi Plus exists so there is always someone to call. You get a Concierge who knows your pet and your standards, sorts out who is available, and comes back with a confirmed booking. Not a directory to search. A person who handles it.</p>
   </div>
 </section>
 
@@ -702,7 +731,7 @@
        running 400px past the end of the text they belong to. Matches the rhythm of the rest of the
        page: a 430px hero column, ~330px step columns, ~340px review cards. -->
   <div class="wrap" style="max-width:390px;">
-    <h2 style="font-size:30px; margin-bottom:12px;">FAQ&rsquo;s</h2>
+    <h2 style="font-size:32px; margin-bottom:12px;">FAQ&rsquo;s</h2>
     <!-- EVERY ITEM BELOW IS VERBATIM FROM THE FIGMA (13 Aug 2026), which is the source of truth
          for copy. Four things a proofreader should see before launch, left exactly as written:
            - "through your Yourgi Concierge Your plan runs" is missing a full stop.
