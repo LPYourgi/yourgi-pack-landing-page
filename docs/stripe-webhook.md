@@ -24,6 +24,51 @@ this reason; the lead/abandonment signal still goes to Segment and Mixpanel.
 
 ---
 
+## Fastest path to a real card in a Teams channel
+
+The short version, for getting one fake payment to produce one real Teams message. Detail for every
+step is further down.
+
+**Use Yourgi's own account in test mode, not a throwaway sandbox.** A claimable sandbox can't issue
+restricted API keys, so the verification step can't be built there at all. In Yourgi's account you
+have the Dashboard, and test mode is just as safe.
+
+```bash
+stripe login                          # points the CLI at Yourgi's account
+node stripe/create-plans.mjs --go     # 3 products, 3 prices, 3 test links, portal configured
+```
+
+Then, in order:
+
+1. **Stripe → Developers → API keys → Create restricted key.** Read on **Events**. Copy it.
+2. **Power Automate → new flow**, four actions, named exactly as below (the card references them):
+   - Trigger: **When an HTTP request is received** · Who can trigger: *Anyone* · Save, then copy the URL.
+   - **Condition**: `triggerBody()?['type']` equals `checkout.session.completed`
+   - **HTTP** action named `Verify event with Stripe` · GET
+     `https://api.stripe.com/v1/events/@{triggerBody()?['id']}` · header
+     `Authorization: Bearer <the restricted key>`
+   - Two **Compose** actions: `Session` = `body('Verify_event_with_Stripe')?['data']?['object']`,
+     and `Ref` = `coalesce(outputs('Session')?['client_reference_id'], 'yg_unknown_unknown_0')`
+   - **Post adaptive card in a chat or channel** → paste
+     [`webhook/teams-card-signup.paste.json`](../webhook/teams-card-signup.paste.json) *(the
+     `.paste.json` files have the explanatory keys stripped so they paste without editing)*
+3. **Stripe → Developers → Webhooks → Add endpoint** (still test mode). URL = the flow URL. Event =
+   `checkout.session.completed` only.
+4. **Paste the three test links** into `STRIPE_PAYMENT_LINKS`, run `node test/prototype.test.mjs`.
+5. **Buy something.** Serve the page, pick a plan, ZIP `80202`, card `4242 4242 4242 4242`, any future
+   expiry, any CVC. The card should land in the channel within a few seconds.
+
+**Debug it in two halves, not one.** If nothing arrives, you don't know whether Stripe failed to
+call the flow or the flow failed to post. Test the second half first: POST the card JSON straight at
+the flow URL and confirm it renders in Teams. Only then wire Stripe up. Stripe's **Developers →
+Webhooks → your endpoint** page shows every delivery attempt and its response, which answers the
+first half.
+
+**Do not point this at the concierge order-form channel** — blocking decision #9. Build it against a
+channel only you can see, then repoint once Jeff confirms the real one.
+
+---
+
 ## Before you start — three things that aren't code
 
 **1. ~~Find the Stripe page that already exists.~~ Found it, 12 Aug 2026 — and it isn't ours.**
@@ -65,11 +110,28 @@ Two things still worth doing about it, neither of them ours to do unilaterally:
 One pattern worth copying from it: it has `phone_number_collection.enabled: true`, which is exactly
 what step 1.3 below asks you to turn on.
 
-**2. Check your Power Automate licence before building the flow.** The two actions this design
-needs — the **When an HTTP request is received** trigger and the **HTTP** action — are *premium*
-connectors. If your account doesn't have them, you'll find out three steps in. Check first. If you
-don't have premium, see [If you don't have premium](#if-you-dont-have-premium) at the bottom before
-doing anything else, because the whole shape changes.
+**2. ~~Check your Power Automate licence.~~ CHECKED 13 Aug 2026 — Lauren does NOT have premium.**
+
+The design's two key actions — the **When an HTTP request is received** trigger and the **HTTP**
+action — are premium connectors, and Flow checker reports *"This flow's owner needs a Power Automate
+Premium license."* The flow saves; it just cannot run.
+
+**How to check this properly, because the obvious way is misleading.** The trigger appears in the
+list and can be added to a flow whether or not you're licensed. Saving succeeds too. The licence
+only surfaces in **Flow checker → Warnings**, or in the banner *"Your flow is saved but can't be
+used."* Don't take an addable trigger or a successful save as evidence — open Flow checker.
+
+Options, in the order I'd try them:
+
+- **The free 90-day trial**, offered directly in that Flow checker panel. Free, self-service, and 90
+  days is a good match for a beta that may be wound down inside a quarter. After enabling it, **edit
+  and re-save the flow** — the licence doesn't apply to an already-saved flow until you do.
+- **A licence request to your admin**, also linked from that panel. Slower, and Microsoft warns it
+  can take up to 7 days to propagate.
+- **Go non-premium** — see [If you don't have premium](#if-you-dont-have-premium). Workable, but it
+  loses event verification, which changes what the channel means.
+- **Skip Power Automate for the beta** — see the same section. Stripe can email on every successful
+  payment, which for a small beta with manual fulfilment may be enough on its own.
 
 **3. The channel is Jeff's call** (blocking decision #9). It must be a **new, dedicated** channel,
 never the concierge team's order-form channel — subscription signups are not bookings and must not
@@ -146,6 +208,61 @@ Everything below has a live-mode equivalent you can redo in about ten minutes on
 descriptions, amounts in cents, metadata, and every Payment Link setting. Build from that file rather
 than from this table, and don't retype values from either into the Dashboard by eye.
 
+### ⚠️ Check what your Stripe role actually allows first
+
+Lauren has access to Yourgi Pro but **cannot create API keys** — `stripe login` fails with *"you
+don't have permission to create an API key for this merchant."* That's a limited Dashboard role;
+key creation needs **Developer** or **Administrator**.
+
+Two separate permissions matter here, and they fail independently:
+
+| Needed for | Permission | Status |
+|---|---|---|
+| The three Payment Links (what the landing page needs) | Write access to Products / Payment Links | **Unconfirmed** — try creating one in the Dashboard |
+| The restricted key (what the webhook's verify step needs) | API key creation | **Blocked** |
+
+**These are worth separating rather than treating as one ask.** The landing page only needs the
+Payment Links — it never touches an API key. So if the Dashboard lets you create a Payment Link,
+checkout can ship while the key question is still being sorted, and only the Teams notification
+waits.
+
+If neither is available, the ask to whoever administers Stripe is: **Developer role on Yourgi Pro**,
+which covers both. Failing that, they can create the three Products and Payment Links from
+[`stripe/plans.json`](../plans.json) and issue a restricted key with read on Events.
+
+### Fastest route: create them from the manifest
+
+Skips the Dashboard and the MCP entirely. The Stripe CLI authenticates through your browser, so no
+API key is ever typed or stored, and it defaults to test mode.
+
+```bash
+brew install stripe/stripe-cli/stripe && stripe login
+```
+
+```bash
+node stripe/create-plans.mjs
+```
+
+That's a **dry run** — it prints exactly what it would create and touches nothing. When it looks
+right:
+
+```bash
+node stripe/create-plans.mjs --go
+```
+
+It creates all nine objects and prints the finished `STRIPE_PAYMENT_LINKS` block ready to paste. The
+script never passes `--live` and aborts the moment Stripe hands back an object with
+`livemode: true`, so a mis-pointed CLI stops it rather than leaving half a live plan behind.
+
+**It also refuses to create a second set.** If the account already holds Pack products it stops and
+lists them rather than creating duplicates. This is not hypothetical — five runs against the test
+sandbox produced 15 products, and in the Dashboard they are indistinguishable, so nothing tells you
+which Payment Link the live page actually uses. Reuse the existing links, or archive them first.
+`--anyway` overrides, for when a second set is genuinely what you want.
+
+Prefer clicking? The Dashboard steps are below and produce the same thing — just read the values
+off `plans.json` rather than retyping them.
+
 That manifest is **machine-checked against the page**: the suite asserts every tier key, price, label
 and product description in it matches `index.html`'s `data-tier` / `data-price` / `data-label` and
 on-page copy. Change one without the other and the tests fail. The check is there because a mismatch
@@ -157,9 +274,13 @@ For orientation, these are what the page currently serves, per the internal pric
 
 | Plan | Price | What it buys | `data-tier` |
 |---|---|---|---|
-| Walks | $49/mo | Five walks a month, walking only | `weekly` |
-| Any Five | $99/mo | Five days or nights a month, any service | `twice` |
-| Everything | $399/mo | **Unlimited**, all month | `weekdays` |
+| Two Anything | $49/mo | Two services per month for one pet | `weekly` |
+| Five Anything | $99/mo | Five services per month for one pet | `twice` |
+| Full Coverage | $399/mo | **Unlimited** services every 30 days for one pet | `weekdays` |
+
+The middle column was stale until 13 Aug 2026 — it still described the entry plan as "five walks
+a month, walking only", which stopped being true when all three plans became any-service. It now
+carries each plan tile's blurb verbatim, which is also the Stripe product description.
 
 **The `data-tier` keys are historical and no longer describe the plans** — `weekly`/`twice`/`weekdays`
 are left over from the frequency ladder the offer used to be. Don't rename them to match the new
@@ -212,7 +333,37 @@ wrong price** — it is the single most expensive mistake available in this file
 While the placeholder single-link state is in place, four tests in the "flagged placeholder" block
 fail on purpose. Replacing the links is what makes them pass.
 
-### 1.4 A restricted API key for the flow
+### 1.4 Let subscribers change plan — the page already promises it
+
+Step 1 on the landing page says **"Move up, move down, or cancel any month."** Cancelling works out
+of the box. **Switching plans does not** — it's off by default in Stripe's customer portal, so
+without this the page promises something a subscriber has no way to do.
+
+`create-plans.mjs` does this for you. By hand, it's **Settings → Billing → Customer portal**: turn on
+*Customers can switch plans*, add the three Pack products, and leave *Customers can update payment
+methods* on (Stripe rejects plan switching without it — someone moving to a dearer plan may need a
+working card).
+
+Three things that cost time if you don't know them:
+
+- **Only the DEFAULT configuration is used.** Creating a second one changes nothing. On a fresh
+  account the first one becomes the default; on an account that already has one, edit that.
+- **Name the three products explicitly.** The allowlist is what stops a subscriber switching onto
+  an unrelated product in the same account — and Yourgi's live account already holds Chris's old
+  $50/mo membership test.
+- **The API accepts the product list but doesn't return it.** A retrieve shows no `products` key
+  even when it's set. Don't "fix" that — a missing list fails the call rather than passing it.
+
+Set proration to **create prorations** so a mid-month change bills the difference rather than
+charging twice, and cancellation to **at period end** so someone keeps the month they've paid for.
+
+> **Worth a decision, not just a setting.** Plan switching is another route into the uncapped $399
+> plan: someone can subscribe to Walks at $49 and upgrade mid-cycle, paying only the difference.
+> That's ordinary SaaS behaviour, but note it **bypasses any completed-sessions cap on the Payment
+> Link** — that cap limits checkouts, not upgrades. If the cap is your subsidy guardrail, it has a
+> hole in it, and the portal allowlist is where you'd close it.
+
+### 1.5 A restricted API key for the flow
 
 **Developers → API keys → Create restricted key.** Grant **read** on **Events** and nothing else.
 That's all the flow needs: it re-fetches one event by ID.
@@ -337,6 +488,27 @@ if the channel goes quiet.
 ---
 
 ## Part 4 — Test it
+
+### Test the card before you build the flow
+
+The Stripe CLI can forward real events to a local receiver, so the Adaptive Card can be checked
+against genuine payloads before Power Automate exists:
+
+```bash
+stripe listen --forward-to http://localhost:4324/__webhook --events checkout.session.completed
+```
+
+Doing this first caught two things that would otherwise have surfaced three steps into building the
+flow:
+
+- **A failed verification looked like a successful one.** Stripe answers a rejected read with a
+  perfectly valid JSON body containing an `error` key — which is truthy. A receiver that checks
+  "did I get an object back" passes on failure and renders a card full of blanks while claiming it
+  was verified. **Check for the `error` key, not for a response.** The Power Automate equivalent is
+  to branch on the HTTP action's status code rather than assuming success.
+- **A claimable sandbox key cannot read `/v1/events` at all**, so the verify step returns
+  *"This is a claimable sandbox key with limited permissions."* **You must claim the sandbox** (the
+  `claim_url` from `stripe sandbox create`) before the verification step can be exercised at all.
 
 ### ⚠️ Do not test with "Send test webhook"
 

@@ -1,0 +1,50 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "@{if(equals(body('Verify_event_with_Stripe')?['type'], 'customer.subscription.deleted'), 'PACK CANCELLED', 'PACK PAYMENT FAILED')}",
+      "weight": "Bolder",
+      "size": "Medium",
+      "color": "Attention",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Event",
+          "value": "@{body('Verify_event_with_Stripe')?['type']}"
+        },
+        {
+          "title": "Customer",
+          "value": "@{coalesce(outputs('Obj')?['customer_email'], outputs('Obj')?['customer'], 'unknown')}"
+        },
+        {
+          "title": "Mode",
+          "value": "@{if(body('Verify_event_with_Stripe')?['livemode'], 'LIVE', 'TEST')}"
+        },
+        {
+          "title": "Next",
+          "value": "Stop the manual coupon so bookings are not zeroed out any more, and log WHY. A first-cycle cancellation is feedback on the offer — ask before closing it out."
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "Stripe event @{body('Verify_event_with_Stripe')?['id']} · @{formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm')} UTC",
+      "isSubtle": true,
+      "size": "Small",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open customer in Stripe",
+      "url": "@{concat('https://dashboard.stripe.com/', if(body('Verify_event_with_Stripe')?['livemode'], '', 'test/'), 'customers/', coalesce(outputs('Obj')?['customer'], ''))}"
+    }
+  ]
+}

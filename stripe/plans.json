@@ -18,7 +18,7 @@
   "shared": {
     "currency": "usd",
     "interval": "month",
-    "product_name_prefix": "Yourgi Pack — ",
+    "product_name_prefix": "Yourgi Plus — ",
 
     "metadata": {
       "campaign": "pack-landing-page",
@@ -45,9 +45,11 @@
       "_consent": "The page's beta band promises 'Cancel any month, and we'll tell you before your next charge if anything changes.' A recurring charge should say so before the card is entered, not only in the receipt. Wind-down terms are blocking decision #4 — if Legal narrows that promise, this text and the beta band both change together.",
       "consent_collection": { "terms_of_service": "required" },
 
+      "_submit_message": "Each plan also sets custom_text.submit.message — the line directly above the Subscribe button — because it names the actual amount and so has to differ per plan. It lives on each plan below, not here. The earlier internal link used one too; it is the last thing a buyer reads before committing, so the number in it must be that plan's own price.",
+
       "custom_text": {
         "terms_of_service_acceptance": {
-          "message": "This is a monthly plan. It renews automatically and charges this card every month until you cancel. Cancel any month from the link on your receipt; cancellation takes effect at the end of the month you've paid for. Yourgi Pack is a limited beta — we'll tell you before your next charge if anything changes."
+          "message": "This is a monthly plan. It renews automatically and charges this card every month until you cancel. Cancel any month from the link on your receipt; cancellation takes effect at the end of the month you've paid for. Yourgi Plus is a limited beta — we'll tell you before your next charge if anything changes."
         }
       }
     }
@@ -56,46 +58,47 @@
   "plans": [
     {
       "tier": "weekly",
-      "label": "Walks",
+      "label": "Two Anything",
       "price_usd": 49,
       "unit_amount": 4900,
       "product": {
-        "name": "Yourgi Pack — Walks",
-        "description": "Five walks a month. For the one day a week you can't get home."
+        "name": "Yourgi Plus — Two Anything",
+        "description": "Two services per month for one pet."
       },
-      "price_nickname": "Pack Walks — $49/mo",
-      "_page_benefits": ["Five walks a month", "One charge a month, cancel any month"]
+      "price_nickname": "Plus Two Anything — $49/mo",
+      "submit_message": "You'll be charged $49.00 today, then $49.00 every month until you cancel.",
+      "_page_benefits": ["Walks, drop-ins, house sitting, daycare, or overnights.", "One charge a month, cancel any month"]
     },
     {
       "tier": "twice",
-      "label": "Any Five",
+      "label": "Five Anything",
       "price_usd": 99,
       "unit_amount": 9900,
       "default_on_page": true,
       "product": {
-        "name": "Yourgi Pack — Any Five",
-        "description": "Five days or nights a month, used however the month goes."
+        "name": "Yourgi Plus — Five Anything",
+        "description": "Five services per month for one pet."
       },
-      "price_nickname": "Pack Any Five — $99/mo",
+      "price_nickname": "Plus Five Anything — $99/mo",
+      "submit_message": "You'll be charged $99.00 today, then $99.00 every month until you cancel.",
       "_page_benefits": [
-        "Five days or nights a month",
-        "Spend them on whatever the month needs",
+        "All services in the Two Anything, just more.",
         "One charge a month, cancel any month"
       ]
     },
     {
       "tier": "weekdays",
-      "label": "Everything",
+      "label": "Full Coverage",
       "price_usd": 399,
       "unit_amount": 39900,
       "product": {
-        "name": "Yourgi Pack — Everything",
-        "description": "Unlimited care for a month that won't sit still."
+        "name": "Yourgi Plus — Full Coverage",
+        "description": "Unlimited services every 30 days for one pet."
       },
-      "price_nickname": "Pack Everything — $399/mo",
+      "price_nickname": "Plus Full Coverage — $399/mo",
+      "submit_message": "You'll be charged $399.00 today, then $399.00 every month until you cancel.",
       "_page_benefits": [
-        "Unlimited days and nights",
-        "Everything we do, all month",
+        "All-you-need pet care, for one low monthly rate.",
         "One charge a month, cancel any month"
       ],
 

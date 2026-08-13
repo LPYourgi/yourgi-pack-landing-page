@@ -1,0 +1,28 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "YOURGI PACK — WIRING TEST",
+      "weight": "Bolder",
+      "size": "Medium",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "If you can read this in Teams, the flow and the channel are working. No Stripe involved, nobody signed up, nothing to action.",
+      "wrap": true,
+      "isSubtle": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        { "title": "What this proves", "value": "The flow triggers, and it can post an Adaptive Card into this channel." },
+        { "title": "What it does not prove", "value": "That Stripe can reach the flow, or that events get verified. Those come next." },
+        { "title": "Next", "value": "Swap this card for teams-card-signup.paste.json and add the Condition, HTTP verify, and Compose actions." }
+      ]
+    }
+  ]
+}

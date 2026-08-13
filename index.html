@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Yourgi Pack | Yourgi</title>
+<title>Yourgi Plus | Yourgi</title>
 <!--
   Subscription landing page MVP (working name "YOURGI PACK", target slug yourgi.com/pack — CONFIRM).
   CANONICAL FILE. Keep deploy/index.html in sync.
@@ -66,8 +66,10 @@
        measures 2.46:1 — well under the 4.5:1 WCAG AA needs — so it was failing wherever it was
        used as an eyebrow or label colour. --sky-ink is a darkened companion for that use only
        (5.23:1 on white, 4.81:1 on bone). Backgrounds still use --sky.
-       FLAG FOR BRAND: references/visual.md says contrast is unverified; this is one confirmed
-       failure and the derived value needs sign-off. */
+       FLAG FOR BRAND: the guidelines say text on Bone should always be Spot Black (p20) and never
+       Sky Blue (p21), which would retire this token entirely — see the colour audit in
+       docs/handoff.md. Left in place pending Kai; the palette work is a separate decision from
+       the typography work. */
     --sky-ink:#41709B;
     --muted:#666;      /* replaces #777 — 5.74:1 on white, 5.28:1 on bone */
     --muted-2:#767676; /* de-emphasised table cells — 4.54:1 on white */
@@ -87,7 +89,7 @@
   .wrap{max-width:1080px; margin:0 auto; padding:0 20px;}
   h1,h2,h3,.display{font-family:'Oswald',system-ui,sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.01em; line-height:.98; margin:0;}
   a{color:inherit;}
-  .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'Oswald',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
+  .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'Oswald',sans-serif; font-weight:700; font-size:18px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
   .btn-dark:hover{opacity:.9;}
   .btn-dark:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
   label{font-size:13px; color:#4a4a46; display:block; margin-bottom:5px;}
@@ -106,11 +108,11 @@
   .stepper{display:flex; align-items:center; border:1px solid #cfc8b6; border-radius:8px; background:#fff; overflow:hidden;}
   .stepper button{border:none; background:none; padding:10px 14px; font-size:18px; cursor:pointer; line-height:1;}
   .stepper span{flex:1; text-align:center; font-size:15px; font-weight:600;}
-  .fineprint{font-size:11.5px; color:var(--muted);}
+  .fineprint{font-size:12px; color:var(--muted);}
   /* beta ribbon */
   .beta{background:var(--black); color:var(--bone); font-size:12px; letter-spacing:.02em;}
   .beta .wrap{padding:9px 20px; display:flex; gap:8px; align-items:center; justify-content:center; text-align:center;}
-  .beta strong{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:11px; color:var(--yellow);}
+  .beta strong{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.06em; font-size:12px; color:var(--yellow);}
   /* tier cards */
   .tier-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;}
   /* color is declared, not inherited, and that is not redundant: .tier is a <button>, and a
@@ -126,10 +128,10 @@
   .tier-blurb{font-size:12px; color:#444; line-height:1.35;}
   /* Per-unit price on each card. Every strong usage-capped subscription (ClassPass, HelloFresh,
      Blue Apron) shows the unit price, because "$99/mo" alone makes the buyer do the division. */
-  .tier-unit{font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; color:#2f6b2b; letter-spacing:0;}
+  .tier-unit{font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#2f6b2b; letter-spacing:0;}
   .save{margin:0 0 16px; padding:9px 11px; background:var(--field); border-radius:8px; font-size:12.5px; font-weight:600; color:#2c3a1c;}
   .save em{font-style:normal; font-weight:700;}
-  .tier-badge{position:absolute; top:-9px; left:12px; background:var(--yellow); border:1px solid var(--black); border-radius:20px; padding:2px 9px; font-family:'Oswald',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.04em;}
+  .tier-badge{position:absolute; top:-9px; left:12px; background:var(--yellow); border:1px solid var(--black); border-radius:20px; padding:2px 9px; font-family:'Oswald',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.04em;}
   .tier-check{position:absolute; top:8px; right:8px; width:18px; height:18px; display:none;}
   .tier-check svg{width:18px; height:18px; display:block;}
   .tier[aria-checked="true"] .tier-check{display:block;}
@@ -173,7 +175,7 @@
   /* #F1B942 measured 1.79:1 on white — under the 3:1 WCAG asks of a meaningful graphic.
      Darkened, and each rating also carries a visually-hidden text equivalent. */
   .review-stars{color:#B87D0A; letter-spacing:2px; font-size:15px; margin-bottom:4px;}
-  .review-id{font-size:11px;}
+  .review-id{font-size:12px;}
   .review-id .label{font-family:'Oswald',sans-serif; font-weight:600; color:var(--sky-ink); text-transform:uppercase; letter-spacing:.04em; display:block;}
   .review-id .val{font-size:14px; color:var(--black); display:block; margin-top:2px;}
   .review-divider{border-top:1px solid #000; opacity:.5;}
@@ -209,7 +211,7 @@
   table.compare tbody tr + tr > *{border-top:1px solid #efeade;}
   table.compare tbody tr.cmp-rule > *{border-top:1px solid #ded6c2;}
   /* header: plan name over price, with the column's own baseline rule */
-  /* Top padding is sized to clear the "Most popular" pill above the tallest plan name. */
+  /* Top padding is sized to clear the "Most picked" pill above the tallest plan name. */
   table.compare thead th{padding:36px 16px 15px; vertical-align:bottom; text-align:center;
                          border-bottom:2px solid var(--black);}
   table.compare thead th:first-child{border-bottom-color:#ded6c2;}
@@ -219,7 +221,7 @@
              line-height:1.05; letter-spacing:.01em; margin-top:3px;}
   .cmp-flag{position:absolute; top:9px; left:50%; transform:translateX(-50%); background:var(--yellow);
             border:1px solid var(--black); border-radius:20px; padding:2px 10px;
-            font-family:'Oswald',sans-serif; font-weight:700; font-size:10px; text-transform:uppercase;
+            font-family:'Oswald',sans-serif; font-weight:700; font-size:12px; text-transform:uppercase;
             letter-spacing:.04em; white-space:nowrap;}
   /* The row-label column is the table's y-axis — it stays put while the plans scroll under it.
      Two shadows, not decoration: 1px right is the column divider, and -3px left is white paint
@@ -251,11 +253,16 @@
   .closer{background:var(--sky); text-align:center;}
   .closer h2{font-size:34px; margin-bottom:12px;}
   .closer p{font-size:15px; max-width:460px; margin:0 auto 20px;}
-  .closer .btn-dark{padding:16px 34px; font-size:17px;}
+  .closer .btn-dark{padding:16px 34px; font-size:20px;}
   /* faq */
   .faq-item{border-bottom:1px solid var(--line); padding:16px 0;}
-  .faq-item h3{font-family:'Oswald',sans-serif; font-weight:700; text-transform:none; font-size:16px; margin-bottom:6px;}
-  .faq-item p{font-size:14px; margin:0; color:#333;}
+  .faq-item h3{font-family:'Oswald',sans-serif; font-weight:700; text-transform:none; font-size:18px; margin-bottom:6px;}
+  /* MEASURE CAP — brand rule, not a taste call. references/visual.md sets body copy at 30–60
+     characters per rendered line, with "ideal paragraph width = font size × 24". At 14px that's
+     ~336px; these answers were running the full 760px of the container, about 105 characters a
+     line. The hero lede already caps at 430px for 17px type (408 by the formula), so this brings
+     the FAQ in line with what the rest of the page already does. */
+  .faq-item p{font-size:14px; margin:0; color:#333; max-width:350px;}
   /* footer */
   footer{background:var(--navy); color:var(--bone); padding:44px 20px 28px;}
   .foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:24px;}
@@ -265,7 +272,12 @@
   footer li a{text-decoration:none;}
   footer .tag{font-family:'Oswald',sans-serif; font-weight:700; font-size:20px; text-transform:uppercase;}
   footer .tagline{color:var(--yellow); font-weight:700; font-size:16px; margin:10px 0 0;}
-  footer .legal{font-size:12px; color:#b7ae9e; margin-top:10px; max-width:520px;}
+  /* 520px at 12px ran ~87 characters a line, over the 30–60 the brand sets. 290px is the
+     font size × 24 measure. The WORDING of the Guarantee paragraph is a separate problem — it
+     states the remedy ("a coupon code toward your next booking"), which is exactly the mechanic
+     the brand guide says not to put in copy while the Guarantee's legal boundaries are
+     undocumented. Flagged, not rewritten: this is inherited site furniture and Legal owns it. */
+  footer .legal{font-size:12px; color:#b7ae9e; margin-top:10px; max-width:290px;}
   footer .legal a{color:var(--bone);}
   .foot-social{display:flex; gap:12px; margin-top:16px;}
   .foot-social a{width:30px; height:30px; border-radius:50%; border:1px solid #435066; display:flex; align-items:center; justify-content:center;}
@@ -359,31 +371,56 @@
      that enrolled subscribers need honest comms and an off-ramp. Saying so before someone pays
      is cheaper than saying it after. -->
 <div class="beta">
-  <div class="wrap"><span><strong>New &amp; in testing</strong> &nbsp;Yourgi Pack is a limited beta. Cancel any month, and we'll tell you before your next charge if anything changes.</span></div>
+  <div class="wrap"><span><strong>New &amp; in testing</strong> &nbsp;Yourgi Plus is a limited beta. Cancel any month, and we'll tell you before your next charge if anything changes.</span></div>
 </div>
 
 <header class="hero">
   <div class="wrap">
     <div>
-      <!-- ⚠️ THIS H1 IS NO LONGER SUPPORTED BY THE OFFER. READ BEFORE EDITING ANYTHING NEARBY.
-           The page was built carrying the brand's Connection value prop — you stop hiring strangers
-           because you get your people. On 12 Aug 2026 that premise was removed in two steps: first
-           "one matched Pro" was wrong (matching is to several), then "Pros who already know your pet"
-           was wrong too. A plan buys CARE; nothing establishes that the Pro on a plan booking has met
-           the pet before. Every continuity claim has been stripped from the body copy accordingly.
-           That leaves this headline asserting the one thing the page can no longer demonstrate.
-           It was left standing rather than quietly rewritten because replacing it is a positioning
-           decision, not a copy fix, and Kai owns final copy (§7 q5). Of the brand's three value
-           props: the Guarantee is blocked (§8 gap 4, legal), Connection is now unsupportable, and
-           SINGLE PLATFORM is the one that survives and is true — one plan spanning walking through
-           overnight across Yourgi's network, one charge. That is the honest basis for a new headline.
-           Do not restore a continuity promise here to make the headline true again. Fix the headline.
-      -->
-      <h1>STOP RE-HIRING<br>A STRANGER<br>EVERY WEEK.</h1>
-      <p class="lede">Pick how much care your month needs and pay for it once. Then book it as the month goes &mdash; the day you can't get home, the week you're back at the office, the trip you couldn't get out of.</p>
+      <!-- HEADLINE CHANGED 12 Aug 2026. Was "STOP RE-HIRING A STRANGER EVERY WEEK."
+
+           WHY IT HAD TO GO. It promised continuity with a person, and the FAQ two screens down
+           answers "Do I get the same Pro every time?" with "Not necessarily." The biggest type on
+           the page was contradicted by its own fine print, on a page taking recurring money. It was
+           also the FOURTH appearance of that claim — three versions were already removed from the
+           plan bullets (see PLAN_BENEFITS). The bullets were corrected and the headline was missed.
+
+           WHAT THIS ONE CLAIMS. The object changed, not the energy. A plan does not remove the
+           stranger; it removes the ARRANGING. That is mechanically true — one charge a month, book
+           as the month goes — so someone can hold us to it. Do NOT restore a continuity promise here
+           to make a headline true again; fix the headline. A person goes back in only when a Pack
+           booking actually guarantees one (Gap 3).
+
+           STILL OPEN — POSITIONING, WHICH KAI OWNS (§7 q5). The previous note here left the old
+           headline standing deliberately, because replacing it is a positioning decision rather than
+           a copy fix. That reasoning still stands; what changed is that leaving a false claim in the
+           largest type on a page taking money was the worse of the two risks. This is a correction,
+           not a positioning decision, and it does not settle one.
+
+           The note it replaces made a recommendation worth keeping in view: of the brand's three
+           value props, the Guarantee is blocked (§8 gap 4, legal) and Connection is unsupportable
+           while matching is undocumented — leaving SINGLE PLATFORM as the one that survives and is
+           true: one plan spanning walking through overnight across Yourgi's network, one charge.
+           This headline sells the removal of a hassle, which is adjacent to that but does not lead
+           with the span. A Single Platform headline is the stronger candidate if Kai wants one. -->
+      <h1>Pet care,<br>handled for you</h1>
+      <p class="lede">Stop scrolling through endless profiles with different rates.</p>
+      <p class="lede">Yourgi Plus is the monthly pet care subscription that comes with Concierge, a real person, who finds you a vetted Pet Care Provider when you need it for one simple, flat monthly price, for your pet.</p>
       <!-- "nothing to rebook" was here until 12 Aug 2026. It contradicted Step 2 of #how, which now
            has the customer booking each time. What's true is that they never hand over a card again. -->
-      <p class="lede">Then it just runs. One charge a month, no card at the door, cancel any month.</p>
+      <p class="lede">No hidden fees, cancel anytime.</p>
+
+      <!-- NEW BAND, taken from the Figma hero. "Guaranteed coverage within 48-hours" is a
+           Guarantee-adjacent promise with a timeframe attached; the brand guide says not to state
+           the mechanics of the Guarantee while its legal boundaries are undocumented (&sect;8 gap 4).
+           Carried verbatim as instructed — flag for Kai/Legal before launch. -->
+      <h2 class="g-eyebrow" style="font-size:24px; margin:26px 0 10px;">What you get</h2>
+      <ul class="incl" style="font-size:15px;">
+        <li>Dedicated Concierge to manage all your bookings, match you with perfect Providers for your needs, and get top notch service.</li>
+        <li>Access to all Yourgi Pro services (boarding, house sitting, daycare, or walking).</li>
+        <li>Hand-picked matches based on your needs, you make the final decision.</li>
+        <li>Guaranteed coverage within 48-hours.</li>
+      </ul>
     </div>
 
     <div id="signup" class="card">
@@ -391,27 +428,27 @@
       <div id="step-plan">
         <h2 style="font-size:18px; margin-bottom:14px;">Pick your routine</h2>
         <div class="tier-row" id="tiers" role="radiogroup" aria-label="Choose a plan">
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Walks" style="--tint:#DBEFEF;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekly" data-price="49" data-label="Two Anything" style="--tint:#DBEFEF;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Walks</span>
+            <span class="tier-name">Two Anything</span>
             <span class="tier-price">$49<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">Five walks a month. For the one day a week you can't get home.</span>
+            <span class="tier-blurb">Two services per month for one pet.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Any Five" style="--tint:#FFF3D6;">
+          <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Five Anything" style="--tint:#FFF3D6;">
             <span class="tier-badge">Most picked</span>
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Any Five</span>
+            <span class="tier-name">Five Anything</span>
             <span class="tier-price">$99<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">Five days or nights a month, used however the month goes.</span>
+            <span class="tier-blurb">Five services per month for one pet.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Everything" style="--tint:#F1E9EE;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Full Coverage" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="tier-name">Everything</span>
+            <span class="tier-name">Full Coverage</span>
             <span class="tier-price">$399<span class="per">/mo</span></span>
             <span class="tier-unit" data-unit></span>
-            <span class="tier-blurb">Unlimited care for a month that won't sit still.</span>
+            <span class="tier-blurb">Unlimited services every 30 days for one pet.</span>
           </button>
         </div>
 
@@ -443,15 +480,19 @@
           <label for="q-zip">Zip code <span class="req">*</span></label>
           <input id="q-zip" type="text" inputmode="numeric" placeholder="12345" aria-required="true" autocomplete="postal-code" aria-describedby="e-zip">
           <div class="err-msg" id="e-zip" role="alert">Enter a 5-digit zip.</div>
-          <p class="fineprint" style="margin-top:5px;">So we can check we have Pros walking your streets before you pay.</p>
+          <p class="fineprint" style="margin-top:5px; max-width:288px;">So we can check we have Pros walking your streets before you pay.</p>
         </div>
 
-        <button class="btn-dark" style="width:100%;" id="to-checkout">Continue to payment</button>
+        <button class="btn-dark" style="width:100%;" id="to-checkout">Get started</button>
         <!-- Naming Stripe BEFORE the jump. An unexplained hop to a different domain mid-purchase
              reads as a redirect gone wrong; saying where you're going is standard on hosted
              checkouts. The link itself lives in STRIPE_PAYMENT_LINKS, never in markup. -->
-        <p class="fineprint" style="text-align:center; margin-top:8px;">Next: <strong>Stripe</strong> takes your email and card on their secure page. Your card never touches Yourgi.</p>
-        <p class="fineprint" style="text-align:center; margin-top:4px;">Billed monthly. Cancel any month from the link on your receipt.</p>
+        <!-- ONE LINE, per the Figma. NOTE FOR REVIEW: this replaced two lines, and one of them
+             named Stripe before the jump ("Next: Stripe takes your email and card on their secure
+             page. Your card never touches Yourgi."). An unexplained hop to another domain
+             mid-purchase is what that line existed to prevent. The Figma does not carry it, so it
+             is gone here too — raise it if that was not deliberate. -->
+        <p class="fineprint" style="text-align:center; margin-top:8px; max-width:288px; margin-inline:auto;">Yourgi Plus is billed monthly. Cancel anytime, contact the Yourgi Concierge to manage your subscription. Once you're in, our Concierge texts and/or calls to complete your profile, match you with a Yourgi Pro pet care provider, and book your needed services.</p>
         <!-- A third line used to sit here: "Once you're in, someone from our team calls to set up
              your days and match your Pro." Dropped to match the Figma (4014:156, hidden), which
              moves setup from a concierge callback to self-serve booking — see the Step 2 copy. -->
@@ -461,8 +502,20 @@
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
       <div id="step-confirm" class="hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:26px;">You're in.</div>
-        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Receipt's in your email. Someone from our team calls within a day to lock in your days and introduce your Pro.</p>
-        <p class="fineprint" style="margin-top:12px;">PLACEHOLDER &mdash; confirm the one-business-day callback promise with the concierge team before launch (&sect;8 gap 6).</p>
+        <!-- REWRITTEN 13 Aug 2026, brand pass. The old copy read "Someone from our team calls
+             within a day to lock in your days and introduce your Pro." Two things were wrong with
+             it, and the second is the one that matters:
+               1. It promised a concierge callback, which contradicts Step 2 of #how — the customer
+                  books themselves now.
+               2. "introduce your Pro" is the single-matched-Pro claim that was stripped from the
+                  headline, the plan bullets and the comparison table, and that the FAQ answers with
+                  "Not necessarily." It survived here because this screen only renders on
+                  ?checkout=success, so nobody re-read it. It was the LAST place on the page still
+                  making that promise — and the worst one, because it lands right after payment.
+             What this says instead is limited to what's actually true: the plan is live, the code is
+             coming, the booking is theirs to make, and concierge is there if they'd rather not pick. -->
+        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Receipt's in your email, and your plan is live from today. Your booking code comes next &mdash; then the days are yours to pick, as the month goes. Don't want to choose? Our concierge will find you someone.</p>
+        <p class="fineprint" style="margin-top:12px; max-width:288px; margin-inline:auto;">PLACEHOLDER &mdash; fulfilment is manual (concierge issues the coupon by hand), so confirm who sends the booking code and how fast before launch (&sect;8 gap 6). Timing is deliberately not promised here until that answer exists.</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart">Back to plans</button>
       </div>
 
@@ -470,8 +523,8 @@
            the form, so there is nothing more to ask for; we just tell them the truth and log it. -->
       <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:24px;">No Pros there yet.</div>
-        <p style="font-size:15px; margin:12px auto 0; max-width:360px;">We don't have walkers on your streets yet, so we're not going to take your money for a plan we can't run. We've kept your details and we'll email you the week we get there. <strong>You have not been charged.</strong></p>
-        <p class="fineprint" style="margin-top:10px;">Right now we cover Denver, Dallas, Fort Worth, Houston, Boston, and Portland. PLACEHOLDER &mdash; confirm the market list (&sect;8 gap 8).</p>
+        <p style="font-size:15px; margin:12px auto 0; max-width:360px;">We don't have Pros on your streets yet, so we're not going to take your money for a plan we can't run. We've kept your details and we'll email you the week we get there. <strong>You have not been charged.</strong></p>
+        <p class="fineprint" style="margin-top:10px; max-width:288px; margin-inline:auto;">Right now we cover Denver, Dallas, Fort Worth, Houston, Boston, and Portland. PLACEHOLDER &mdash; confirm the market list (&sect;8 gap 8).</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart2">Start over</button>
       </div>
 
@@ -486,22 +539,24 @@
 </header>
 
 <section class="band steps" id="how" style="background:#fff;">
-  <div class="steps-head"><h2>How Yourgi Pack works</h2></div>
+  <div class="steps-head"><h2>How Yourgi Plus works</h2></div>
   <div class="wrap">
     <div>
       <div class="step-num">Step 1</div>
-      <h3>Pick your routine</h3>
-      <p>Plans are sized by how much care your month actually needs, not by tiers we made up. Move up, move down, or cancel any month.</p>
+      <h3>Concierge intro</h3>
+      <p>You&rsquo;ll be introduced to a Yourgi Concierge to learn about your pet care needs and your pet&rsquo;s unique traits.</p>
     </div>
     <div>
       <div class="step-num">Step 2</div>
-      <h3>Book yourself</h3>
-      <p>Book yourself with a special coupon code, or ask our concierge for help finding a Pro.</p>
+      <h3>Choose providers</h3>
+      <p>Concierge then sends hand-selected matches of Yourgi Providers that meet your needs. You choose the Providers you&rsquo;d like to meet and/or book with.</p>
     </div>
     <div>
       <div class="step-num">Step 3</div>
-      <h3>Nothing to settle up</h3>
-      <p>Care comes out of the plan you already paid for &mdash; nothing to pay at the door, no working out what you owe, no Sunday-night scramble.</p>
+      <!-- The Figma gives steps 2 and 3 the same title. Carried verbatim; almost certainly a
+           copy slip, since this step is about the Concierge doing the booking. -->
+      <h3>Choose providers</h3>
+      <p>Concierge manages your booking directly with your chosen providers. Simply call or text your Concierge whenever you have pet care needs.</p>
     </div>
   </div>
 </section>
@@ -511,12 +566,13 @@
      the same PLAN_UNITS config as the cards so the two can never disagree. -->
 <section class="band" id="compare">
   <div class="wrap" style="max-width:820px;">
-    <h2 style="font-size:30px; margin-bottom:6px;">Side by side</h2>
-    <p style="font-size:14px; color:#444; margin:0 0 22px;">One charge a month, whichever you pick. Need more than your plan holds? Book it the normal way.</p>
+    <h2 style="font-size:30px; margin-bottom:6px;">Which plan is right for your pet?</h2>
+    <!-- max-width is the measure cap from references/visual.md (font size × 24) — see .faq-item p -->
+    <p style="font-size:14px; color:#444; margin:0 0 22px; max-width:350px;">Whether your pet needs coverage just twice a month, or if you have higher frequency needs, we have a plan for you.</p>
     <div class="compare-card">
       <div class="compare-wrap">
         <table class="compare">
-          <caption class="vh">The three Yourgi Pack plans compared. Twice a Week is the most popular.</caption>
+          <caption class="vh">The three Yourgi Plus plans compared. Five Anything is the most picked.</caption>
           <colgroup>
             <col class="cmp-col-label">
             <col class="cmp-col-plan">
@@ -527,16 +583,16 @@
             <tr>
               <th scope="col"><span class="vh">What you get</span></th>
               <th scope="col">
-                <span class="cmp-plan">Once a Week</span>
+                <span class="cmp-plan">Two Anything</span>
                 <span class="cmp-price" id="cmp-p-weekly"></span>
               </th>
               <th scope="col" class="best">
-                <span class="cmp-flag">Most popular</span>
-                <span class="cmp-plan">Twice a Week</span>
+                <span class="cmp-flag">Most picked</span>
+                <span class="cmp-plan">Five Anything</span>
                 <span class="cmp-price" id="cmp-p-twice"></span>
               </th>
               <th scope="col">
-                <span class="cmp-plan">Weekdays</span>
+                <span class="cmp-plan">Full Coverage</span>
                 <span class="cmp-price" id="cmp-p-weekdays"></span>
               </th>
             </tr>
@@ -545,7 +601,15 @@
         </table>
       </div>
     </div>
-    <p class="fineprint" style="margin-top:14px;">PLACEHOLDER &mdash; the pay-as-you-go rates used for the savings figures are set in <code>LIST_RATES</code> and need David's real numbers (&sect;7 q1).</p>
+    <!-- THE SAVINGS-BASIS FINEPRINT IS GONE (13 Aug 2026, Figma 4077:372 is hidden). It read:
+         "Savings compare against booking one at a time at our standard rates. On Any Five the
+         figure is the least you'd save — spend it on a night away and it's a lot more."
+         It had to go regardless of the Figma: it explained "Works out at" and "You save vs. one at
+         a time", two rows this table no longer renders, and it named "Any Five", a plan that was
+         renamed to Five Anything. It was fineprint qualifying figures that are not on the page.
+         WHAT GOES WITH IT: the page now states "Save more than 50%" in the signup card and states
+         NO basis for it anywhere. That is the whole disclosure, and it is thinner than it was.
+         §8 / blocking decision #1 — David and Legal own the claim before launch. -->
   </div>
 </section>
 
@@ -564,76 +628,39 @@
      The .straight / .polaroid / .g-eyebrow rules are left in the stylesheet on purpose, so this
      band can come back without rebuilding it. -->
 
+<!-- REVIEWS REPLACED 13 Aug 2026. The Figma hides the testimonial block entirely and puts this
+     copy band in its place, so the three reviews (and the dog-walking replacements tracked in
+     README decision #10) are gone from the page. The markup is deleted rather than commented out;
+     git history has it if the testimonials come back. -->
 <section class="band" style="background:#fff;">
-  <div class="wrap">
-    <h2 style="font-size:30px;">People who stopped looking</h2>
-    <!-- PLACEHOLDER SET — these are real reviews carried over from the concierge page, but they're
-         boarding and cat-sitting reviews on a dog-walking page. Swap in walking reviews. -->
-    <div class="reviews">
-      <div class="review-card">
-        <div class="review-top">
-          <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f5a3269abf08bdcb2e7_IMG-20250208-WA0004.jpg" alt="">
-          <div>
-            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
-            <p class="review-id"><span class="label">Caretaker</span><span class="val">Cody J.</span></p>
-            <p class="review-id"><span class="label">Location</span><span class="val">Aurora, CO</span></p>
-          </div>
-        </div>
-        <div class="review-divider"></div>
-        <p class="review-quote">"Cody cared for our dogs like they were his own. He was communicative throughout, and it was clear how well our fur babies were being looked after. We came home to happy, relaxed pets and complete peace of mind. I would absolutely trust him again and highly recommend him to anyone looking for a reliable, compassionate caregiver."</p>
-        <p class="review-who">&mdash; K. S</p>
-      </div>
-      <div class="review-card">
-        <div class="review-top">
-          <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f3e249b5c8329a43619_48c3ca1c-5906-4fd2-b808-41bc722f7875-1_all_5225.jpg" alt="">
-          <div>
-            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
-            <p class="review-id"><span class="label">Caretaker</span><span class="val">Highline Cat Sitting</span></p>
-            <p class="review-id"><span class="label">Location</span><span class="val">Aurora, CO</span></p>
-          </div>
-        </div>
-        <div class="review-divider"></div>
-        <p class="review-quote">"Erin was very knowledgeable with our cats. She has a lot of great experience and you can tell she really loves animals. She took extra time to play and visit with our pets while we were gone. She is trustworthy and kind and I would highly recommend her."</p>
-        <p class="review-who">&mdash; Natalie D</p>
-      </div>
-      <div class="review-card">
-        <div class="review-top">
-          <img class="review-avatar" src="https://cdn.prod.website-files.com/682217386490450783358a0c/69fe3f252716fe861739854a_Screenshot2026-04-05at16.54.27.png" alt="">
-          <div>
-            <div class="review-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div><span class="vh">Rated 5 out of 5</span>
-            <p class="review-id"><span class="label">Caretaker</span><span class="val">Maeve M.</span></p>
-            <p class="review-id"><span class="label">Location</span><span class="val">Denver, CO</span></p>
-          </div>
-        </div>
-        <div class="review-divider"></div>
-        <p class="review-quote">"Maeve and Pablo were amazing with my Yorkie. I have used them several times for shorter and longer stays. They communicate with me frequently, send lots of photos, and always make me feel so at ease while I am away. I highly recommend them for your pups!"</p>
-        <p class="review-who">&mdash; Sarah N</p>
-      </div>
-    </div>
+  <div class="wrap" style="max-width:390px;">
+    <h2 style="font-size:30px; margin-bottom:12px;">Why Yourgi Plus?</h2>
+    <p style="font-size:15px; margin:0; max-width:350px;">Most pet parents have a system that works until it does not. The neighbor moves, the regular sitter books up, the trip comes together on Wednesday. Then you are scrambling. Yourgi Plus exists so there is always someone to call. You get a Concierge who knows your pet and your standards, sorts out who is available, and comes back with a confirmed booking. Not a directory to search. A person who handles it.</p>
   </div>
 </section>
 
 <section class="band" id="faq">
-  <div class="wrap" style="max-width:760px;">
-    <h2 style="font-size:30px; margin-bottom:12px;">Questions</h2>
-    <!-- NOTE: there is deliberately NO "does the Yourgi Guarantee apply?" item here. We cannot
-         answer it yet (§8 gap 4) and raising a question we can't answer is worse than the silence.
-         Add it back the day Legal rules — customers will ask either way. -->
-    <div class="faq-item"><h3>Is boarding or overnight care included?</h3><p>On Any Five and Everything, yes &mdash; a night away comes out of your plan the same as a walk does. Walks covers walking only, so book a night the normal way and pay for that night.</p></div>
-    <!-- PROPOSED ANSWER, not approved. ClassPass — the closest operator to this model — rolls
-         unused credits forward capped at one cycle's worth. It kills the "I'll waste it" objection
-         without creating an unbounded liability. Recommended default; needs sign-off (§7 q1). -->
-    <div class="faq-item"><h3>What happens to walks I don't use?</h3><p><strong>PROPOSED, not yet approved</strong> &mdash; unused walks roll into next month, up to one month's worth. A quiet month doesn't cost you anything; you just can't stockpile them forever.</p></div>
-    <div class="faq-item"><h3>Can I cancel?</h3><p>Any month, from the link on your receipt. Your plan runs through the month you've already paid for. PLACEHOLDER &mdash; confirm against the live Stripe cancellation behaviour.</p></div>
-    <div class="faq-item"><h3>Can I change plans?</h3><p>PLACEHOLDER &mdash; confirm upgrade/downgrade timing and whether Stripe prorates the difference.</p></div>
-    <!-- ANSWER REWRITTEN TWICE ON 12 Aug 2026 (Lauren). It first promised one matched Pro kept on
-         your days; then several Pros who already know your pet. Both were wrong. What this now says
-         is limited to what the page has actually established elsewhere: you book (Step 2), and the
-         concierge will help you find someone if you'd rather not choose. It makes NO claim that a
-         Pro has met your pet before, because nothing supports one — Gap 3 in the PRD. Do not add a
-         familiarity or continuity promise back here without the match model being written down. -->
-    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Not necessarily. A plan pays for the care, not for one particular person, so you may see different Pros over a month. The booking is yours to make &mdash; if someone works out, book them again. If you'd rather not pick, our concierge will help you find someone.</p></div>
+  <!-- 390px, not 760px. The wrap carries 20px of side padding, so this makes the column exactly the
+       350px measure the answers are capped to (see .faq-item p) — which means the divider rules stop
+       running 400px past the end of the text they belong to. Matches the rhythm of the rest of the
+       page: a 430px hero column, ~330px step columns, ~340px review cards. -->
+  <div class="wrap" style="max-width:390px;">
+    <h2 style="font-size:30px; margin-bottom:12px;">FAQ&rsquo;s</h2>
+    <!-- EVERY ITEM BELOW IS VERBATIM FROM THE FIGMA (13 Aug 2026), which is the source of truth
+         for copy. Four things a proofreader should see before launch, left exactly as written:
+           - "through your Yourgi Concierge Your plan runs" is missing a full stop.
+           - "everytime" and "incure" are misspelled; "cost effective" wants a hyphen.
+           - the one-pet answer states a penalty (cancellation without refund) while the refund
+             policy is still blocking decision #12, owned by David and Legal.
+         The rollover question ("what happens to services I don't use") is no longer in the Figma,
+         so it is no longer here — the term now appears only in the comparison table. -->
+    <div class="faq-item"><h3>How many pets are covered by the plans?</h3><p>The Yourgi Plus subscription exclusively covers one pet. Multiple pets can not use services under each plan, and using the plan for multiple or varying pets will cause cancellation of plan without refund.</p></div>
     <div class="faq-item"><h3>What if I need an extra walk one week?</h3><p>Book it the normal way and pay for that one walk. Your plan isn't a cap on how much care you can get &mdash; it's the part that repeats.</p></div>
+    <div class="faq-item"><h3>Can I cancel?</h3><p>Yes, any month, from the link on your receipt, or through your Yourgi Concierge Your plan runs through the month you've already paid for.</p></div>
+    <div class="faq-item"><h3>Can I change plans?</h3><p>Just contact your dedicated Yourgi Concierge &mdash; they will upgrade or downgrade your subscription on the spot. Downgrading will give you Plus plan benefits until the end of your billing cycle, upgrades will incure an up-charge of the difference of your plan, and cancellations will end renewal of your plan.</p></div>
+    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Up to you. You can choose the same Provider everytime or try someone new. Your Yourgi Concierge helps every step of the way.</p></div>
+    <div class="faq-item"><h3>What if I need an extra service?</h3><p>Your Yourgi Concierge will either help you make the most cost effective decision, or just help you book a single additional service.</p></div>
+    <div class="faq-item"><h3>What qualifies as a service provider?</h3><p>Only services booked with a Yourgi Pro can be used for Yourgi Plus subscriptions, Destination Pet-owned pet resorts and vet clinics are not included in Yourgi Plus plans.</p></div>
   </div>
 </section>
 
@@ -641,9 +668,9 @@
      Every serious subscription page repeats the CTA at the bottom rather than making them scroll. -->
 <section class="band closer">
   <div class="wrap">
-    <h2>Stop arranging it every week.</h2>
-    <p>Pick a routine, and next week is already handled.</p>
-    <button class="btn-dark" id="closer-cta">Pick your routine</button>
+    <h2>Let Yourgi handle your pet care</h2>
+    <p>Pick a Yourgi Plus plan, meet your Yourgi Concierge, and never scramble for pet care again.</p>
+    <button class="btn-dark" id="closer-cta">Pick your Plus plan</button>
   </div>
 </section>
 
@@ -705,7 +732,7 @@
      2. EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES — and it charges $50/mo for a product called
         "Yourgi Membership", which is not any of the three plans on this page. So all three cards
         ($49 / $99 / $399) currently hand off to a $50/mo checkout. Note the entry plan is now $49,
-        within a dollar of what this placeholder charges — so a mistaken charge on the Once a Week
+        within a dollar of what this placeholder charges — so a mistaken charge on the Walks
         plan would look almost right on a receipt. Fix the links before anyone sees this page.
         The selected plan does still ride along in client_reference_id, so a mistaken charge is
         traceable after the fact — but this must be fixed before anyone outside the team sees it. */
@@ -732,9 +759,9 @@
        - The entry plan is $49 and the removed placeholder charged $50. A mispasted link would produce
          a charge that looks almost right on a receipt, so verify each link against its own plan. */
   var STRIPE_PAYMENT_LINKS = {
-    weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real Once a Week link ($49/mo)
-    twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real Twice a Week link ($99/mo)
-    weekdays: STRIPE_PLACEHOLDER_LINK    // TODO — real Weekdays link ($399/mo)
+    weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real "Walks" link ($49/mo)
+    twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real "Any Five" link ($99/mo)
+    weekdays: STRIPE_PLACEHOLDER_LINK    // TODO — real "Everything" link ($399/mo)
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record
@@ -775,9 +802,15 @@
      $399 tier is unlimited, so this page no longer carries the guardrail it used to. See the head
      comment; §6 needs a real answer. NO Guarantee bullet — see the head comment.
 
-     NO ROLLOVER BULLET either. Rollover is undecided (§7 q1) and the FAQ says so; promising it
-     here would make the page contradict itself on the one question most likely to decide whether
-     someone signs up. Add it only when there's a real answer.
+     ROLLOVER IS NOW DECIDED — use it or lose it (12 Aug 2026), and the FAQ says so plainly. There
+     is still no rollover bullet here, but the reason has changed: there is nothing to promise. What
+     IS worth considering is the opposite — a bullet stating unused days expire, so the term lands
+     where someone chooses a plan rather than only in the FAQ they may not open. That is a
+     conversion decision, not a copy fix, so it has not been made unilaterally.
+
+     (Superseded reasoning, kept so the change is legible: rollover was undecided (§7 q1), the FAQ
+     said so, and promising it here would have made the page contradict itself on the one question
+     most likely to decide whether someone signs up.)
 
      The quantity bullets follow from the plan structure. The rest ("first pick of times", "named
      backup") are service promises the concierge team has to actually keep — confirm with them
@@ -785,15 +818,28 @@
   /* TRIMMED TO MATCH THE FIGMA (4010:126). Two bullets were hidden on the default tier there and
      are dropped here: "We call you to set your days" (setup is self-serve now — see Step 2) and
      "Your slot holds when your Pro fills up" (an unconfirmed service promise, §8 gap 6). */
+  /* NOW TWO BULLETS, NOT THREE, AND REWRITTEN PER TIER (13 Aug 2026, from the Figma).
+     Source is the "Subscription picking widget — states" frame (4095:655), which is the only place
+     that shows all three tiers selected — the landing frame only renders the default. Per tier:
+       weekly   4095:685   twice 4095:766   weekdays 4095:846
+     "Spend them on whatever the month needs" is hidden in every one of them and is gone here.
+
+     WHAT THE NEW FIRST BULLET COSTS US, worth seeing before someone "fixes" a test that breaks:
+     the old bullets stated a COUNT ("Two days or nights a month"), so every plan told a buyer what
+     it holds in words they could check against a receipt. The Figma's replacements do not. Two of
+     them state no quantity at all, and the middle one is relative ("just more" than a plan you may
+     not have read). The count now lives only in the tile blurb above the list and in the
+     comparison table. That is a real reduction in what the bullets promise, not a rephrasing —
+     carried because the Figma is the source of truth for copy (Lauren), and flagged here. */
   var PLAN_BENEFITS = {
     /* NO CLAIM ABOUT WHO SHOWS UP. Three versions of that bullet have now been wrong: "The same Pro
        every week", then "The same Pro, plus a named backup", then "Pros who already know your pet".
        A plan buys CARE, not continuity with a particular person, and nothing has established that a
        Pro on a plan booking has met the pet before. Until the match model is documented (Gap 3), the
        bullets say only what the plan mechanically includes plus how it is billed — both verifiable. */
-    weekly:   ['Five walks a month', 'One charge a month, cancel any month'],
-    twice:    ['Five days or nights a month', 'Spend them on whatever the month needs', 'One charge a month, cancel any month'],
-    weekdays: ['Unlimited days and nights', 'Everything we do, all month', 'One charge a month, cancel any month']
+    weekly:   ['Walks, drop-ins, house sitting, daycare, or overnights.', 'One charge a month, cancel any month'],
+    twice:    ['All services in the Two Anything, just more.', 'One charge a month, cancel any month'],
+    weekdays: ['All-you-need pet care, for one low monthly rate.', 'One charge a month, cancel any month']
   };
 
   /* What each plan actually contains, and what those services cost booked one at a time.
@@ -808,7 +854,17 @@
      real numbers (§7 q1). Boarding and house-sitting have NO rate here at all, and the Any Five
      plan can be spent on them — see the floor logic in economics(). §6's worry is a $200/night
      house-sitting booking against a flat fee, so that rate is the one that matters most. */
-  var LIST_RATES = { walk: 25, daycare: 45 };   // TODO — real rates, plus boarding + sitting
+  /* DAVID'S REAL RATES, 12 Aug 2026, taken from "Subscription Business Model Scenario Planning_v2".
+     These replace the placeholder guesses ($25 / $45) and add the boarding rate the page never had.
+     Derived from the model's scenario grid and cross-checked two ways each: the walk rate falls out
+     of both the Baseline walk plan and the Downside unlimited plan (25 walks / $750) identically,
+     and the boarding rate is the residual in the Baseline unlimited column once walks and daycare
+     are removed. See docs/handoff.md for the full grid.
+
+     THE BOARDING RATE IS THE ONE THAT CHANGES THE PICTURE. At $195 a night it is 6.5x a walk, and
+     both Any Five and Everything can be spent entirely on it — so a plan's price bounds nothing on
+     its own. This is §6's exposure, now with a number attached. */
+  var LIST_RATES = { walk: 30, daycare: 55, boarding: 195 };
 
   /* WHAT EACH PLAN HOLDS. Three different shapes, which is why economics() below is not a single
      division any more:
@@ -824,7 +880,12 @@
      event — so renaming them is a mechanical refactor with real breakage risk, not a copy change.
      Display names live in data-label. Rename the keys in one deliberate pass or not at all. */
   var PLAN_UNITS = {
-    weekly:   { walks: 5, daycare: 0 },
+    /* ALL THREE ARE ANY-SERVICE NOW (13 Aug 2026, from the Figma). The entry plan used to be
+       walking-only with a countable walk cap, which was the one plan whose cost was bounded: five
+       walks could never be worth more than 5 x the walk rate. "Two Anything" removes that bound —
+       two uses can be two nights of boarding — so no plan on this page has a cost ceiling any more.
+       That is a real change to the exposure, not a rename; see docs/handoff.md. */
+    weekly:   { uses: 2, anyService: true },
     twice:    { uses: 5, anyService: true },
     weekdays: { unlimited: true }
   };
@@ -832,8 +893,18 @@
   /* ========================================================================== */
 
   var DEFAULT_TIER = 'twice';
-  var state={tier:DEFAULT_TIER,price:99,label:'Twice a Week',pets:1};
   var $=function(id){return document.getElementById(id);};
+
+  /* SEEDED FROM THE MARKUP, NEVER HARD-CODED. The price and label used to be literals here, and
+     they went stale the moment the plans were renamed: a visitor who accepted the pre-selected
+     plan and never clicked a card was told "Your Twice a Week plan is live" on the confirmation
+     screen — a plan name that appears nowhere else on the page, shown to someone who had just
+     paid. Reading the default card's own attributes means a rename can only ever be wrong in one
+     place instead of two. A test pins this. */
+  var state=(function(){
+    var el=document.querySelector('#tiers [data-tier="'+DEFAULT_TIER+'"]');
+    return {tier:DEFAULT_TIER, price:+el.dataset.price, label:el.dataset.label, pets:1};
+  })();
 
   var CHECK_SVG='<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
@@ -859,12 +930,25 @@
     var u=PLAN_UNITS[tier]||{}, price=priceOf(tier);
 
     if(u.unlimited){
+      /* No cap means no list total and no per-use price — both stay null and every renderer omits
+         them rather than inventing a denominator.
+
+         But "no figure" is not the same as "no argument", and this plan had neither, which left the
+         most expensive card as the only one with nothing to say for itself. BREAKEVEN is the honest
+         version: the point at which the plan costs less than booking the same care one at a time.
+         It needs no cap, no assumption about usage, and no forecast — just the price against the
+         rate. Computed from LIST_RATES so it moves when David's numbers move. */
+      var be={};
+      Object.keys(LIST_RATES).forEach(function(k){ be[k]=Math.ceil(price/LIST_RATES[k]); });
       return {units:u, price:price, unlimited:true, uses:null, perUse:null, unitNoun:'',
-              listTotal:null, saves:null, pct:null, exact:false};
+              listTotal:null, saves:null, pct:null, exact:false, breakeven:be};
     }
 
     if(u.anyService){
-      var cheapest=Math.min(LIST_RATES.walk, LIST_RATES.daycare);
+      /* The cheapest of EVERY rate, not a hardcoded pair — the floor has to stay the floor as
+         services are added. Boarding joining LIST_RATES must not change this number; if it ever
+         does, something cheaper than a walk has appeared and the copy needs re-reading. */
+      var cheapest=Math.min.apply(null, Object.keys(LIST_RATES).map(function(k){return LIST_RATES[k];}));
       var floorTotal=u.uses*cheapest;
       return {units:u, price:price, unlimited:false, uses:u.uses,
               perUse:price/u.uses, unitNoun:'visit',
@@ -879,33 +963,56 @@
             pct: listTotal?Math.round(((listTotal-price)/listTotal)*100):0, exact:true};
   }
 
+  /* ===== ONE NUMBER IS A LITERAL, THE REST ARE DERIVED AGAIN (13 Aug 2026) ====================
+     The Figma frame is the source of truth for copy, and its number cells were stale: they showed
+     "$9.80 a walk" on a plan the same table called "2 services per month". That was resolved by
+     fixing the PLAN DEFINITION instead of copying the number — weekly is now { uses: 2,
+     anyService: true }, so the card computes $24.50 and nothing has to be hand-maintained.
+     A side effect worth noticing: per-use price now FALLS as the plan grows ($24.50 -> $19.80),
+     so the ladder finally rewards buying more. It used to rise.
+
+     WHAT IS STILL A LITERAL, AND STILL UNVERIFIED: the savings line below.
+       "Save more than 50% on pet care with Yourgi Plus subscriptions!"
+     Against David's rates ($30 walk / $55 daycare / $195 boarding) these plans save about 18%
+     (Two Anything) and 34% (Five Anything) when spent on walks. The claim only clears 50% if a
+     plan is spent on overnights, and the page does not state that basis. It ships verbatim on
+     Lauren's instruction; David and Legal own it before launch. Unverified pricing claim.
+
+     The comparison table no longer carries "Works out at" or "You save", because the Figma hides
+     both rows — so the table can no longer check this claim, and nothing else on the page does. */
   function renderBenefits(){
     var list=PLAN_BENEFITS[state.tier]||[];
     $('incl').innerHTML=list.map(function(b){
       return '<li>'+CHECK_SVG+'<span>'+b+'</span></li>';
     }).join('');
-    var e=economics(state.tier);
-    if(e.unlimited){
-      /* No cap, so no per-use price and no savings figure exist to quote. Sell what is actually
-         true instead: the ceiling is gone. */
-      $('save-line').innerHTML = 'No cap and nothing to count &mdash; use it as much as the month needs.';
-    } else if(e.saves>0){
-      $('save-line').innerHTML = 'About <em>'+money(e.perUse)+' a '+e.unitNoun+'</em> &mdash; '
-        + (e.exact ? 'roughly ' : 'at least ')
-        + '<em>'+money(e.saves)+' less a month</em> than booking these one at a time'
-        + (e.exact ? '.' : ', more if you spend it on a night away.');
-    } else {
-      $('save-line').innerHTML = 'Same as booking one at a time &mdash; you\'re paying for the routine, not a discount.';
-    }
+    /* One line for every plan, verbatim from the Figma. Was a per-plan computed figure.
+
+       THE FIGMA ONLY HAS THIS LINE FOR ONE OF THE THREE PLANS. In the states frame (4095:655) the
+       Five Anything card carries the sentence below; the Two Anything and Full Coverage cards both
+       read "@kai need copy here" — a designer's TODO addressed to Kai, not copy. That placeholder
+       is deliberately NOT carried onto the page, so all three plans keep showing the one real line
+       until Kai writes the other two. Two consequences to know about:
+         - The 50% claim is now shown on the two plans it is least likely to be true for. Against
+           David's rates it is the middle plan that comes closest, and that is the plan the Figma
+           actually attaches it to.
+         - When Kai's copy arrives this becomes a per-plan lookup like PLAN_BENEFITS, not an edit
+           to this string. */
+    $('save-line').innerHTML = 'Save more than 50% on pet care with Yourgi Plus subscriptions!';
   }
 
-  /* Per-walk price on every card, so the buyer never has to divide. */
+  /* COMPUTED, NOT COPIED. These were briefly hardcoded verbatim from the Figma cards, and the
+     Figma's entry-plan figure ($9.80 a walk) was itself left over from when that plan was five
+     walks for $49. When the plan became two-of-anything, the page went on advertising a per-walk
+     price for walks it no longer sells — $9.80 implies five uses; the plan holds two.
+
+     A per-unit price is arithmetic about money on a page that takes money. It is price divided by
+     what the plan actually holds, and it has to come from the same place the plan does, so it
+     cannot be left behind by a rename. The uncapped plan has no denominator and prints nothing.
+     A test pins each card's line to price ÷ uses. */
   function renderUnitPrices(){
     document.querySelectorAll('#tiers .tier').forEach(function(b){
       var slot=b.querySelector('[data-unit]'); if(!slot) return;
       var e=economics(b.dataset.tier);
-      /* Blank on the unlimited plan — dividing by no cap has no answer, and a plausible-looking
-         number here would be invented. The blurb carries that card instead. */
       slot.textContent = e.perUse ? money(e.perUse)+' a '+e.unitNoun : '';
     });
   }
@@ -927,28 +1034,35 @@
     /* ROWS FOLLOW THE PLAN SHAPES, not a single unit type. "Days or nights a month" is the honest
        common denominator now that one plan counts walks, one counts any service, and one counts
        nothing. Every cell that would need a number the plan does not have prints an em dash. */
+    /* FOUR ROWS, matching the Figma exactly. The three the Figma hides are gone with it:
+       "Days or nights a month" (5 / 5 / Unlimited), "Works out at" and "You save vs. one at a
+       time". Those were the computed cells, and the savings argument left the table with them —
+       the only value claim on the page now is the "more than 50%" line in the signup card. */
+    var COVERS = { weekly:'2 services per month for one pet.',
+                   twice:'5 services per month for one pet.',
+                   weekdays:'Unlimited services per month for one pet.' };
+    var ADDONS = { weekly:'<span class="no">Booked separately</span>',
+                   twice:'<span class="no">Booked separately</span>',
+                   weekdays:'1 per month included' };
     var rows=[
-      {label:'What it covers',
-       val:function(e){return e.unlimited ? 'Everything we do'
-                            : e.units.anyService ? 'Any service' : '<span class="no">Walks only</span>';}},
-      {label:'Days or nights a month',
-       val:function(e){return e.unlimited ? 'Unlimited' : String(e.uses);}},
-      {label:'Works out at', cls:'cmp-money',
-       val:function(e){return e.perUse?money(e.perUse)+' a '+e.unitNoun:'<span class="no">&mdash;</span>';}},
-      {label:'You save vs. one at a time', cls:'cmp-money',
-       val:function(e){
-         if(e.saves===null||e.saves<=0) return '<span class="no">&mdash;</span>';
-         /* "At least" on the mixed plan — the floor, never the ceiling. See economics(). */
-         return (e.exact?'':'at least ')+money(e.saves)+' <span class="pct">('+e.pct+'%)</span>';
-       }},
+      {label:'What it covers - Walks, house sitting, daycare, or boarding.',
+       val:function(e,t){return COVERS[t];}},
       /* WAS three successive rows about who shows up: "One matched Pro" + "Named backup Pro", then
          "Pros who know your pet". All were unsupported — see PLAN_BENEFITS. There is no verified
          claim about the Pro on a plan booking, so the table makes none. It keeps carrying the
          cmp-rule class, which is what opens the what's-included group with the heavier line. */
-      {label:'Cancel any month', cls:'cmp-rule',
+      /* USE IT OR LOSE IT, STATED WHERE PEOPLE CHOOSE (12 Aug 2026). It was only in the FAQ, which
+         means the first time most people meet the harshest term in the offer is after they've paid
+         — and refunds are a manual, discretionary conversation. Cheaper to say it here.
+         The uncapped plan gets an em dash rather than "expire": there is no allowance to lose. */
+      /* All three plans now expire monthly in the Figma, including the unlimited one, which used
+         to print an em dash on the grounds that there is no allowance to lose. Verbatim. */
+      {label:'Unused days', cls:'cmp-rule',
+       val:function(){return '<span class="no">Expire monthly</span>';}},
+      {label:'Dedicated Concierge Team',
        val:function(){return CMP_YES;}},
-      {label:'Overnight &amp; boarding',
-       val:function(e){return e.units.walks ? '<span class="no">Booked separately</span>' : CMP_YES;}}
+      {label:'Add-On&rsquo;s',
+       val:function(e,t){return ADDONS[t];}}
     ];
     $('cmp-body').innerHTML=rows.map(function(r){
       var cells=order.map(function(t){

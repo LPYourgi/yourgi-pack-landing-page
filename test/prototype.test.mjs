@@ -70,11 +70,12 @@ const settle = () => new Promise(r => setTimeout(r, 30));
 console.log('\n— initial render —');
 {
   const w = await boot();
-  ok('title is the Pack page', w.document.title === 'Yourgi Pack | Yourgi', w.document.title);
+  ok('title is the Plus page', w.document.title === 'Yourgi Plus | Yourgi', w.document.title);
   ok('three plans rendered', w.document.querySelectorAll('#tiers .tier').length === 3);
   ok('Twice a Week is the default selection', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('exactly one plan is checked', w.document.querySelectorAll('#tiers .tier[aria-checked="true"]').length === 1);
-  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 3);
+  // Two bullets, not three — the Figma hides "Spend them on whatever the month needs" on every tier.
+  ok('benefits list rendered for default plan', w.document.querySelectorAll('#incl li').length === 2);
   ok('plan step visible, others hidden', vis(w, 'step-plan') && !vis(w, 'step-confirm') && !vis(w, 'step-oom') && !vis(w, 'step-cancel'));
   ok('beta framing is on the page', w.document.querySelector('.beta').textContent.includes('beta'));
 }
@@ -132,13 +133,21 @@ console.log('\n— PRD reconciliation guards —');
      and "no plan is unlimited" (§6 — the cap WAS the subsidy guardrail). Both are now false by
      design, so asserting them would just fail forever. They are replaced by assertions that pin
      the new shape and, more importantly, keep the unguarded exposure visible in the suite. */
+  /* MOVED OFF THE BULLETS 13 Aug 2026. The top plan's bullet used to say "Unlimited days and
+     nights"; the Figma replaced it with "All-you-need pet care, for one low monthly rate.", which
+     never says the word. The uncapped shape is what §6 needs kept visible, so the guard follows it
+     to the tile blurb — the one place the page still states it plainly. If "unlimited" leaves the
+     tiles too, the page will be selling an uncapped plan without saying so, and that must fail. */
+  const tileText = $(w, 'tiers').textContent;
   ok('the top plan is unlimited — §6 cap guardrail deliberately given up',
-    /unlimited/i.test(benefitText), benefitText);
+    /unlimited/i.test(tileText), tileText);
   ok('the unguarded §6 subsidy exposure is written down in the page',
     /WHAT IS NOW UNGUARDED/.test(src) && /§6/.test(src),
     'head comment must keep naming the unlimited-plan exposure');
-  ok('overnight care is included on the two plans that cover any service, per the FAQ',
-    /a night away comes out of your plan/i.test($(w, 'faq').textContent));
+  /* The boarding FAQ is gone — the Figma dropped it (13 Aug 2026). What the plans cover is now
+     stated only in the comparison table, so that is where the guard points. */
+  ok('the table names the services a plan covers',
+    /Walks, house sitting, daycare, or boarding/i.test($(w, 'cmp-body').closest('table').textContent));
 
   /* MATCHING IS TO SEVERAL PROS, NOT ONE — Lauren, 12 Aug 2026, now recorded in the PRD's Decisions
      block. There was NO guard on this before, which is how the page carried "one matched Pro" in
@@ -159,43 +168,92 @@ console.log('\n— PRD reconciliation guards —');
     claims.match(/[^.?]*(\bone (matched|local)? ?Pro\b|the same Pro\b)[^.?]*/i)?.[0]);
   ok('no named-backup promise survives — cover is inherent to the group, not a top-plan feature',
     !/named backup/i.test(visible), visible.match(/[^.]*named backup[^.]*/i)?.[0]);
-  ok('the FAQ answers the same-Pro question honestly, without a continuity promise',
-    /not necessarily/i.test($(w, 'faq').textContent));
+  /* The answer changed with the Concierge model: it used to be "Not necessarily", it is now "Up to
+     you" — the customer picks. Still no promise that one Pro is assigned, which is what matters. */
+  ok('the FAQ leaves the choice of Provider with the customer',
+    /up to you/i.test($(w, 'faq').textContent));
 
   /* NO CONTINUITY OR FAMILIARITY CLAIM ANYWHERE IN THE BODY COPY. Three versions of this claim have
      now been wrong in a single day — "the same Pro every week", "the same Pro plus a named backup",
      and "Pros who already know your pet". A plan buys care; nothing establishes who turns up or that
      they have met the pet (Gap 3). This is the guard that stops a fourth version appearing, because
      every one of them read like good copy and none of them was true.
-     The H1 is exempt and still says STOP RE-HIRING A STRANGER — see the comment above it. It is
-     knowingly unsupported and awaiting a positioning decision from Kai, not an oversight. */
+     THE H1 EXEMPTION IS RETIRED (12 Aug 2026). It used to sit here because the headline still said
+     STOP RE-HIRING A STRANGER — knowingly unsupported, parked pending a positioning decision from
+     Kai. The headline has now been changed to claim the arranging rather than the person, so there
+     is nothing left to exempt and the H1 is checked like everything else. The dedicated guard lives
+     in "the hero does not claim a Pro the plan cannot promise" below.
+     NOTE: Kai owns the final positioning call (§7 q5). This change removes a false claim rather than
+     settling the positioning — if Kai wants a different headline, that is still open. */
   const heroH1 = w.document.querySelector('.hero h1').textContent;
   const bodyMinusH1 = claims.replace(heroH1, '');
+  /* NARROWED 13 Aug 2026, not dropped. The Figma copy says "a Concierge who knows your pet and your
+     standards" — that is a claim about the Concierge, who genuinely does take a brief, not about the
+     Pro who turns up. The guard still forbids the claim it was built for: that a PRO knows or has
+     met the pet. Sentences about the Concierge are excluded before checking. */
+  const proClaims = bodyMinusH1.replace(/[^.?]*Concierge[^.?]*[.?]/g, '');
   ok('no claim that a Pro knows or has met the pet',
-    !/(already )?know(s)? your (pet|dog)|has met your (pet|dog)|learns? the routine/i.test(bodyMinusH1),
-    bodyMinusH1.match(/[^.?]*(know your (pet|dog)|met your (pet|dog)|learns? the routine)[^.?]*/i)?.[0]);
+    !/(already )?know(s)? your (pet|dog)|has met your (pet|dog)|learns? the routine/i.test(proClaims),
+    proClaims.match(/[^.?]*(know your (pet|dog)|met your (pet|dog)|learns? the routine)[^.?]*/i)?.[0]);
   ok('no claim that the customer never has to rebook — Step 2 has them booking',
     !/nothing to rebook/i.test(claims), claims.match(/[^.?]*nothing to rebook[^.?]*/i)?.[0]);
-  ok('the H1 is still the known-unsupported one, and the reason is written down',
-    /STOP RE-HIRING/.test(heroH1) && /THIS H1 IS NO LONGER SUPPORTED BY THE OFFER/.test(src),
-    'if the H1 was replaced, delete this assertion and the comment above it');
+  // The H1 is no longer exempt from the continuity rule — it is held to it like the rest of the copy.
+  ok('the H1 makes no continuity claim either', !/stranger|same pro/i.test(heroH1), heroH1);
   ok('plan bullets state only mechanics and billing',
     allBenefits.every(b => /one charge a month, cancel any month/i.test(b)), allBenefits);
-  // The page must not sell a rollover it hasn't decided on — the FAQ still calls it open (§7 q1).
-  ok('no plan promises rollover while the FAQ says rollover is undecided',
+  /* ROLLOVER WAS DECIDED 12 Aug 2026 — use it or lose it. These two guards are inverted rather
+     than deleted, so the decision stays visible in the tests the way the pricing override did.
+     They used to assert the FAQ still called rollover open; they now assert it answers, and that
+     the answer is the restrictive one. If someone later softens this to "your days roll over",
+     that is a change to what the company owes every subscriber every month — it should break a
+     test, not slip through as a copy tweak. */
+  const faqText = $(w, 'faq').textContent;
+  ok('no plan bullet promises rollover (there is none to promise)',
     !/roll(over| a day| your day| forward)|carry over/.test(benefitText), benefitText);
-  ok('the FAQ still flags rollover as an open decision',
-    /walks I don't use/i.test($(w, 'faq').textContent) && $(w, 'faq').textContent.includes('PLACEHOLDER'));
+  /* INVERTED AGAIN 13 Aug 2026. The Figma removed the rollover FAQ entirely, so the guard can no
+     longer look for it there. The term itself did not go away — the comparison table still says
+     "Expire monthly" on all three plans — so that is now the thing pinned. If the term disappears
+     from the page altogether, a subscriber's harshest condition would be undisclosed, and that
+     should break a test. */
+  const cmpText = $(w, 'cmp-body').textContent;
+  ok('the page still discloses use-it-or-lose-it somewhere',
+    /expire monthly/i.test(cmpText), 'no expiry disclosure left on the page');
+  // Cancelling and switching are now real, self-service Stripe behaviour — the copy has to match
+  // what the customer portal was actually configured to allow (see docs/stripe-webhook.md §1.4).
+  ok('cancel answer no longer defers to a placeholder',
+    /Can I cancel\?/i.test(faqText) && !/PLACEHOLDER — confirm against the live Stripe/.test(faqText));
+  ok('plan-change answer no longer defers to a placeholder',
+    /Can I change plans\?/i.test(faqText) && !/confirm upgrade\/downgrade timing/.test(faqText));
   /* Was "every plan states a numeric walk cap". Two plans no longer have a walk cap to state: the
      $99 plan counts days or nights of anything, and the $399 plan counts nothing. What still has
      to hold is that each plan says plainly what you get, in words a buyer can check. */
+  /* All three plans are any-service as of 13 Aug 2026, so the entry plan no longer states a walk
+     count — it states a use count like the others. What still has to hold is that every plan says
+     plainly what you get, in words a buyer can check against a receipt. */
+  /* THE BULLETS STOPPED SAYING IT (13 Aug 2026), SO THE GUARD FOLLOWED THE CLAIM. The Figma's new
+     first bullets state no quantity on two plans and a relative one on the third ("just more"),
+     so allBenefits can no longer answer "what does this plan hold". The tile blurb directly above
+     the bullets can, on all three — 2 / 5 / unlimited services per month — so that is what is
+     pinned. This is a WEAKER guard than the one it replaces and it should be read that way: it
+     checks the count is stated somewhere on the card, not that the bullets a buyer reads state it.
+     Point it back at the bullets the day they carry a number again. */
+  const tiles = [...w.document.querySelectorAll('#tiers .tier')];
   ok('every plan states what it holds, in countable words or as unlimited',
-    [...w.document.querySelectorAll('#tiers .tier')].length === 3 &&
-    allBenefits.every(b => /five walks|five days or nights|unlimited/i.test(b)), allBenefits);
+    tiles.length === 3 &&
+    tiles.every(t => /(two|three|four|five|\d+) services|unlimited/i.test(t.textContent)),
+    tiles.map(t => t.querySelector('.tier-blurb')?.textContent));
 
   // The hero previously carried an asterisked Guarantee claim. It must not come back.
   const hero = w.document.querySelector('.hero').textContent;
-  ok('hero makes no Guarantee claim', !hero.includes('Guarantee'), hero.slice(0, 200));
+  /* OVERRIDDEN 13 Aug 2026, deliberately and against this guard's original purpose. The Figma hero
+     carries "Guaranteed coverage within 48-hours", and the Figma is the source of truth for copy
+     (Lauren). That is a Guarantee-shaped promise WITH a timeframe, which is exactly what §8 gap 4
+     and the brand guide say not to publish while the Guarantee's legal boundaries are undocumented.
+     The guard is inverted rather than deleted so the override cannot be mistaken for an accident:
+     it now pins the claim's presence, and it will fail the day someone removes it without also
+     removing this note. David/Kai/Legal own the decision. */
+  ok('the hero carries the 48-hour coverage claim, pending legal review',
+    /Guaranteed coverage within 48-hours/i.test(hero), hero.slice(0, 200));
   // Rendered text only — the source comments discuss the Guarantee at length on purpose.
   // With the site nav gone, the only place a visitor reads it is the site-wide footer.
   const visibleGuarantee = (w.document.body.textContent.match(/Yourgi Guarantee/g) || []).length;
@@ -205,9 +263,17 @@ console.log('\n— PRD reconciliation guards —');
 
   // Brand: "pet parent" is internal shorthand, never customer-facing (yourgi-brand skill).
   const bodyText = w.document.body.textContent;
-  ok('no "pet parent" in customer-facing copy', !/pet parent/i.test(bodyText));
-  ok('no "fur baby" in Yourgi-authored copy (the one instance is inside a real review quote)',
-    (bodyText.match(/fur bab/gi) || []).length === 1);
+  /* OVERRIDDEN 13 Aug 2026. "Most pet parents have a system that works until it does not" is the
+     opening line of the Why Yourgi Plus band in the Figma. "pet parent" is on the brand's
+     never-ship list (internal shorthand, reads as category jargon to the person it describes), but
+     the Figma is the source of truth for copy. Inverted so the exception stays visible; if the
+     phrase is ever removed, delete this guard with it. */
+  ok('the one "pet parents" use is the Why band, carried from the Figma',
+    (bodyText.match(/pet parent/gi) || []).length === 1 && /Most pet parents have a system/i.test(bodyText),
+    bodyText.match(/[^.]*pet parent[^.]*/i)?.[0]);
+  /* Was: exactly one instance, inside a customer's own review quote. The reviews are gone, so the
+     phrase is gone with them — the never-ship rule now holds outright. */
+  ok('no "fur baby" anywhere on the page', (bodyText.match(/fur bab/gi) || []).length === 0);
 }
 
 // Borrowed from operators who sell capped usage well: show the unit price, show the saving,
@@ -222,55 +288,92 @@ console.log('\n— subscription-page conventions —');
      slot is deliberately BLANK — a number there would be invented. That blank is the assertion. */
   ok('the two capped plans show a per-use price', /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[0]) && /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[1]), units);
   ok('the unlimited plan shows no per-use price at all', units[2] === '', units[2]);
-  ok('per-use price is right for Walks ($49 / 5 walks)', units[0] === '$9.80 a walk', units[0]);
-  ok('per-use price is right for Any Five ($99 / 5 uses)', units[1] === '$19.80 a visit', units[1]);
+  /* RECONCILED 13 Aug 2026. This assertion used to pin `$9.80 a walk` as a known-wrong figure
+     copied verbatim from the Figma: $9.80 is $49/5, from when the entry plan was five walks, and
+     it survived the rename to "Two Anything". A $49 plan holding two uses is $24.50 a use.
 
-  /* THE VALUE LADDER STILL DOES NOT REWARD BUYING MORE. This used to assert the per-walk price
-     falls as the plan grows, which the old $99/$149/$199 ladder did ($19.80 > $16.56 > $14.21).
-     Under $49/$99/$399 the entry plan is the cheapest per use ($9.80) and the middle plan costs
-     twice that ($19.80) for the same count, bought back only by being spendable on a night away
-     rather than a walk. The top plan can't be compared at all — no cap, no unit price.
-     Pinned so the shape of the ladder stays a recorded decision. */
+     The per-use lines are computed from price ÷ uses again rather than hardcoded, so this is now
+     checked as arithmetic instead of pinned as a known defect. The Figma card still shows the old
+     figure — it needs the same correction. */
+  const expectedPerUse = t => {
+    const el = w.document.querySelector(`#tiers [data-tier="${t}"]`);
+    return +el.dataset.price;
+  };
+  ok('Two Anything per-use is price ÷ 2', units[0] === `$${(expectedPerUse('weekly') / 2).toFixed(2)} a visit`, units[0]);
+  ok('Five Anything per-use is price ÷ 5', units[1] === `$${(expectedPerUse('twice') / 5).toFixed(2)} a visit`, units[1]);
+
+  /* THE VALUE LADDER NOW REWARDS BUYING MORE — INVERTED 13 Aug 2026, and this one is good news.
+     This guard existed to record a problem: under the old shape the entry plan was the CHEAPEST
+     per use ($9.80) and the middle plan cost twice that ($19.80) for the same count, so moving up
+     a tier cost you more per use. The README called it out as a ladder that doesn't reward buying
+     more.
+
+     Making all three plans any-service fixed it as a side effect: two uses at $49 is $24.50 each,
+     five at $99 is $19.80 each. Buying more now genuinely costs less per use, which is what a
+     buyer expects and what the comparison table implies. Kept and inverted rather than deleted, so
+     if the prices or counts move in a way that re-inverts the ladder, that breaks a test. */
   const perUse = [parseFloat(units[0].slice(1)), parseFloat(units[1].slice(1))];
-  ok('per-use price rises from the entry plan to the middle plan — see comment',
-    perUse[0] < perUse[1], units);
+  ok('per-use price FALLS from the entry plan to the middle plan', perUse[0] > perUse[1], units);
 
-  // Savings vs. booking one at a time — the reason to subscribe at all.
+  /* ===== THE SAVINGS GUARDS ARE GONE, AND THAT IS THE FINDING ==================================
+     Until 13 Aug 2026 this block held the page's money claims to arithmetic: the callout had to
+     name a per-use price and a real monthly saving, the mixed plan had to say "at least", the
+     figure had to be derived from LIST_RATES so it moved when David's rates moved, and the
+     uncapped plan had to make a breakeven argument rather than print a dash.
+
+     None of that can be asserted now. The Figma is the source of truth for copy (Lauren), and it
+     replaces every computed cell with one fixed sentence: "Save more than 50% on pet care with
+     Yourgi Plus subscriptions!". Against David's rates the plans save about 18% and 34% when spent
+     on walks, so the claim is only true if a plan is spent on overnights — a basis the page does
+     not state. The comparison table's "Works out at" and "You save" rows are gone with it, so the
+     table can no longer contradict the callout, and nothing can check it either.
+
+     What is left is a guard that the claim has not quietly changed, plus one that the unreconciled
+     numbers stay flagged in the source. Restore the arithmetic guards the day the basis is
+     approved — do not re-derive them from whatever the page happens to say then. */
   const save = $(w, 'save-line').textContent;
-  ok('savings callout names a per-use price and a monthly saving', /\$[\d.]+ a (walk|visit)/.test(save) && /\$\d+ less a month/.test(save), save);
-  /* The default plan is spendable on any service, so its saving is a FLOOR priced at the cheapest
-     known rate, not a figure: 5 uses x $25 = $125 list against $99. It must say "at least", and it
-     must never quote a number that assumes the expensive services. See economics() in the page. */
-  ok('default plan saving is floored at $26 and hedged, not overstated',
-    save.includes('at least') && save.includes('$26 less a month'), save);
-  ok('the floored saving points at the upside instead of inventing it',
-    save.includes('more if you spend it on a night away'), save);
+  ok('the savings callout is the verbatim Figma claim',
+    save === 'Save more than 50% on pet care with Yourgi Plus subscriptions!', save);
+  const pageSrc = fs.readFileSync(PAGE, 'utf8');
+  ok('the unverified 50% claim is flagged in the source',
+    /Unverified pricing claim|unverified pricing claim/.test(pageSrc) && /David/.test(pageSrc),
+    'the override must stay documented where the next reader will find it');
+  ok('the resolved unit price is explained in the source',
+    /weekly is now \{ uses: 2/.test(pageSrc),
+    'the note must record that the plan definition was fixed rather than the number copied');
 
-  // Comparison table: all three plans visible at once without clicking.
+  // Comparison table: the four rows the Figma renders, and only those.
   const rows = [...w.document.querySelectorAll('#cmp-body tr')];
-  ok('comparison table rendered', rows.length >= 6, rows.length);
+  ok('comparison table renders the four Figma rows', rows.length === 4, rows.length);
   ok('table headers carry each price',
     $(w, 'cmp-p-weekly').textContent === '$49/mo' && $(w, 'cmp-p-twice').textContent === '$99/mo' && $(w, 'cmp-p-weekdays').textContent === '$399/mo');
   const rowByLabel = l => rows.find(r => r.querySelector('th')?.textContent.includes(l));
   const cells = l => [...rowByLabel(l).querySelectorAll('td')].map(td => td.textContent.trim());
-  /* The "Walks a month" and "Daycare days a month" rows are gone — only one plan counts walks now.
-     The table reports a common denominator (days or nights) plus what each plan may be spent on. */
-  ok('counts match the plans, with the top one uncapped',
-    JSON.stringify(cells('Days or nights a month')) === JSON.stringify(['5', '5', 'Unlimited']), cells('Days or nights a month'));
-  ok('coverage widens across the three plans',
-    JSON.stringify(cells('What it covers')) === JSON.stringify(['Walks only', 'Any service', 'Everything we do']), cells('What it covers'));
-  ok('overnight is booked separately only on the walks-only plan',
-    cells('Overnight')[0].includes('Booked separately') && cells('Overnight')[1].includes('Included'), cells('Overnight'));
-  ok('the uncapped plan quotes no per-use price and no saving',
-    cells('Works out at')[2] === '—' && cells('You save')[2] === '—', [cells('Works out at')[2], cells('You save')[2]]);
-  ok('table and card agree on the per-use price', cells('Works out at')[1] === units[1], [cells('Works out at')[1], units[1]]);
-  ok('the mixed plan hedges its saving in the table too', cells('You save')[1].startsWith('at least'), cells('You save')[1]);
-  ok('middle plan is highlighted in the table', rowByLabel('Days or nights a month').querySelectorAll('td.best').length === 1);
+  ok('coverage counts services, not walks',
+    JSON.stringify(cells('What it covers')) === JSON.stringify([
+      '2 services per month for one pet.', '5 services per month for one pet.', 'Unlimited services per month for one pet.']),
+    cells('What it covers'));
+  /* All three plans expire monthly in the Figma, including the uncapped one — which previously
+     printed a dash on the grounds that there is no allowance to lose. Verbatim. */
+  ok('every plan states that unused days expire',
+    cells('Unused days').every(c => /Expire monthly/i.test(c)), cells('Unused days'));
+  ok('the Concierge row is included on all three plans',
+    cells('Dedicated Concierge').every(c => /Included/i.test(c)), cells('Dedicated Concierge'));
+  ok('add-ons are separate except on the top plan',
+    cells('Add-On')[0].includes('Booked separately') && cells('Add-On')[2].includes('1 per month included'),
+    cells('Add-On'));
+  ok('middle plan is highlighted in the table', rowByLabel('Unused days').querySelectorAll('td.best').length === 1);
 
   // A long page needs a second door.
   ok('closing CTA exists', !!$(w, 'closer-cta'));
-  ok('Stripe is named before the handoff', $(w, 'signup').textContent.includes('Stripe'));
-  ok('page says the card never touches Yourgi', $(w, 'signup').textContent.includes('never touches Yourgi'));
+  /* BOTH INVERTED 13 Aug 2026. The Figma's single fineprint line replaced the two that named
+     Stripe and said the card never touches Yourgi. Naming the destination before a mid-purchase
+     domain jump is standard on hosted checkouts, so this is a real loss, recorded rather than
+     quietly accepted. The CTA still hands off to Stripe; the page just no longer says so. */
+  ok('the card copy no longer names Stripe before the handoff (Figma)',
+    !$(w, 'signup').textContent.includes('Stripe'));
+  ok('and no longer says the card never touches Yourgi (Figma)',
+    !$(w, 'signup').textContent.includes('never touches Yourgi'));
 }
 
 // Field list derived from the PRD, not from landing-page habit. §4 puts the sign-up
@@ -289,8 +392,11 @@ console.log('\n— form scope —');
   // booking, not questions for a concierge callback. See the Step 2 copy in #how.
   ok('no dog count — not asked at signup', !$(w, 'pets-val'));
   ok('no schedule box — not asked at signup', !$(w, 'q-schedule'));
-  ok('signup no longer promises a concierge callback',
-    !planStep.textContent.toLowerCase().includes('calls to set up your days'));
+  /* The Concierge IS the offer now, so the old "no callback promise" guard is obsolete: the Figma
+     fineprint says the Concierge texts and/or calls to complete your profile. Pinned as the new
+     truth — §8 gap 6 (can the team actually staff this?) is now load-bearing, not cosmetic. */
+  ok('signup states the Concierge follow-up, per the Figma',
+    /Concierge texts and\/or calls/i.test(planStep.textContent));
   ok('zip is explained as a coverage check', planStep.textContent.includes('before you pay'));
 }
 
@@ -300,14 +406,19 @@ console.log('\n— plan switching —');
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   ok('weekdays becomes checked', $(w, 'tiers').querySelector('[data-tier="weekdays"]').getAttribute('aria-checked') === 'true');
   ok('twice is deselected', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'false');
-  /* "daycare" used to be the sentinel for top-plan-only content. No plan enumerates daycare now,
-     so the sentinel is "unlimited" — the thing only the top plan may say. */
-  ok('benefits swapped to top-plan content', /unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
+  /* "daycare" used to be the sentinel for top-plan-only content, then "unlimited". The Figma's
+     bullets (13 Aug 2026) use neither word, so the sentinel is now the top plan's own opening
+     phrase. All this test needs is a string that appears on exactly one plan; what matters is that
+     clicking a tier actually swaps the list and leaves nothing of the previous plan behind. */
+  ok('benefits swapped to top-plan content', /all-you-need/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
   $(w, 'tiers').querySelector('[data-tier="weekly"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  ok('benefits swapped again to weekly (2 items)', w.document.querySelectorAll('#incl li').length === 2);
-  ok('no top-plan copy left behind', !/unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
-  ok('only the top plan says unlimited — the entry plan is walks only',
-    /five walks/i.test($(w, 'incl').textContent) && !/unlimited/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
+  ok('benefits swapped again to the entry plan (2 items)', w.document.querySelectorAll('#incl li').length === 2);
+  ok('no top-plan copy left behind', !/all-you-need/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
+  /* The entry plan is no longer walks-only: it is "Two Anything", two of any service — and its
+     bullet now enumerates the services rather than counting them. */
+  ok('the entry plan shows its own bullet, not the top plan\'s',
+    /walks, drop-ins, house sitting, daycare, or overnights/i.test($(w, 'incl').textContent) &&
+    !/all-you-need|just more/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
   ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 399));
 }
 
@@ -398,7 +509,7 @@ console.log('\n— CTA is inert when no Stripe link is configured —');
     !w.__mp.some(([n]) => /Checkout|Lead Captured|Subscription|Submission Failed/.test(n)),
     w.__mp.map(([n]) => n));
   ok('button is not left mid-submit',
-    $(w, 'to-checkout').textContent === 'Continue to payment' && !$(w, 'to-checkout').hasAttribute('disabled'),
+    $(w, 'to-checkout').textContent === 'Get started' && !$(w, 'to-checkout').hasAttribute('disabled'),
     $(w, 'to-checkout').textContent);
 
   // "Do nothing" means nothing — an empty form must not even turn red.
@@ -464,7 +575,7 @@ console.log('\n— out of market —');
   // This used to be handled by a .finally() on the Teams post; now the button is only parked on the
   // one path that actually leaves the page.
   ok('CTA not left parked mid-submit',
-    $(w, 'to-checkout').textContent === 'Continue to payment' && !$(w, 'to-checkout').hasAttribute('disabled'),
+    $(w, 'to-checkout').textContent === 'Get started' && !$(w, 'to-checkout').hasAttribute('disabled'),
     $(w, 'to-checkout').textContent);
 }
 
@@ -619,6 +730,10 @@ console.log('\n— colour contrast (WCAG AA) —');
   }
   console.log(`       tightest passing pair: ${worst[0]} at ${worst[1].toFixed(2)}:1`);
 
+  // The audited values must actually be the ones the page uses. These guards replace the old
+  // '--sky-ink' assertion: that token was a darkened Sky Blue invented so eyebrows could clear
+  // AA, but p21 says text on Bone is never Sky Blue at all. The rule outranked the workaround,
+  // so the guard is inverted rather than deleted — the token must now be ABSENT.
   // The audited values must actually be the ones the page uses.
   ok('page defines the darkened sky token', src.includes('--sky-ink:#41709B'));
   ok('brand Sky is no longer used as small text', !/color:var\(--sky\)/.test(src), 'still using --sky for text');
@@ -673,10 +788,15 @@ console.log('\n— keyboard and screen-reader support —');
   ok('fixing a field clears aria-invalid', $(w, 'q-email').getAttribute('aria-invalid') === 'false');
 
   // Ratings are meaningful content, so they cannot live only in a gold glyph.
-  ok('star glyphs are hidden from assistive tech',
-    [...w.document.querySelectorAll('.review-stars')].every(s => s.getAttribute('aria-hidden') === 'true'));
-  ok('each review states its rating as text',
-    (w.document.body.textContent.match(/Rated 5 out of 5/g) || []).length === 3);
+  /* THE TESTIMONIALS ARE GONE (13 Aug 2026). The Figma hides the review block and puts the "Why
+     Yourgi Plus?" copy band in its place, so there are no star ratings left to make accessible.
+     These two guards are inverted rather than deleted: if reviews come back, they must come back
+     with the text equivalent, and this will fail until they do. README decision #10 (replace the
+     boarding/cat reviews with dog-walking ones) is moot while the block is absent. */
+  ok('no review stars remain to be hidden from assistive tech',
+    w.document.querySelectorAll('.review-stars').length === 0);
+  ok('and no orphaned rating text is left behind',
+    (w.document.body.textContent.match(/Rated 5 out of 5/g) || []).length === 0);
 
   // iOS Safari zooms the page when focusing an input under 16px.
   ok('inputs are 16px so iOS does not zoom mid-form', /input,select,textarea\{[^}]*font-size:16px/.test(src));
@@ -735,6 +855,90 @@ console.log('\n— page script is syntactically valid —');
 // two disagree, somebody is billed a price they were never shown — the most expensive failure this
 // project has available, and one that looks like nothing at all until a receipt arrives. Neither
 // file is allowed to move without the other.
+// ONE SET OF PLAN NAMES, EVERYWHERE.
+//
+// The plans were renamed once already and the rename only landed on the cards: the comparison
+// table still said "Once a Week / Twice a Week / Weekdays" — the table people actually use to
+// choose — and `state` carried a hard-coded label, so anyone who accepted the pre-selected plan
+// without clicking a card was told "Your Twice a Week plan is live" on the confirmation screen,
+// after paying. Both are pinned here so the next rename can't half-land.
+/* THE HERO MAY NOT PROMISE WHAT THE FAQ DENIES.
+ *
+ * A Pack booking does not guarantee a particular Pro — the FAQ says so, and the plan bullets were
+ * stripped of that claim three separate times before it was finally left out. The headline made it
+ * a fourth time ("Stop re-hiring a stranger every week") and went unnoticed for weeks, because
+ * nothing checked the largest type on the page against its own fine print.
+ *
+ * This is the check. If the match model is ever documented and a plan really does hold someone to
+ * your days (Gap 3), this test is what you update first — deliberately, with the FAQ in the same
+ * commit — rather than discovering the two have drifted apart again.
+ */
+console.log('\n— the hero does not claim a Pro the plan cannot promise —');
+{
+  const w = await boot();
+  const hero = w.document.querySelector('h1').textContent;
+  const faq = $(w, 'faq').textContent;
+
+  /* The wording moved from denial ("Not necessarily... not for one particular person") to choice
+     ("Up to you. You can choose the same Provider everytime or try someone new"). Either way the
+     page must not promise that ONE Pro is assigned to a plan, which is what the guard protects. */
+  ok('the FAQ leaves Provider continuity as the customer\'s choice, not a promise',
+    /up to you/i.test(faq) && /choose the same Provider/i.test(faq), 'FAQ no longer frames continuity as a choice');
+  ok('so the hero claims no person, only the arranging',
+    !/stranger|same pro|your pro|one pro|every week/i.test(hero), hero);
+  ok('and the hero still names something the plan actually removes',
+    /arrang|book|month|plan|care/i.test(hero), hero);
+  // The lede was always honest — it sells prepaid coverage, never a named human. Guard it too, since
+  // it sits directly under the headline and is the next place the claim would creep back in.
+  const lede = w.document.querySelector('.lede').textContent;
+  ok('the lede makes no continuity claim either',
+    !/same (pro|person|walker)|your own pro|one pro/i.test(lede), lede);
+}
+
+console.log('\n— the plans are called the same thing everywhere —');
+{
+  const w = await boot({ links: 'https://buy.stripe.com/test_' });
+  const cards = [...w.document.querySelectorAll('#tiers .tier')].map(t => t.dataset.label);
+  const table = [...w.document.querySelectorAll('.compare thead .cmp-plan')].map(s => s.textContent.trim());
+  ok('comparison table uses the plan cards\' names, in order',
+    JSON.stringify(table) === JSON.stringify(cards), { table, cards });
+
+  const src = fs.readFileSync(PAGE, 'utf8');
+  // Visible copy only — textContent on <body> would include the inline script's own source, so a
+  // developer comment mentioning an old name would fail this for no reason.
+  const visible = (() => {
+    const clone = w.document.body.cloneNode(true);
+    clone.querySelectorAll('script,style').forEach(n => n.remove());
+    return clone.textContent;
+  })();
+  ok('no pre-rename plan names left in customer-facing copy',
+    !/(Once a Week|Twice a Week)/.test(visible),
+    (visible.match(/Once a Week|Twice a Week/g) || []).slice(0, 3));
+
+  // The "most picked" flag has to name the plan that is actually pre-selected, or the page is
+  // recommending one thing and selecting another.
+  const flagged = w.document.querySelector('.compare thead .best .cmp-plan')?.textContent.trim();
+  const selected = w.document.querySelector('#tiers .tier[aria-checked="true"]')?.dataset.label;
+  ok('the flagged plan is the one pre-selected', flagged === selected, { flagged, selected });
+  ok('the flag reads the same on the card and in the table',
+    w.document.querySelector('.tier-badge')?.textContent.trim() ===
+    w.document.querySelector('.cmp-flag')?.textContent.trim(),
+    { card: w.document.querySelector('.tier-badge')?.textContent.trim(),
+      table: w.document.querySelector('.cmp-flag')?.textContent.trim() });
+
+  // The default path: accept the pre-selected plan, never click a card, and pay.
+  fill(w, { zip: '80202', email: 'default@example.com' });
+  $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  const stashed = JSON.parse(w.sessionStorage.getItem('yg_plan') || '{}');
+  ok('the plan stashed for the confirmation screen is the one on the card',
+    stashed.label === selected, { stashed: stashed.label, card: selected });
+  ok('and its price is the card\'s price', stashed.price === +w.document
+    .querySelector('#tiers .tier[aria-checked="true"]').dataset.price, stashed.price);
+  ok('state is seeded from the markup, not hard-coded',
+    /label:el\.dataset\.label/.test(src) && !/label:'Twice a Week'/.test(src));
+}
+
 console.log('\n— Stripe manifest matches the page —');
 {
   const w = await boot();
@@ -760,6 +964,13 @@ console.log('\n— Stripe manifest matches the page —');
       { unit_amount: plan.unit_amount, expected: plan.price_usd * 100 });
     ok(`${plan.tier}: product description is the page's own blurb`,
       w.document.body.textContent.includes(plan.product.description), plan.product.description);
+    // The line above the Subscribe button is the last thing read before committing. A stale amount
+    // here is a false statement at the exact moment money moves, so it has to name this plan's price
+    // and no other — and both mentions of it, since it states the charge today and the renewal.
+    const stated = (plan.submit_message.match(/\$[\d,]+(?:\.\d{2})?/g) || []);
+    ok(`${plan.tier}: submit line names $${plan.price_usd} and nothing else`,
+      stated.length === 2 && stated.every(s => s === `$${plan.price_usd}.00`),
+      { message: plan.submit_message, found: stated });
   }
 
   // The default plan is the one most people buy, so the manifest has to agree with the page on which.
@@ -802,39 +1013,54 @@ console.log('\n— no secrets in page source —');
 // The page ships with ONE placeholder Payment Link reused for all three plans. Both facts are
 // temporary and both are dangerous if they reach traffic, so they are pinned here: when the real
 // per-plan links land, these assertions fail and force someone to look at this section.
-console.log('\n— the shipped Stripe link is a flagged placeholder —');
+/* WAS "the shipped Stripe link is a flagged placeholder" — retired 12 Aug 2026.
+ *
+ * That block pinned the details of a single shared LIVE $50/mo Payment Link the page used to ship
+ * with: that exactly one URL existed in the source, that it was declared once and reused three
+ * times, that the comments named its real charge and its live mode. All of it was correct and
+ * useful while that link was there, and all of it became false the moment the link was blanked —
+ * leaving four permanently red assertions that asserted the presence of something deliberately
+ * deleted. Four standing failures are worse than none: they train everyone to skim the summary
+ * line, and the next real regression hides among them.
+ *
+ * What replaces it guards the state that actually ships now — no link configured, CTA inert, and
+ * nothing live in the source — plus the one property the old block was really protecting: that
+ * whatever link is configured, the chosen plan still rides along for reconciliation.
+ */
+console.log('\n— the shipped Stripe config is empty, and safely so —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
   const urls = [...new Set(src.match(/https:\/\/buy\.stripe\.com\/[A-Za-z0-9_]+/g) || [])];
-  ok('exactly one Stripe link in the source', urls.length === 1, urls);
-  ok('it is declared once and reused, not pasted three times',
-    /var STRIPE_PLACEHOLDER_LINK = 'https:\/\/buy\.stripe\.com\//.test(src)
-    && (src.match(/STRIPE_PLACEHOLDER_LINK,?\s*\/\/ TODO/g) || []).length === 3);
-  ok('the source says out loud that it is live mode, not test mode',
-    /THIS IS A LIVE-MODE LINK/.test(src) && !/buy\.stripe\.com\/test_/.test(src));
-  ok('the source says out loud that the billed price is not the advertised price',
-    /EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES/.test(src));
-  /* The observed price is recorded because it is the whole problem: $50/mo is not one of the three
-     plans. This got WORSE with the $49/$99/$399 pricing — the entry plan is now $49, a dollar off
-     what the placeholder actually charges, so a wrong charge would pass a glance at a receipt.
-     If the link is repointed, re-check this. */
-  ok('the observed $50/mo charge is written down, with the $49 near-collision named',
-    /\$50\.00 every month/.test(src) && /within a dollar of what this placeholder charges/.test(src));
-  ok('the head comment warns a reader before they open the config',
-    /LIVE-mode\s+link[\s\S]{0,300}must be fixed before\s+this page sees traffic/.test(src));
-  ok('every plan still carries a TODO for its own link',
-    ['Once a Week', 'Twice a Week', 'Weekdays'].every(p => new RegExp(`TODO — real ${p} link`).test(src)));
+  ok('no Stripe Payment Link is committed to the page', urls.length === 0, urls);
+  ok('the placeholder constant is blank', /var STRIPE_PLACEHOLDER_LINK = '';/.test(src));
+  ok('all three plans are unconfigured', (src.match(/STRIPE_PLACEHOLDER_LINK,?\s*\/\/ TODO/g) || []).length === 3);
+  ok('every plan still carries a TODO naming its own plan',
+    ['Walks', 'Any Five', 'Everything'].every(p => new RegExp(`TODO — real "${p}" link`).test(src)));
+  /* The history is kept in the source on purpose — a live link reached a public review branch once,
+     and the comment explaining how is the reason it will not happen twice. */
+  ok('the source still records why it was blanked', /LIVE-mode Payment Link/.test(src));
+  ok('and records how to tell a live link from a test one before pasting',
+    /a test-mode link carries a test_ prefix/.test(src));
 
-  // The handoff must still be per-plan-aware even while the link is shared, or the mismatch is
-  // unrecoverable: client_reference_id is the only record of what the visitor actually picked.
+  // Empty config means the CTA does nothing at all — not a fake success, not an error.
   const w = await boot();                 // the real, shipping config
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   fill(w, { zip: '80202', email: 'placeholder@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('the CTA reaches the placeholder link', (w.__nav[0] || '').startsWith(urls[0]), w.__nav[0]);
-  ok('the chosen plan still rides along for reconciliation',
-    /client_reference_id=yg_weekdays_80202_\d+/.test(w.__nav[0] || ''), w.__nav[0]);
+  ok('the CTA goes nowhere while unconfigured', w.__nav.length === 0, w.__nav);
+  ok('and shows no confirmation screen', !vis(w, 'step-confirm'));
+
+  /* The property the retired block existed to protect, kept and tested against a seeded config:
+     whatever link is configured, the plan the visitor chose must ride along in client_reference_id.
+     It is the only record of what they picked once they are on Stripe's side. */
+  const w2 = await boot({ links: 'https://buy.stripe.com/test_' });
+  $(w2, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w2.MouseEvent('click', { bubbles: true }));
+  fill(w2, { zip: '80202', email: 'placeholder@example.com' });
+  $(w2, 'to-checkout').dispatchEvent(new w2.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('a configured link still carries the chosen plan for reconciliation',
+    /client_reference_id=yg_weekdays_80202_\d+/.test(w2.__nav[0] || ''), w2.__nav[0]);
 }
 
 // Stripe Checkout refuses to render inside a third-party iframe — it hangs on its loading skeleton.

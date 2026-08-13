@@ -1,4 +1,4 @@
-# Handoff — Subscription Landing Page ("Yourgi Pack")
+# Handoff — Subscription Landing Page ("Yourgi Plus")
 
 **From:** Lauren Palma · **Created:** 10 August 2026 · **Reconciled against the PRD:** 10 August 2026
 
@@ -56,7 +56,7 @@ back. A test asserts the claim hasn't crept back in.
 | Mixpanel + Segment snippets | Return-from-Stripe states (success / cancel) |
 | Zip gate (CO, ME, MA, NH, OR, TX, WA) | Beta ribbon + honest-beta band |
 | Phone/zip/email validation and masking | Optional "which days do you need?" field |
-| Reviews | "How Yourgi Pack works" and FAQ |
+| Reviews | "How Yourgi Plus works" and FAQ |
 
 **Deliberately dropped:**
 
@@ -127,6 +127,74 @@ public page source, so a test now asserts one hasn't been pasted back in.
 **Do not** paste a Stripe *secret* key (`sk_live_…`/`sk_test_…`) into this file. Payment Links and
 publishable keys are safe in page source; secret keys are not. The test suite asserts no secret key is present.
 
+## David's scenario model — and what it says
+
+From *Subscription Business Model Scenario Planning_v2*, shared 12 Aug 2026 and confirmed correct
+apart from the prices, which are $50 / $100 / $400 in the model and $49 / $99 / $399 on the page for
+marketing reasons. The dollar difference doesn't change any conclusion below.
+
+**The unit rates, which the page had never had.** Cross-checked two ways each against the grid:
+
+| Service | Rate | How it checks out |
+|---|---|---|
+| Walk | **$30** | Baseline walk plan and Downside unlimited (25 walks / $750) agree exactly |
+| Daycare | **$55** | Baseline $165 ÷ 3 used, Downside $248 ÷ 4.5 used |
+| **Boarding** | **~$195/night** | Residual of the Baseline unlimited column once walks and daycare come out |
+
+These are now in `LIST_RATES`. **Boarding at $195 is 6.5× a walk**, and both Five Anything and Everything
+can be spent entirely on it — which is §6's exposure with a number finally attached.
+
+**Every scenario loses money per customer per month.** Pros are paid 90% of service value, and the
+plans sell below value, so margin is negative wherever utilisation is meaningful:
+
+| Scenario | Two Anything | Day care | Unlimited |
+|---|---|---|---|
+| Baseline (60 / 60 / 100% used) | **−$31** | **−$49** | **−$120** |
+| Breakeven (needs 37 / 40 / 77%) | $0 | $0 | $0 |
+| Downside (90 / 90 / 100%) | **−$72** | **−$123** | **−$275** |
+
+§5 permits running underwater deliberately, so this is allowed — but it should be sized rather than
+discovered. At baseline, 100 subscribers on the middle plan is about **−$4,900 a month**.
+
+Two things follow that are worth saying out loud:
+
+- **These plans are profitable only if people don't use them.** Breakeven sits at 37–77% utilisation.
+  That is in tension with Step 1 telling people to size a plan to what their month needs, and with
+  concierge actively helping them book. It's a normal gym-membership dynamic, but nobody should be
+  surprised by it later.
+- **The model's Downside case stresses the wrong variable.** It models 25 *walks* — the cheapest
+  service — and sets boarding to zero. The real tail is mix, not volume: five nights of boarding on
+  Five Anything is 5 × $195 = $975 of value, $877 of Pro payout, against $99 collected — about **−$779
+  from one subscriber in one month**, roughly six times the worst case the model shows for the
+  unlimited plan. On Everything, ten nights is about −$1,356. The uncapped plan has no modelled
+  ceiling because the scenario that would find it wasn't run.
+
+## How billing actually behaves (confirmed 12 Aug 2026)
+
+Answers from Lauren, resolving several long-standing FAQ placeholders. Recorded here because the
+page's copy now depends on every one of them.
+
+| Behaviour | What happens |
+|---|---|
+| **Start date** | The subscription starts the moment they pay. No trial, no delay. |
+| **Renewal date** | Same day each month — pay 12 Aug, billed again 12 Sept. |
+| **Renewals** | Automatic and indefinite until cancelled. |
+| **Unused services** | **Use it or lose it.** Nothing rolls over. |
+| **Cancellation** | Self-service in Stripe's portal. Runs to period end; no automatic refund. |
+| **Plan changes** | Self-service. Stripe prorates — up costs the difference now, down credits the next bill. |
+| **Refunds** | **Manual, and discretionary.** Stripe refunds nothing on cancellation by itself. |
+| **Consumption tracking** | **Manual.** Nothing in the system counts what a subscriber has used. |
+
+**The last two rows are where the risk is.** Nothing counts usage, so nothing enforces a plan's cap
+and nobody can answer "how many do I have left?" — a question a use-it-or-lose-it plan guarantees
+you'll get, probably in week one. And "refund if unused, partial if used" is an intent rather than a
+policy; the first cancellation will turn it into one, whether or not anyone has written it down.
+
+**Auto-renewing indefinitely, with services that expire monthly and no usage visibility, is the shape
+regulators look at closely.** US auto-renewal rules have disclosure and sometimes reminder
+requirements. Not a reason to change the model — a reason to get Kai/Legal to look before launch,
+alongside blocking decision #4.
+
 ## Things a reviewer should push on
 
 - **`?checkout=success` is a UI signal, not proof of payment.** Anyone can type it into the URL bar. The
@@ -150,7 +218,7 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 - **Two of the three plans can no longer state a real saving.** The comparison table computes savings from
   `LIST_RATES`, which has a walk rate and a daycare rate and nothing else.
   - **Walks** is exact: $125 of walking for $49, a $76 (61%) giveaway.
-  - **Any Five** is spendable on any service, so its value depends on the mix and there is no single list
+  - **Five Anything** is spendable on any service, so its value depends on the mix and there is no single list
     total. The page floors it at the cheapest known rate — 5 × $25 = $125 against $99 — and says "at least $26
     … more if you spend it on a night away." It understates on purpose; a savings claim should never overstate.
     **Real boarding and house-sitting rates would fix this**, and would probably make this plan look far better

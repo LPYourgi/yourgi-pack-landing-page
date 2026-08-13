@@ -1,10 +1,10 @@
-# Project Context: Subscription Experiment (working name "Yourgi Pack")
+# Project Context: Subscription Experiment (working name "Yourgi Plus")
 **Date:** 10 August 2026
 **Source:** Team discussion — rough auto-transcribed meeting notes, synthesized. Form: verbal meeting transcript, not a written brief.
 **Version:** 1.2
 
 **Decisions since v1.0**
-- **10 Aug 2026 — Name.** The offer is now **Yourgi Pack**. The working name in the source discussion was "Yourgi Prime"; renamed by Lauren. Still a working name, not a brand-approved one — Kai owns final naming (§7 q5).
+- **10 Aug 2026 — Name.** The offer is now **Yourgi Plus**. The working name in the source discussion was "Yourgi Prime"; renamed by Lauren. Still a working name, not a brand-approved one — Kai owns final naming (§7 q5).
 - **12 Aug 2026 — A plan does NOT come with a promise about who shows up.** Corrected twice in one day, so the history matters: the landing page asserted (a) one matched Pro kept on your days with a named backup on the top tier, then (b) several Pros who already know your pet. **Both were wrong.** A plan buys *care*, not continuity with a particular person, and nothing establishes that a Pro fulfilling a plan booking has met the pet before. Decided by Lauren.
   - **Gap 3 is therefore still open, not partially answered.** What is now settled is only what the page may *not* claim.
   - **This removes the value proposition the landing page was built on.** It carried the brand's Connection prop — stranger → your people. Every continuity claim has been stripped from the body copy, and a test now blocks a fourth version from appearing. Of the brand's three props, the Guarantee is blocked by Gap 4 and Connection is unsupportable, leaving **Single Platform** — one plan spanning walking through overnight, one charge — as the only true basis for the page's positioning. **The H1 still reads "Stop re-hiring a stranger every week" and is knowingly unsupported**, left standing because replacing it is a positioning decision for Kai (§7 q5), not a copy fix.

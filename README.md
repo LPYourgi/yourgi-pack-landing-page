@@ -1,4 +1,4 @@
-# Subscription Landing Page — "Yourgi Pack"
+# Subscription Landing Page — "Yourgi Plus"
 
 A standalone landing page testing one question: **will people pay a recurring monthly fee for pet care?**
 Visitor picks one of three care plans, gives us enough to reach them, and **completes a real purchase
@@ -26,23 +26,34 @@ paying.
 - `docs/handoff.md` — start-here onboarding and open decisions.
 - `docs/stripe-webhook.md` — **the build runbook for Stripe → Teams.** Products, Payment Links, the
   Power Automate flow, and how a signup gets verified before staff act on it.
-- `webhook/teams-card-*.json` — the Adaptive Cards that flow posts. Not loaded by the page; they're
-  pasted into Power Automate.
+- `docs/flow-build-brief.md` — a self-contained one-pager to hand to whoever has a Power Automate
+  Premium licence, since Lauren doesn't. They own the flow; we only need the URL back.
+- `webhook/teams-card-*.json` — the Adaptive Cards that flow posts, annotated with why each field is
+  what it is. Not loaded by the page.
+- `webhook/teams-card-*.paste.json` — the same cards with the explanatory keys stripped, so they
+  paste into Power Automate without editing. Regenerate them from the annotated versions rather than
+  editing them directly, or the two will drift.
 - `stripe/plans.json` — **the three plans as Stripe objects.** What gets created in Stripe, and the
   only place those values should be typed. A test asserts it matches the page's prices and labels.
+- `stripe/create-plans.mjs` — creates those plans in Stripe **test mode** from the manifest, via the
+  Stripe CLI. Dry-runs by default; `--go` to execute. Aborts if Stripe returns a live object.
 - `docs/project-context.md` — **the authoritative source.** Synthesized from the 10 Aug 2026 team
   discussion. Where this doc and the page disagree, this doc wins and the page is wrong.
 
 ## What the page offers
 
-Three plans on a coverage ladder: walking only, then any service, then everything uncapped. **The numbers are
+Three plans on a frequency ladder: two services a month, five, then uncapped — any service at every tier. **The numbers are
 not approved** — David owns pricing, and the note below lists what still has no answer.
 
 | Plan | Price | Included |
 |---|---|---|
-| Walks | $49/mo | Five walks a month, walking only |
-| Any Five (default) | $99/mo | Five days or nights a month, any service |
-| Everything | $399/mo | Unlimited, all month |
+| Two Anything | $49/mo | Two services per month for one pet |
+| Five Anything (default) | $99/mo | Five services per month for one pet |
+| Full Coverage | $399/mo | Unlimited services every 30 days for one pet |
+
+The "Included" column is the plan tile's own blurb, verbatim — the same string
+`stripe/plans.json` uses as the Stripe product description, which a test pins to the page.
+Change it in one place and the suite tells you about the other.
 
 > **Decisions and their history live in [`docs/project-context.md`](docs/project-context.md)**, which is
 > authoritative. This file describes the repo; it doesn't re-argue the offer.
@@ -74,13 +85,13 @@ hand — that box is the single thing they need before dialling.
 ## What the market actually does — and what we borrowed
 
 Checked against the operators who sell subscriptions well. **The headline finding is that neither big pet-care
-player sells what Yourgi Pack sells:**
+player sells what Yourgi Plus sells:**
 
 | Who | What they actually sell | Read-across |
 |---|---|---|
 | [Wag! Premium](https://wagwalking.com/wag-premium) | **$9.99/mo discount membership** — 5% off bookings, waived booking fees, vet chat, priority matching | A loyalty layer, not a services bundle. Cheap, near-zero subsidy exposure, and it never has to answer "what happens to unused walks?" |
 | [Rover](https://www.rover.com/dog-walking/) | **No subscription at all** — "Repeat Weekly" recurring bookings with auto-billing at normal rates | The recurring-revenue outcome without prepayment. Some walkers discount recurring bookings themselves. |
-| [ClassPass](https://help.classpass.com/hc/en-us/articles/209367426-Do-my-credits-roll-over) | Monthly credits for third-party services, **rollover capped at one cycle's worth** | The closest structural analog to Yourgi Pack, and the source of our proposed rollover answer. |
+| [ClassPass](https://help.classpass.com/hc/en-us/articles/209367426-Do-my-credits-roll-over) | Monthly credits for third-party services, **rollover capped at one cycle's worth** | The closest structural analog to Yourgi Plus, and the source of our proposed rollover answer. |
 
 Nobody in pet care is selling a prepaid, capped bundle at $49–$399. That's either the opportunity or the
 warning — worth putting in front of David and Scott either way, because **there is a materially cheaper
@@ -122,11 +133,11 @@ stops being computable on two of the three plans.** At the placeholder rates:
 
 | Plan | List value | Price | Giveaway | Per use |
 |---|---|---|---|---|
-| Walks | $125 (5 × $25) | $49 | **$76 (61%)** | $9.80 a walk |
-| Any Five | **unknown — floored at $125** | $99 | at least $26 (21%) | $19.80 a visit |
-| Everything | **no cap, no list value** | $399 | not quotable | — |
+| Two Anything | $125 (5 × $25) | $49 | **$76 (61%)** | $9.80 a walk |
+| Five Anything | **unknown — floored at $125** | $99 | at least $26 (21%) | $19.80 a visit |
+| Full Coverage | **no cap, no list value** | $399 | not quotable | — |
 
-**Any Five can't be priced against a list total**, because the customer decides the mix — five walks is worth
+**Five Anything can't be priced against a list total**, because the customer decides the mix — five walks is worth
 $125, five nights of house-sitting is worth several times that, and `LIST_RATES` has no overnight rate at all.
 The page floors it at the cheapest known service and says "at least $26… more if you spend it on a night
 away." That understates deliberately: a savings claim is a claim about money, and the safe direction is down.
@@ -161,15 +172,17 @@ Full detail in `docs/project-context.md` §7 (Open Questions) and §8 (Gaps). Co
 | # | Decision | Owner |
 |---|----------|-------|
 | 1 | **The actual prices and caps.** The page proposes a structure; David owns the numbers. | Facilitator / David |
-| 2 | **Rollover** — what happens to unused walks. Still an open FAQ placeholder, and the single question most likely to decide whether anyone signs up. | Facilitator / David |
+| 2 | ~~**Rollover** — what happens to unused walks.~~ **Answered 12 Aug 2026: use it or lose it, no rollover.** The FAQ now states it plainly; the previous answer proposed the opposite (ClassPass-style roll-forward) and was reversed. | ~~Facilitator / David~~ done |
 | 3 | **Guarantee coverage** for subscription bookings. Until this lands, no Guarantee claim goes on the page. | Kai / Legal |
 | 4 | **Wind-down terms** — the beta band promises notice before the next charge. Confirm we can hold that. | Legal / Kai |
 | 5 | **Geography** — the zip gate is inherited, not decided. See below. | Undecided |
-| 6 | ~~**Stripe access provisioning** for Lauren.~~ **Granted 12 Aug 2026.** Wiring steps: [`docs/stripe-webhook.md`](docs/stripe-webhook.md). | ~~Facilitator~~ done |
+| 6 | **Stripe access for Lauren — REOPENED 13 Aug 2026.** Access was granted 12 Aug, but it's a limited role: *"you don't have permission to create an API key for this merchant."* That blocks `stripe login`, and blocks the **restricted key the webhook's verification step needs**. Needs Developer or Administrator on Yourgi Pro — or an admin who creates the objects and the key on her behalf. | Facilitator / Stripe admin |
 | 7 | **Concierge capacity** — the page promises a callback within one business day. Confirm the team can. | Concierge lead |
 | 8 | **Success metric** — no target, baseline, or kill threshold defined. | Facilitator / Scott |
+| 12 | **Refund policy.** The intent is "refund if nothing was used, partial if some was" — but that's an intent, not a rule, and Stripe refunds nothing automatically on cancellation. Every refund is a manual action in the dashboard. The FAQ promises only what's certainly true until this lands. | David / Legal |
+| 13 | **Consumption tracking is manual** for the launch build. Nothing counts what a subscriber has used, so nothing enforces the caps and nobody can answer "how many do I have left?" — on a use-it-or-lose-it plan that question arrives in week one. | Concierge lead |
 | 9 | **Notification channel** — a new dedicated Teams channel, never the concierge order-form channel. Needed before the Stripe webhook can be pointed anywhere; the flow can be built and tested against a private channel first. | Jeff |
-| 11 | **Power Automate premium licence** for Lauren — the webhook flow needs the HTTP trigger and HTTP action, both premium connectors. Check before building; there's a weaker fallback if the answer is no. | Facilitator / IT |
+| 11 | **Power Automate premium licence** — **confirmed missing, 13 Aug 2026.** Flow checker: *"This flow's owner needs a Power Automate Premium license."* The flow saves but cannot run. Unblock with the free 90-day trial offered in Flow checker, or an admin licence request; otherwise the design drops event verification. See [`docs/stripe-webhook.md`](docs/stripe-webhook.md). | Facilitator / IT |
 | 10 | Page slug, National 2 font + official logo lockup, dog-walking reviews to replace the boarding/cat ones. | Webflow / brand |
 
 ### One deliberate disagreement with the PRD
