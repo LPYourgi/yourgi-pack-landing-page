@@ -333,7 +333,38 @@ wrong price** — it is the single most expensive mistake available in this file
 While the placeholder single-link state is in place, four tests in the "flagged placeholder" block
 fail on purpose. Replacing the links is what makes them pass.
 
-### 1.4 Let subscribers change plan — the page already promises it
+### 1.4 Point the terms checkbox at the real Terms & Conditions
+
+All three Payment Links already set `consent_collection.terms_of_service: required`, so checkout shows
+a checkbox nobody can subscribe without ticking. **What that checkbox links to is not set on the
+Payment Link.** Per Stripe's docs it links to the *Terms of service URL set in your account's Public
+details* — one account-level setting that every link inherits:
+
+**Settings → Public details → Terms of service URL** (`dashboard.stripe.com/settings/public`)
+
+Three consequences worth knowing:
+
+- **Set it once and all three links pick it up.** Nothing needs recreating, and no code changes.
+- **Until it's set, the checkbox is agreement to nothing in particular.** Worth checking what the
+  live account currently has there before assuming it's blank.
+- **The same page has a Privacy policy URL**, which Checkout also links when set.
+
+The URL must be **publicly reachable**. A Webflow *Designer* link
+(`*.design.webflow.com/?pageId=…`) is not — it serves an app shell to anyone not logged in, so the
+page must be published first and the published URL used.
+
+> **Check the custom terms text against the real T&Cs before this goes live.** Our
+> `custom_text.terms_of_service_acceptance.message` makes its own commitments at the point of sale —
+> automatic monthly renewal, cancellation taking effect at the end of the paid month, and notice
+> before the next charge if anything changes. Once the checkbox links to a real T&C document, a buyer
+> is shown **two** statements of terms at once. Where they overlap they have to agree, and where the
+> T&C is more specific our text should defer to it rather than paraphrase it. That's a review, not a
+> code change — but it's the kind of mismatch that only surfaces in a dispute.
+
+Note for later: `consent_collection` can only be set when a Payment Link is **created**, not updated.
+Ours is already `required`, so nothing to do — but changing it later means new links.
+
+### 1.5 Let subscribers change plan — the page already promises it
 
 Step 1 on the landing page says **"Move up, move down, or cancel any month."** Cancelling works out
 of the box. **Switching plans does not** — it's off by default in Stripe's customer portal, so
@@ -363,7 +394,7 @@ charging twice, and cancellation to **at period end** so someone keeps the month
 > Link** — that cap limits checkouts, not upgrades. If the cap is your subsidy guardrail, it has a
 > hole in it, and the portal allowlist is where you'd close it.
 
-### 1.5 A restricted API key for the flow
+### 1.6 A restricted API key for the flow
 
 **Developers → API keys → Create restricted key.** Grant **read** on **Events** and nothing else.
 That's all the flow needs: it re-fetches one event by ID.

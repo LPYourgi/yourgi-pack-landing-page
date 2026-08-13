@@ -739,6 +739,42 @@ console.log('\n— colour contrast (WCAG AA) —');
     declared.filter(c => ['#777777', '#777', '#999999', '#999', '#f1b942'].includes(c)));
 }
 
+/* ===== TYPOGRAPHY ==============================================================================
+ * Two things, and the second is here because it already went wrong once.
+ *
+ * NATIONAL 2 is Yourgi's real typeface; Oswald and Archivo are stand-ins for it. The card's
+ * benefit bullets are the first thing on this page set in the real face (Lauren, 13 Aug 2026), so
+ * the guard is that they still are — and that the files behind it are Yourgi's licensed webfonts
+ * rather than the `-test-` builds sitting next to them in the same Webflow stylesheet. Those are
+ * Klim's trial fonts. Shipping one is a licensing problem, and the filenames differ by six
+ * characters, which is exactly the kind of thing a test should be reading instead of a person.
+ *
+ * THE SELECTOR LEAK is the second. `.hero .incl` looks like it means "the hero's benefit list",
+ * and it does not: the signup card sits inside <header class="hero">, so it also matched #incl and
+ * set the card's bullets to 16px bold. It shipped. The fix was a dedicated .incl-hero class, and
+ * the guard is that nobody reintroduces the descendant selector — including on the other elements
+ * the card and the hero column have in common.
+ */
+console.log('\n— typography —');
+{
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('National 2 is loaded from Yourgi\'s own CDN', /@font-face\{font-family:'National 2'/.test(src));
+  ok('the licensed builds are used, never Klim\'s -test- trial fonts',
+    /national-2-regular\.woff2/.test(src) && !/national-2[a-z-]*-test-/.test(src),
+    src.match(/national-2[a-z-]*-test-[a-z]+\.\w+/g));
+  ok('the card\'s benefit bullets are National 2 Regular 13',
+    /#incl li\{font-family:'National 2'[^}]*font-size:13px[^}]*font-weight:400/.test(src));
+  /* The hero list is scoped by class. `.hero .incl` reaches into the card because the card is
+     inside the hero element — if this fails, the card's bullets have silently changed size.
+     Comments are stripped first: the note explaining this bug necessarily quotes the selector
+     that caused it, and a guard that its own explanation trips is a guard nobody keeps. */
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '');
+  ok('the hero list is scoped by class, not by descending from .hero',
+    /\.incl-hero\{/.test(code) && !/\.hero\s+\.incl/.test(code),
+    code.match(/\.hero\s+\.incl[^{]*\{[^}]*\}/g));
+  ok('the hero list carries that class in the markup', /<ul class="incl incl-hero">/.test(src));
+}
+
 console.log('\n— keyboard and screen-reader support —');
 {
   // Links configured, so the error-handling assertions below have a live submit to exercise.

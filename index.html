@@ -40,7 +40,11 @@
     Guarantee band from the concierge page was REPLACED by an honest beta band.
 
   STILL PLACEHOLDER — do not treat as final:
-  - Font: Oswald + Archivo stand in for National 2 (licensed) — swap in production.
+  - Font: Oswald + Archivo stand in for National 2 (licensed) — swap in production. PARTLY DONE
+    13 Aug 2026: Yourgi's own licensed National 2 webfonts are served from the Webflow CDN and are
+    now loaded here (see the @font-face block), but only the card's benefit bullets are set in
+    them. Everything else is still the stand-in. Finishing the swap needs a re-check of every
+    measured line length, because National 2's metrics differ from both stand-ins.
   - PRICES AND CAPS are structurally sound but not approved. David/pricing owns the numbers (§7 q1).
   - STRIPE_PAYMENT_LINKS holds ONE PLACEHOLDER LINK reused for all three plans. It is a LIVE-mode
     link to a $50/mo "Yourgi Membership" — so every plan on this page, whatever its card says,
@@ -59,6 +63,30 @@
 -->
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ===== NATIONAL 2 — THE REAL BRAND FACE ====================================================
+     National 2 (Klim Type Foundry) is Yourgi's typeface: Condensed ExtraBold for headlines,
+     Bold for secondary headlines, Regular for body. Oswald and Archivo have stood in for it on
+     this page because National 2 is licensed and the head comment above assumed we had no copy
+     to serve.
+
+     WE DO. These are Yourgi's own licensed webfonts, already served from the same Webflow CDN
+     this page loads the logo from, with `access-control-allow-origin: *`. They are the files
+     yourgi.com itself renders in — not the `-test-` builds that sit alongside them in that CSS,
+     which are Klim's trial fonts and must not be used in production.
+
+     ONLY THE REGULAR IS ACTUALLY USED TODAY — on the card's benefit bullets. Bold and Condensed
+     ExtraBold are declared but unreferenced, which costs nothing: a browser downloads a webfont
+     only when something on the page is set in it. They are here so that retiring the Oswald and
+     Archivo stand-ins is a change to font-family rules rather than a hunt for font files.
+     Doing that swap is a real visual change, not a find-and-replace: National 2 has different
+     metrics from both stand-ins, so every measured line length and column width on this page
+     needs re-checking against the 30–60 character body rule when it happens. */
+  @font-face{font-family:'National 2'; font-weight:400; font-style:normal; font-display:swap;
+    src:url('https://cdn.prod.website-files.com/6818d81fbac209b16f28ed8b/6a024053c1c43baa696b2a66_national-2-regular.woff2') format('woff2');}
+  @font-face{font-family:'National 2'; font-weight:700; font-style:normal; font-display:swap;
+    src:url('https://cdn.prod.website-files.com/6818d81fbac209b16f28ed8b/6a024053785d31ff7121b4f0_national-2-bold.woff2') format('woff2');}
+  @font-face{font-family:'National 2 Condensed'; font-weight:800; font-style:normal; font-display:swap;
+    src:url('https://cdn.prod.website-files.com/6818d81fbac209b16f28ed8b/6a024053ea34740801505a2d_national-2-condensed-extrabold.woff2') format('woff2');}
   :root{
     --yellow:#FFBB45; --red:#ED7C59; --plum:#A26191; --field:#D9DFB6;
     --sky:#7FAACD; --bone:#FAF5EA; --black:#000; --navy:#09213C; --line:#e2dccb;
@@ -139,12 +167,30 @@
   .incl li{display:flex; gap:8px; align-items:flex-start; margin-bottom:7px; color:#333;}
   .incl li svg{flex:0 0 auto; width:15px; height:15px; margin-top:2px;}
   /* THE HERO LIST IS THE SAME COMPONENT AT A DIFFERENT WEIGHT (Figma 4104:977 vs the card's
-     4010:122). Same 15px check, same 8px gap, same #333 — but 16px Archivo BOLD rather than 13px
-     regular, because this list is the offer itself on the yellow band, while the card's sits under
-     a control as supporting detail. Carried as its own rule rather than an inline style so the two
-     lists cannot drift into looking like one component used inconsistently. */
-  .hero .incl{font-size:16px;}
-  .hero .incl li{font-weight:700;}
+     4010:122). Same 15px check, same 8px gap, same #333 — but 16px BOLD rather than 13px regular,
+     because this list is the offer itself on the yellow band, while the card's sits under a
+     control as supporting detail.
+
+     SCOPED BY ITS OWN CLASS, NOT BY `.hero .incl` — that selector was wrong and shipped once.
+     The signup card is INSIDE <header class="hero">, so `.hero .incl` also matched #incl and made
+     the card's benefit bullets 16px bold too. Nesting is not a reliable way to say "the hero
+     column but not the card"; a class is. Anything scoped to the hero copy column belongs here. */
+  .incl-hero{font-size:16px;}
+  .incl-hero li{font-weight:700;}
+  /* THE CARD'S BENEFIT BULLETS ARE NATIONAL 2 REGULAR 13 — Lauren, 13 Aug 2026. This is the real
+     brand body face, not the Archivo stand-in the rest of the page still uses, and not what the
+     Figma node says either: 4095:766 specs these as Archivo Regular 13, which is the stand-in
+     showing through in the design file too. Brand beats the mock on typeface.
+
+     The size and weight are restated here rather than inherited on purpose. `.hero .incl` briefly
+     made these 16px bold, because the signup card sits inside <header class="hero"> — pinning
+     13/400 on the bullets themselves means the next selector that reaches too far changes nothing.
+
+     Archivo stays as the fallback so a CDN failure degrades to the stand-in rather than to a
+     system serif. Scoped to #incl (the card list) alone: the hero list above is still Archivo, so
+     these two lists now differ in typeface as well as weight. That is deliberate but temporary —
+     it resolves when the whole page moves to National 2. */
+  #incl li{font-family:'National 2','Archivo',system-ui,sans-serif; font-size:13px; font-weight:400;}
   /* nav — logo only, deliberately. See the comment on the <nav> block. */
   nav{background:var(--bone); border-bottom:1px solid var(--line);}
   nav .wrap{display:flex; align-items:center; height:64px;}
@@ -429,7 +475,7 @@
            copy above the fold, and it should not need a script to stop looking broken.
            aria-hidden because the <li> already announces as a list item — the check is visual
            punctuation, and a screen reader saying "image" four times adds nothing. -->
-      <ul class="incl">
+      <ul class="incl incl-hero">
         <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dedicated Concierge to manage all your bookings, match you with perfect Providers for your needs, and get top notch service.</span></li>
         <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Access to all Yourgi Pro services (boarding, house sitting, daycare, or walking).</span></li>
         <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hand-picked matches based on your needs, you make the final decision.</span></li>
