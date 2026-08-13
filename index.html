@@ -138,6 +138,13 @@
   .incl{list-style:none; margin:0 0 16px; padding:0; font-size:13px;}
   .incl li{display:flex; gap:8px; align-items:flex-start; margin-bottom:7px; color:#333;}
   .incl li svg{flex:0 0 auto; width:15px; height:15px; margin-top:2px;}
+  /* THE HERO LIST IS THE SAME COMPONENT AT A DIFFERENT WEIGHT (Figma 4104:977 vs the card's
+     4010:122). Same 15px check, same 8px gap, same #333 — but 16px Archivo BOLD rather than 13px
+     regular, because this list is the offer itself on the yellow band, while the card's sits under
+     a control as supporting detail. Carried as its own rule rather than an inline style so the two
+     lists cannot drift into looking like one component used inconsistently. */
+  .hero .incl{font-size:16px;}
+  .hero .incl li{font-weight:700;}
   /* nav — logo only, deliberately. See the comment on the <nav> block. */
   nav{background:var(--bone); border-bottom:1px solid var(--line);}
   nav .wrap{display:flex; align-items:center; height:64px;}
@@ -415,11 +422,18 @@
            the mechanics of the Guarantee while its legal boundaries are undocumented (&sect;8 gap 4).
            Carried verbatim as instructed — flag for Kai/Legal before launch. -->
       <h2 class="g-eyebrow" style="font-size:24px; margin:26px 0 10px;">What you get</h2>
-      <ul class="incl" style="font-size:15px;">
-        <li>Dedicated Concierge to manage all your bookings, match you with perfect Providers for your needs, and get top notch service.</li>
-        <li>Access to all Yourgi Pro services (boarding, house sitting, daycare, or walking).</li>
-        <li>Hand-picked matches based on your needs, you make the final decision.</li>
-        <li>Guaranteed coverage within 48-hours.</li>
+      <!-- CHECKS ARE PART OF THIS LIST, not decoration added later. The Figma (4104:978-981) gives
+           every row the same 15px check the card's list uses, and without them these four lines read
+           as a paragraph that lost its bullets rather than as the four things you are buying.
+           Written into the markup rather than injected by JS like the card's list: this is static
+           copy above the fold, and it should not need a script to stop looking broken.
+           aria-hidden because the <li> already announces as a list item — the check is visual
+           punctuation, and a screen reader saying "image" four times adds nothing. -->
+      <ul class="incl">
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dedicated Concierge to manage all your bookings, match you with perfect Providers for your needs, and get top notch service.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Access to all Yourgi Pro services (boarding, house sitting, daycare, or walking).</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hand-picked matches based on your needs, you make the final decision.</span></li>
+        <li><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17l-5-5" stroke="#53A14E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Guaranteed coverage within 48-hours.</span></li>
       </ul>
     </div>
 
@@ -432,7 +446,6 @@
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Two Anything</span>
             <span class="tier-price">$49<span class="per">/mo</span></span>
-            <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">Two services per month for one pet.</span>
           </button>
           <button class="tier" role="radio" aria-checked="true" tabindex="0" data-tier="twice" data-price="99" data-label="Five Anything" style="--tint:#FFF3D6;">
@@ -440,14 +453,12 @@
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Five Anything</span>
             <span class="tier-price">$99<span class="per">/mo</span></span>
-            <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">Five services per month for one pet.</span>
           </button>
           <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Full Coverage" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Full Coverage</span>
             <span class="tier-price">$399<span class="per">/mo</span></span>
-            <span class="tier-unit" data-unit></span>
             <span class="tier-blurb">Unlimited services every 30 days for one pet.</span>
           </button>
         </div>
@@ -1021,22 +1032,26 @@
     $('save-line').innerHTML = 'Save more than 50% on pet care with Yourgi Plus subscriptions!';
   }
 
-  /* COMPUTED, NOT COPIED. These were briefly hardcoded verbatim from the Figma cards, and the
-     Figma's entry-plan figure ($9.80 a walk) was itself left over from when that plan was five
-     walks for $49. When the plan became two-of-anything, the page went on advertising a per-walk
-     price for walks it no longer sells — $9.80 implies five uses; the plan holds two.
+  /* ===== THE PER-UNIT PRICE IS GONE FROM THE CARDS (13 Aug 2026) ===============================
+     The plan tile in the Figma (component 4008:116, and every instance of it in frame 4077:237)
+     has three things: the plan name, "$49 /mo", and the blurb. There is no per-visit line, and the
+     page was rendering one — "$24.50 a visit" and "$19.80 a visit" — directly under the price.
+     Removed to match the design.
 
-     A per-unit price is arithmetic about money on a page that takes money. It is price divided by
-     what the plan actually holds, and it has to come from the same place the plan does, so it
-     cannot be left behind by a rename. The uncapped plan has no denominator and prints nothing.
-     A test pins each card's line to price ÷ uses. */
-  function renderUnitPrices(){
-    document.querySelectorAll('#tiers .tier').forEach(function(b){
-      var slot=b.querySelector('[data-unit]'); if(!slot) return;
-      var e=economics(b.dataset.tier);
-      slot.textContent = e.perUse ? money(e.perUse)+' a '+e.unitNoun : '';
-    });
-  }
+     WHAT THAT COSTS, because it is more than a line of text. This was the page's only per-plan
+     arithmetic, and the reason it existed is still true: "$99/mo" alone makes the buyer do the
+     division, and every usage-capped subscription worth copying shows the unit price. Losing it
+     means the cards now state a price and a count and leave the relationship between them to the
+     reader. It also retires the guard that came with it — a test asserted the per-use price FALLS
+     from the entry plan to the middle one ($24.50 -> $19.80), which is what makes the ladder reward
+     buying more. That property is no longer displayed anywhere, so nothing checks it, and a future
+     price change could re-invert the ladder silently. It did exactly that once before.
+
+     economics() STILL COMPUTES perUse and unitNoun, deliberately. Nothing renders them today, but
+     they are correct, they are derived from PLAN_UNITS rather than hardcoded, and keeping them
+     means restoring this line is a renderer and a test rather than a re-derivation. Do not "clean
+     up" the unused fields without reading the note above first. The .tier-unit rule is likewise
+     left in the stylesheet, the same way the retired .straight band's rules were. */
 
   /* Side-by-side table. Built from the same config as the cards.
      A bare "✓" announces as "check mark" and a bare "—" announces as nothing, so every yes/no
@@ -1374,7 +1389,7 @@
     $('signup').scrollIntoView({behavior:'smooth',block:'center'});
   };
 
-  renderUnitPrices();
+  /* renderUnitPrices() used to run here — see the note where it was removed. */
   renderCompare();
   renderBenefits();
 })();

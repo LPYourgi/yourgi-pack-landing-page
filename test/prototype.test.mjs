@@ -282,38 +282,33 @@ console.log('\n— subscription-page conventions —');
 {
   const w = await boot();
 
-  // Unit price on every card, so nobody has to divide $99 by 9 in their head.
-  const units = [...w.document.querySelectorAll('#tiers [data-unit]')].map(e => e.textContent);
-  /* Only the two capped plans have a per-use price. The unlimited plan has no denominator, so its
-     slot is deliberately BLANK — a number there would be invented. That blank is the assertion. */
-  ok('the two capped plans show a per-use price', /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[0]) && /^\$\d+(\.\d\d)? a (walk|visit)$/.test(units[1]), units);
-  ok('the unlimited plan shows no per-use price at all', units[2] === '', units[2]);
-  /* RECONCILED 13 Aug 2026. This assertion used to pin `$9.80 a walk` as a known-wrong figure
-     copied verbatim from the Figma: $9.80 is $49/5, from when the entry plan was five walks, and
-     it survived the rename to "Two Anything". A $49 plan holding two uses is $24.50 a use.
+  /* ===== THE PER-VISIT LINE IS GONE FROM THE CARDS, SO THIS CHECKS THE CONFIG =================
+     The Figma plan tile (4008:116, and every instance in frame 4077:237) carries a name, a price
+     and a blurb — no per-visit line. The page was rendering one, so it was removed to match.
 
-     The per-use lines are computed from price ÷ uses again rather than hardcoded, so this is now
-     checked as arithmetic instead of pinned as a known defect. The Figma card still shows the old
-     figure — it needs the same correction. */
-  const expectedPerUse = t => {
-    const el = w.document.querySelector(`#tiers [data-tier="${t}"]`);
-    return +el.dataset.price;
-  };
-  ok('Two Anything per-use is price ÷ 2', units[0] === `$${(expectedPerUse('weekly') / 2).toFixed(2)} a visit`, units[0]);
-  ok('Five Anything per-use is price ÷ 5', units[1] === `$${(expectedPerUse('twice') / 5).toFixed(2)} a visit`, units[1]);
+     The assertions that read it off the DOM go with it. The one that does NOT is the value-ladder
+     guard below, because the property it protects is about the PRICES, not about a line of text:
+     under the old shape moving up a tier cost you MORE per use ($9.80 entry vs $19.80 middle), and
+     the README called it out as a ladder that punished buying more. Making all three plans
+     any-service fixed it. That fix is still real and still worth defending, so the guard now
+     derives per-use from the page's own config — data-price ÷ PLAN_UNITS.uses — instead of reading
+     a rendered string.
 
-  /* THE VALUE LADDER NOW REWARDS BUYING MORE — INVERTED 13 Aug 2026, and this one is good news.
-     This guard existed to record a problem: under the old shape the entry plan was the CHEAPEST
-     per use ($9.80) and the middle plan cost twice that ($19.80) for the same count, so moving up
-     a tier cost you more per use. The README called it out as a ladder that doesn't reward buying
-     more.
-
-     Making all three plans any-service fixed it as a side effect: two uses at $49 is $24.50 each,
-     five at $99 is $19.80 each. Buying more now genuinely costs less per use, which is what a
-     buyer expects and what the comparison table implies. Kept and inverted rather than deleted, so
-     if the prices or counts move in a way that re-inverts the ladder, that breaks a test. */
-  const perUse = [parseFloat(units[0].slice(1)), parseFloat(units[1].slice(1))];
-  ok('per-use price FALLS from the entry plan to the middle plan', perUse[0] > perUse[1], units);
+     THIS IS THE WEAKER POSITION AND IT SHOULD BE SAID PLAINLY: the ladder is now correct but
+     INVISIBLE. Nothing on the page shows a buyer that five uses at $99 is cheaper each than two at
+     $49; they are left to divide. A test knows, and a customer does not. */
+  const pageSrc0 = fs.readFileSync(PAGE, 'utf8');
+  ok('no per-visit line is rendered on any card — the Figma tile has none',
+    w.document.querySelectorAll('#tiers [data-unit]').length === 0);
+  const usesOf = t => +((pageSrc0.match(new RegExp(`${t}:\\s*\\{ uses: (\\d+)`)) || [])[1]);
+  const tierPrice = t => +w.document.querySelector(`#tiers [data-tier="${t}"]`).dataset.price;
+  ok('the entry plan holds two uses and the middle plan five',
+    usesOf('weekly') === 2 && usesOf('twice') === 5,
+    { weekly: usesOf('weekly'), twice: usesOf('twice') });
+  const perUseOf = t => tierPrice(t) / usesOf(t);
+  ok('per-use price FALLS from the entry plan to the middle plan',
+    perUseOf('weekly') > perUseOf('twice'),
+    { weekly: perUseOf('weekly'), twice: perUseOf('twice') });
 
   /* ===== THE SAVINGS GUARDS ARE GONE, AND THAT IS THE FINDING ==================================
      Until 13 Aug 2026 this block held the page's money claims to arithmetic: the callout had to
@@ -843,10 +838,12 @@ console.log('\n— page script is syntactically valid —');
   // An unescaped apostrophe inside a single-quoted JS string is the specific way this breaks.
   const w = await boot();
   ok('the script actually ran (benefits rendered)', w.document.querySelectorAll('#incl li').length > 0);
-  /* Only the two capped plans get a unit price — the unlimited plan's slot is meant to stay empty,
-     so "every slot filled" is no longer the smoke test. Two filled is. */
-  ok('the script actually ran (prices computed)',
-    [...w.document.querySelectorAll('#tiers [data-unit]')].filter(e => e.textContent.trim() !== '').length === 2);
+  /* The per-visit slots were this smoke test's subject until they were removed to match the Figma
+     tile. The comparison table is the other thing the inline script builds from config, and it
+     prints prices — so it still catches a script that parsed but threw partway through. */
+  ok('the script actually ran (compare table built)',
+    w.document.querySelectorAll('#cmp-body tr').length === 4 &&
+    $(w, 'cmp-p-twice').textContent === '$99/mo');
 }
 
 // THE PAGE AND THE STRIPE MANIFEST MUST NOT DRIFT.
