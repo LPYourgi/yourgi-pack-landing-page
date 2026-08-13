@@ -46,17 +46,37 @@
     coverage is undetermined and legally risky. Do not add one until Legal rules. The
     Guarantee band from the concierge page was REPLACED by an honest beta band.
 
-  STILL PLACEHOLDER — do not treat as final:
-  - Font: Oswald + Archivo stand in for National 2 (licensed) — swap in production. PARTLY DONE
-    13 Aug 2026: Yourgi's own licensed National 2 webfonts are served from the Webflow CDN and are
-    now loaded here (see the @font-face block), but only the card's benefit bullets are set in
-    them. Everything else is still the stand-in. Finishing the swap needs a re-check of every
-    measured line length, because National 2's metrics differ from both stand-ins.
+  STILL PLACEHOLDER — do not treat as final. Two entries that used to head this list are now
+  RESOLVED and are kept, marked, at the top: they were both wrong about their own subject for part
+  of 13 Aug 2026, and one of them cost real time before it was caught.
+  - RESOLVED — FONT. The swap is DONE, and the claim that used to sit here was false: it said only
+    the card's benefit bullets were set in National 2 and "everything else is still the stand-in".
+    Frame 4077:222 was migrated off Oswald entirely and this page followed it, so National 2 —
+    Yourgi's own licensed webfonts, served from the Webflow CDN, see the @font-face block — is now
+    the page default, with National 2 Condensed on h1/h2. Nothing sets Oswald and a test asserts it.
+    Three Archivo nodes survive on purpose (comparison-table row labels, footer tagline, the bold
+    lead-in of the footer Guarantee line); a test counts them so removing one is a decision.
+    Another test asserts the licensed builds ship rather than Klim's `-test-` trial fonts, which
+    differ by six characters in the filename and would be a licensing problem.
+    THE OLD "needs a re-check of every measured line length" IS GONE, MEASURED RATHER THAN ASSUMED.
+    Real line boxes at 1440, National 2 confirmed loaded: nothing on the page exceeds the brand's
+    30-60 character rule except the FAQ answers at ~102 and the hero lede at 64 in a 435px column.
+    The FAQ measure is deliberate — see the FAQ comment block, where Lauren chose the frame's width
+    twice — and the Archivo holdouts top out at 34 characters a line. Nothing is owed here.
+    WHY THIS BULLET WAS WRONG MATTERS MORE THAN THAT IT WAS: it stayed stale after the migration
+    commit, it is the most-read comment in the file, and a later session reasoned from it to a
+    false conclusion about the browser and the frame measuring different faces. When you finish
+    something, correct the comment that said it was unfinished, in the same commit.
+  - RESOLVED — STRIPE LINKS. This used to say STRIPE_PAYMENT_LINKS held ONE placeholder LIVE-mode
+    link to a $50/mo "Yourgi Membership", reused for all three plans. That was true and dangerous;
+    it is no longer true. There are three real per-plan links, every one of them TEST mode, and a
+    test asserts the `test_` prefix on each. The guard the old bullet described is still real and
+    still worth keeping: empty the links and STRIPE_READY parks the CTA rather than faking a sale.
+    See STRIPE_PAYMENT_LINKS below for the objects, the sandbox expiry, and why a price change is a
+    replacement rather than an edit. Run `node stripe/verify-links.mjs` to check the links against
+    Stripe itself — the offline suite only checks this page against stripe/plans.json, and both can
+    agree while Stripe charges something else, which is exactly what happened with the $499 price.
   - PRICES AND CAPS are structurally sound but not approved. David/pricing owns the numbers (§7 q1).
-  - STRIPE_PAYMENT_LINKS holds ONE PLACEHOLDER LINK reused for all three plans. It is a LIVE-mode
-    link to a $50/mo "Yourgi Membership" — so every plan on this page, whatever its card says,
-    hands off to a real $50/mo checkout that can take real money. Both must be fixed before
-    this page sees traffic. Empty the links and the CTA goes inert rather than faking a sale.
   - Sign-up itself finishes on Stripe. This page validates, checks coverage by ZIP, captures the
     lead, then hands off; it never takes a card and never confirms a subscription on its own.
   - Staff notifications DO NOT come from this page. They come from a Stripe webhook, so Teams only
