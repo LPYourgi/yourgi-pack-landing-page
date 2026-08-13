@@ -1027,29 +1027,60 @@ console.log('\n— no secrets in page source —');
  * nothing live in the source — plus the one property the old block was really protecting: that
  * whatever link is configured, the chosen plan still rides along for reconciliation.
  */
-console.log('\n— the shipped Stripe config is empty, and safely so —');
+/* REWRITTEN 13 Aug 2026, when the real links landed — the event the note above anticipated.
+ *
+ * This block used to assert the shipped config was EMPTY: no URL in the source, three TODOs, a
+ * dead CTA. All of that was the right guard for a page with nothing to link to, and all of it went
+ * false the moment `stripe/create-plans.mjs --go` produced three Payment Links. Asserting the
+ * absence of something now present would leave standing failures, which is the exact trap the
+ * retired block above describes.
+ *
+ * What replaces it guards the property that actually matters now, and it is a sharper one than
+ * "empty": THE COMMITTED LINKS MUST BE TEST MODE. gh-pages is served publicly. A live link here
+ * would let anyone who finds the review URL be charged real money at prices nobody has approved —
+ * which has happened on this repo once already, with a shared live $50/mo link. Test-mode links
+ * are safe to publish; that difference is one substring, so a test reads it rather than a person.
+ */
+console.log('\n— the shipped Stripe links are real, per-plan, and test mode —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
   const urls = [...new Set(src.match(/https:\/\/buy\.stripe\.com\/[A-Za-z0-9_]+/g) || [])];
-  ok('no Stripe Payment Link is committed to the page', urls.length === 0, urls);
-  ok('the placeholder constant is blank', /var STRIPE_PLACEHOLDER_LINK = '';/.test(src));
-  ok('all three plans are unconfigured', (src.match(/STRIPE_PLACEHOLDER_LINK,?\s*\/\/ TODO/g) || []).length === 3);
-  ok('every plan still carries a TODO naming its own plan',
-    ['Walks', 'Any Five', 'Everything'].every(p => new RegExp(`TODO — real "${p}" link`).test(src)));
+  ok('three Payment Links are committed, one per plan', urls.length === 3, urls);
+  /* THE GUARD THIS BLOCK EXISTS FOR. A live Payment Link is buy.stripe.com/<id>; a test-mode one
+     carries test_. If this ever fails, the public review page is taking real payments — treat it
+     as an incident, not a failing test. */
+  ok('EVERY committed link is test mode — no live link on a public branch',
+    urls.every(u => u.startsWith('https://buy.stripe.com/test_')),
+    urls.filter(u => !u.startsWith('https://buy.stripe.com/test_')));
+  /* One shared link across three plans is the specific failure that shipped before: all three
+     cards handed off to a single $50/mo checkout, so two of the three charged the wrong price. */
+  ok('no link is shared between plans — each plan has its own',
+    new Set(['weekly', 'twice', 'weekdays'].map(t =>
+      src.match(new RegExp(`${t}:\\s*'([^']+)'`))?.[1])).size === 3);
+  /* The blank fallback stays, and stays blank. It is what parks the CTA when the sandbox expires
+     or the links are pulled — the honest failure, rather than a button that 404s. */
+  ok('the blank placeholder constant survives as the park-the-button fallback',
+    /var STRIPE_PLACEHOLDER_LINK = '';/.test(src));
   /* The history is kept in the source on purpose — a live link reached a public review branch once,
      and the comment explaining how is the reason it will not happen twice. */
   ok('the source still records why it was blanked', /LIVE-mode Payment Link/.test(src));
   ok('and records how to tell a live link from a test one before pasting',
     /a test-mode link carries a test_ prefix/.test(src));
+  // The sandbox these live in expires; the source has to say so or they become a silent 404.
+  ok('the source records that the sandbox behind these links expires',
+    /EXPIRES 19 AUG 2026/.test(src));
 
-  // Empty config means the CTA does nothing at all — not a fake success, not an error.
+  // With links configured the CTA does its one job: hand off to Stripe.
   const w = await boot();                 // the real, shipping config
   $(w, 'tiers').querySelector('[data-tier="weekdays"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   fill(w, { zip: '80202', email: 'placeholder@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('the CTA goes nowhere while unconfigured', w.__nav.length === 0, w.__nav);
-  ok('and shows no confirmation screen', !vis(w, 'step-confirm'));
+  ok('the CTA now hands off to Stripe', (w.__nav[0] || '').startsWith('https://buy.stripe.com/test_'), w.__nav[0]);
+  ok('the handoff uses the chosen plan\'s own link',
+    (w.__nav[0] || '').startsWith(src.match(/weekdays:\s*'([^']+)'/)[1]), w.__nav[0]);
+  // The page still never invents a subscription of its own — Stripe's redirect is what shows that.
+  ok('and shows no confirmation screen of its own', !vis(w, 'step-confirm'));
 
   /* The property the retired block existed to protect, kept and tested against a seeded config:
      whatever link is configured, the plan the visitor chose must ride along in client_reference_id.

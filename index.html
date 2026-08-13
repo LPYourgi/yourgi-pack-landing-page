@@ -758,10 +758,31 @@
        - Stay in sandbox/test mode while the page is under review.
        - The entry plan is $49 and the removed placeholder charged $50. A mispasted link would produce
          a charge that looks almost right on a receipt, so verify each link against its own plan. */
+  /* THE REAL PER-PLAN LINKS, CREATED 13 Aug 2026. One per plan, never one shared link.
+     Made by `node stripe/create-plans.mjs --go` from stripe/plans.json, so the product description
+     behind each one is that plan's own tile blurb and the line above the Subscribe button names
+     that plan's own price.
+
+     EVERY ONE IS TEST MODE — note the `test_` in each URL. That is the check the comment above
+     asks for and it is the reason these can sit on a publicly served branch: a test-mode link
+     cannot take real money from anyone who finds this page. The moment one of these loses its
+     `test_`, this page is taking real payments for prices nobody has approved. A test asserts the
+     prefix is still there.
+
+     THEY LIVE IN A SANDBOX THAT EXPIRES 19 AUG 2026. When it goes, these links 404 and the CTA
+     breaks rather than falling back to anything — blank them and STRIPE_READY parks the button,
+     which is the honest failure. Re-run the script against a fresh sandbox to replace them.
+
+     Objects behind these:
+       weekly    prod_V4CAvZyCMwXFDm  price_1U43lgEC544F53vLic9GTR7s
+       twice     prod_V4CACYKwRpOKHK  price_1U43liEC544F53vL0hXGoizP
+       weekdays  prod_V4CAW8wlwsl4Un  price_1U43lkEC544F53vL6dUJyuzP
+     Fifteen stale products from five earlier runs were archived on the same day; if you see them
+     in the Dashboard, they are inactive and nothing points at them. */
   var STRIPE_PAYMENT_LINKS = {
-    weekly:   STRIPE_PLACEHOLDER_LINK,   // TODO — real "Walks" link ($49/mo)
-    twice:    STRIPE_PLACEHOLDER_LINK,   // TODO — real "Any Five" link ($99/mo)
-    weekdays: STRIPE_PLACEHOLDER_LINK    // TODO — real "Everything" link ($399/mo)
+    weekly:   'https://buy.stripe.com/test_14A4gz1mpcQuaWOc4e2sM0f',   // Two Anything  ($49/mo)
+    twice:    'https://buy.stripe.com/test_cNi4gz8OR8Ae0iagku2sM0g',   // Five Anything ($99/mo)
+    weekdays: 'https://buy.stripe.com/test_7sY6oHaWZ17M1me5FQ2sM0h'    // Full Coverage ($399/mo)
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record

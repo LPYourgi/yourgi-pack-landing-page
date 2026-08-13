@@ -116,8 +116,15 @@ try {
  * So: stop and show what is already there. Reusing them automatically would be worse — a matching
  * Product says nothing about whether its Price or its Payment Link are configured correctly, and
  * silently adopting someone else's objects is not a decision a script should make on its own.
+ *
+ * ACTIVE PRODUCTS ONLY (fixed 13 Aug 2026). `products list` returns archived products too, so this
+ * check used to count them — which made the second remedy it prints ("Archive the old products,
+ * then re-run this") impossible to follow: you could archive all fifteen and the preflight would
+ * still stop you on fifteen. Archiving is how you retire a Stripe product; there is no delete for
+ * one that has prices attached. Counting archived products as blockers meant the only way past
+ * this gate was --anyway, which is the outcome the gate exists to prevent.
  */
-const existing = (run(['products', 'list', '--limit', '100']).data || [])
+const existing = (run(['products', 'list', '--limit', '100', '-d', 'active=true']).data || [])
   .filter(p => p.metadata && p.metadata.campaign === shared.metadata.campaign);
 
 if (existing.length && !process.argv.includes('--anyway')) {
