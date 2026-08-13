@@ -120,6 +120,29 @@ the Payment Links, the Power Automate flow, and the test plan. In outline:
    a Stripe webhook endpoint at it.
 6. Re-run `node test/prototype.test.mjs`.
 
+### The current links sit in a sandbox that expires — 19 Aug 2026
+
+**The three links in `index.html` are not in Yourgi's Stripe account.** `create-plans.mjs` runs through the
+Stripe CLI, and `stripe login` put them in an auto-generated sandbox (`acct_1U3hh6EC544F53vL`) that was never
+claimed. Two consequences, both visible to anyone you send to checkout:
+
+1. **They expire.** `stripe config --list` reports `sandbox_expires_at = '2026-08-19'` (checked 13 Aug 2026).
+   After that the links stop resolving and the page's checkout is dead — with nothing in the source to explain
+   why, because nothing in the source changed. This is the failure mode most likely to be misdiagnosed later.
+2. **Checkout carries an orange "Unclaimed sandbox" badge**, directly above the price, and shows no Yourgi
+   logo — branding is per-account, and this sandbox has none set. (The live **Yourgi Pro** account,
+   `acct_1RWl3xIgv5bQybH7`, already has both logo and icon configured, so a live-mode link would be branded
+   automatically. Nothing needs doing there.)
+
+Both are fixed by **claiming the sandbox** — `stripe config --list | grep sandbox_claim_url`. Claiming
+attaches it to a real account, and puts it in the Dashboard so its branding can be set under
+Settings → Business → Branding. Stripe wants a *square* PNG or JPG, ≥128×128, under 512 KB; the wordmark the
+page's nav uses rasterizes to a suitable 1200×1200. Expect a test-mode indicator to remain on the page
+regardless — that's inherent to test checkout and is not something branding removes.
+
+Re-running `create-plans.mjs` against a different sandbox produces new link URLs, so step 4 above has to be
+redone if that happens. The test suite catches a stale paste; it cannot catch an expired link.
+
 There is **no `TEAMS_WEBHOOK_URL` any more** — that step used to be here and was removed on 12 Aug 2026.
 The page notifies nobody; the Stripe webhook does. A Power Automate URL is a credential and this file is
 public page source, so a test now asserts one hasn't been pasted back in.

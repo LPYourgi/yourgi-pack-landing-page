@@ -389,6 +389,30 @@ The Plus Coupon must be bound to the subscriber's Yourgi account. `max_redemptio
 **across all customers**, so an unbound 5-use code can be burned by five strangers. That's the
 mechanism the whole product runs on, and it sits outside this repo.
 
+### 1.3c One person changes a price at a time
+
+A price change in Stripe isn't an edit. Prices are immutable, so it's **a new Price, a new Payment
+Link, a new URL in the page, and archiving the old pair** — four steps that have to land together.
+
+On 13 Aug 2026 two people did that simultaneously in the sandbox and produced two active $499 prices
+and two active Payment Links on the same product, identically configured. In a throwaway sandbox
+that's clutter. **In the live account it means two working links that both charge real money, and
+nothing in Stripe telling you which one the page bills through** — the Dashboard shows two identical
+rows distinguished only by creation time.
+
+What resolved it, and is worth keeping as the rule: **whichever link `index.html` references
+survives, and the other pair is archived.** The page is the tiebreak because it's the only artefact
+that decides what a customer actually pays.
+
+Two practical guards:
+
+- **Say out loud who owns the Stripe half before starting**, and let that person do all four steps.
+  Splitting "archive the old" from "swap the URL" across two people is how the page ends up
+  referencing an archived link — which is worse than the duplicate, because checkout breaks.
+- **Verify from the API, not from intent.** Resolve the URL in the page to its Payment Link, expand
+  `line_items`, and compare `amount_total` against `unit_amount` in `plans.json`. That check is what
+  proved the duplicate was gone; two people each *believing* they'd cleaned up proved nothing.
+
 ### 1.4 Point the terms checkbox at the real Terms & Conditions
 
 All three Payment Links already set `consent_collection.terms_of_service: required`, so checkout shows

@@ -928,6 +928,54 @@ console.log('\n— page script is syntactically valid —');
  * your days (Gap 3), this test is what you update first — deliberately, with the FAQ in the same
  * commit — rather than discovering the two have drifted apart again.
  */
+/* THE PAGE MAY NOT PROMISE WHAT THE T&Cs DON'T GIVE.
+ *
+ * Two claims were reconciled against Yourgi_Pack_Terms_and_Conditions_DRAFT_5 on 13 Aug 2026:
+ *
+ * 1. REFUNDS. The FAQ used to say that if you hadn't used the plan we'd "sort you out", and that if
+ *    you'd used part of it we'd "work out what's fair". That was written from an intent before the
+ *    T&Cs existed. §12.1 says the opposite — fees are non-refundable and part-months and unused
+ *    allowance are not credited — with a closed list of exceptions in §12.2.
+ *
+ * 2. "THE LINK ON YOUR RECEIPT". Two places told people to cancel from a link in their Stripe
+ *    receipt. Legal's own Annex A (row 11) states Stripe receipts do NOT contain one by default; it
+ *    has to be deliberately surfaced, and a portal session link expires. So the page was directing
+ *    people to something that isn't there — the kind of promise that fails on first contact.
+ *
+ * Both are the sentences a customer quotes back at us, so they're pinned rather than trusted. */
+console.log('\n— money claims match the T&Cs —');
+{
+  const w = await boot();
+  const faq = $(w, 'faq').textContent;
+  const manifest = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'stripe', 'plans.json'), 'utf8'));
+  const stripeTerms = manifest.shared.payment_link.custom_text.terms_of_service_acceptance.message;
+
+  ok('the refund question is answered at all', /Can I get a refund\?/i.test(faq), 'refund FAQ missing');
+  ok('and the answer leads with non-refundable, per §12.1',
+    /aren.t refundable/i.test(faq) && /don.t refund part-months|days you didn.t use/i.test(faq), 'refund answer softened');
+  ok('it does not promise a refund for an unused plan',
+    !/(sort you out|work out what.s fair)/i.test(faq), 'the pre-T&C intent wording is back');
+  ok('the §12.2 exceptions are still offered', /cover your area/i.test(faq) && /end the beta early/i.test(faq));
+
+  // Neither the page nor the Stripe checkout may point at a receipt link that Stripe doesn't add.
+  ok('the FAQ does not send people to a link on their receipt', !/link on your receipt/i.test(faq), faq.match(/[^.]*link on your receipt[^.]*/i)?.[0]);
+  ok('the Stripe terms text does not either', !/link on your receipt/i.test(stripeTerms), stripeTerms);
+  ok('and it still states cancellation takes effect at period end',
+    /end of the month you.ve paid for/i.test(stripeTerms), stripeTerms);
+
+  /* BOTH ROUTES FOR PLAN CHANGES (Lauren's call, 13 Aug 2026), so both have to stay described.
+     The page previously sent everyone to the Concierge while the Stripe portal was configured for
+     self-serve — the page and the billing system describing different products. It also described
+     period-end downgrades while the portal is set to create_prorations, which lands changes
+     immediately. If proration_behavior ever changes, the second assertion should fail. */
+  ok('plan changes offer self-serve AND the Concierge',
+    /Can I change plans\?/i.test(faq) && /billing page/i.test(faq) && /Concierge/i.test(faq), 'one of the two routes is missing');
+  ok('and describe prorated, immediate changes rather than period-end ones',
+    /straight away/i.test(faq) && /comes off your next bill/i.test(faq)
+      && !/benefits until the end of your billing cycle/i.test(faq),
+    faq.match(/Can I change plans\?[\s\S]{0,260}/i)?.[0]);
+}
+
 console.log('\n— the hero does not claim a Pro the plan cannot promise —');
 {
   const w = await boot();

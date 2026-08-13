@@ -236,10 +236,18 @@
   /* how it works */
   .steps .wrap{display:grid; grid-template-columns:repeat(3,1fr); gap:32px;}
   .step-num{font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:16px; letter-spacing:.06em; color:var(--sky-ink); text-transform:uppercase; margin-bottom:8px;}
-  .steps h3{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:none; font-size:16px; margin-bottom:6px;}
+  /* CAPS (Lauren, 13 Aug 2026) — the frame renders these as CONCIERGE INTRO / CHOOSE PROVIDERS.
+     Done with text-transform rather than by retyping the markup in capitals, which is how every
+     other uppercase heading on this page works: the h1/h2 rule uppercases "How Yourgi Plus works"
+     into HOW YOURGI PLUS WORKS and the source stays readable. It also reads better aloud — the DOM
+     text is still "Concierge intro", so a screen reader says the words instead of spelling out an
+     acronym, which some do with literal all-caps.
+     The FAQ questions below keep text-transform:none on purpose: the frame sets those in sentence
+     case ("How many pets are covered by the plans?"), so the two h3 contexts genuinely differ. */
+  .steps h3{font-family:'National 2','Archivo',sans-serif; font-weight:700; text-transform:uppercase; font-size:16px; margin-bottom:6px;}
   .steps p{font-size:16px; margin:0; color:#333;}
   .steps-head{max-width:1080px; margin:0 auto 32px; padding:0 20px;}
-  .steps-head h2{font-size:32px;}
+  .steps-head h2{font-size:32px; text-align:center;}
   /* honest-beta band (replaces the concierge page's Guarantee band — see head comment) */
   .straight .wrap{display:grid; grid-template-columns:260px 1fr; gap:44px; align-items:center;}
   .polaroid{width:100%; border:4px solid #fff; border-radius:2px; overflow:hidden; transform:rotate(-7deg); box-shadow:0 12px 28px rgba(0,0,0,.16); display:block;}
@@ -346,7 +354,8 @@
      ~336px; these answers were running the full 760px of the container, about 105 characters a
      line. The hero lede already caps at 430px for 17px type (408 by the formula), so this brings
      the FAQ in line with what the rest of the page already does. */
-  .faq-item p{font-size:16px; margin:0; color:#333; max-width:350px;}
+  /* The 350px measure cap is gone with the 390px wrap above — see the note on the FAQ section. */
+  .faq-item p{font-size:16px; margin:0; color:#333;}
   /* footer */
   footer{background:var(--navy); color:var(--bone); padding:44px 20px 28px;}
   .foot-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:24px;}
@@ -573,7 +582,8 @@
           <label for="q-zip">Zip code <span class="req">*</span></label>
           <input id="q-zip" type="text" inputmode="numeric" placeholder="12345" aria-required="true" autocomplete="postal-code" aria-describedby="e-zip">
           <div class="err-msg" id="e-zip" role="alert">Enter a 5-digit zip.</div>
-          <p class="fineprint" style="margin-top:5px; max-width:288px;">So we can check we have Pros walking your streets before you pay.</p>
+          <!-- Same 288px cap, same fix: 4077:268 is w-435 too, the card's full content width. -->
+          <p class="fineprint" style="margin-top:5px;">So we can check we have Pros walking your streets before you pay.</p>
         </div>
 
         <button class="btn-dark" style="width:100%;" id="to-checkout">Get started</button>
@@ -585,7 +595,10 @@
              page. Your card never touches Yourgi."). An unexplained hop to another domain
              mid-purchase is what that line existed to prevent. The Figma does not carry it, so it
              is gone here too — raise it if that was not deliberate. -->
-        <p class="fineprint" style="text-align:center; margin-top:8px; max-width:288px; margin-inline:auto;">Yourgi Plus is billed monthly. Cancel anytime, contact the Yourgi Concierge to manage your subscription. Once you're in, our Concierge texts and/or calls to complete your profile, match you with a Yourgi Pro pet care provider, and book your needed services.</p>
+        <!-- FULL CARD WIDTH, i.e. the same width as the button above it (Lauren). The frame has
+             this at 435px (4077:273), which is the card's 478.8px less its 22px padding — so it is
+             not a measure choice, it is "as wide as the CTA". It was capped at 288px. -->
+        <p class="fineprint" style="text-align:center; margin-top:8px;">Yourgi Plus is billed monthly. Cancel anytime, contact the Yourgi Concierge to manage your subscription. Once you're in, our Concierge texts and/or calls to complete your profile, match you with a Yourgi Pro pet care provider, and book your needed services.</p>
         <!-- A third line used to sit here: "Once you're in, someone from our team calls to set up
              your days and match your Pro." Dropped to match the Figma (4014:156, hidden), which
              moves setup from a concierge callback to self-serve booking — see the Step 2 copy. -->
@@ -659,9 +672,12 @@
      the same PLAN_UNITS config as the cards so the two can never disagree. -->
 <section class="band" id="compare">
   <div class="wrap" style="max-width:820px;">
-    <h2 style="font-size:32px; margin-bottom:6px;">Which plan is right for your pet?</h2>
-    <!-- max-width is the measure cap from references/visual.md (font size × 24) — see .faq-item p -->
-    <p style="font-size:14px; color:#444; margin:0 0 22px; max-width:350px;">Whether your pet needs coverage just twice a month, or if you have higher frequency needs, we have a plan for you.</p>
+    <h2 style="font-size:32px; margin-bottom:6px; text-align:center;">Which plan is right for your pet?</h2>
+    <!-- CENTRED AND FULL-WIDTH, from the frame (4077:286 and 4077:288 are both text-center, and the
+         intro is w-full of the 820 wrap). It previously carried a 350px measure cap; measured in
+         the browser it now sets one 717px line of 114 characters, against the 30-60 the brand sets.
+         See the note on the FAQ wrap below — same trade, made the same way, and flagged. -->
+    <p style="font-size:14px; color:#444; margin:0 0 22px; text-align:center;">Whether your pet needs coverage just twice a month, or if you have higher frequency needs, we have a plan for you.</p>
     <div class="compare-card">
       <div class="compare-wrap">
         <table class="compare">
@@ -726,33 +742,135 @@
      README decision #10) are gone from the page. The markup is deleted rather than commented out;
      git history has it if the testimonials come back. -->
 <section class="band" style="background:#fff;">
-  <div class="wrap" style="max-width:390px;">
+  <!-- 453px, so the text column is the frame's 413px (4104:1059/1061) once .wrap's 20px of side
+       padding is taken off. Was 390px, i.e. a 350px column. At 16px type, 413px is ~52 characters
+       a line, which sits inside the brand's 30-60 rule — unlike the two bands below. -->
+  <div class="wrap" style="max-width:453px;">
     <h2 style="font-size:40px; margin-bottom:12px;">Why Yourgi Plus?</h2>
-    <p style="font-size:16px; margin:0; max-width:350px;">Most pet parents have a system that works until it does not. The neighbor moves, the regular sitter books up, the trip comes together on Wednesday. Then you are scrambling. Yourgi Plus exists so there is always someone to call. You get a Concierge who knows your pet and your standards, sorts out who is available, and comes back with a confirmed booking. Not a directory to search. A person who handles it.</p>
+    <p style="font-size:16px; margin:0;">Most pet parents have a system that works until it does not. The neighbor moves, the regular sitter books up, the trip comes together on Wednesday. Then you are scrambling. Yourgi Plus exists so there is always someone to call. You get a Concierge who knows your pet and your standards, sorts out who is available, and comes back with a confirmed booking. Not a directory to search. A person who handles it.</p>
   </div>
 </section>
 
 <section class="band" id="faq">
-  <!-- 390px, not 760px. The wrap carries 20px of side padding, so this makes the column exactly the
-       350px measure the answers are capped to (see .faq-item p) — which means the divider rules stop
-       running 400px past the end of the text they belong to. Matches the rhythm of the rest of the
-       page: a 430px hero column, ~330px step columns, ~340px review cards. -->
-  <div class="wrap" style="max-width:390px;">
+  <!-- FULL PAGE WIDTH, from the frame (Lauren). 4077:400 is 1044px across and every FAQ item is
+       w-full inside it, so the answers run the width of the page and the divider rules run with
+       them. Uses the default .wrap (1080px less 20px padding a side = 1040px).
+
+       WHAT THIS COSTS, and WHERE IT CAME FROM, because those are two different things and the
+       note this replaces conflated them. Measured in the browser, the answers now run 102-132
+       characters a line against the 30-60 references/visual.md calls a real constraint and the most
+       commonly violated part of the system.
+
+       BUT WIDENING DID NOT INTRODUCE THAT. The frame has always been 1044px here — every faq-a node
+       in it measures ~102 characters a line — so the long measure is the design's, and the 390px
+       wrap removed above was the REPO deviating from the frame to fix it locally. That cap was a
+       good instinct and it is why the divider rules used to stop with the text instead of running
+       past it. It was still a silent local override of the source of truth.
+
+       Lauren was shown the measured number and chose the frame's width twice, the second time
+       explicitly ("do not narrow, do not re-cap"). So this is a decision on record, not a
+       regression: the trade is that the FAQ reads wide, and the payoff is that the page and the
+       frame no longer disagree about a width. Do not re-cap it in CSS. If it is ever revisited, the
+       column narrows in FIGMA first and the page follows. -->
+  <div class="wrap">
     <h2 style="font-size:32px; margin-bottom:12px;">FAQ&rsquo;s</h2>
-    <!-- EVERY ITEM BELOW IS VERBATIM FROM THE FIGMA (13 Aug 2026), which is the source of truth
-         for copy. Four things a proofreader should see before launch, left exactly as written:
-           - "through your Yourgi Concierge Your plan runs" is missing a full stop.
-           - "everytime" and "incure" are misspelled; "cost effective" wants a hyphen.
-           - the one-pet answer states a penalty (cancellation without refund) while the refund
-             policy is still blocking decision #12, owned by David and Legal.
+    <!-- FROM THE FIGMA (13 Aug 2026), which is the source of truth for copy — with four
+         reconciliations applied on 13 Aug 2026 rather than left for a proofreader. All four are
+         still open in the Figma and need the same corrections there:
+
+           - THE THREE TYPOS ARE FIXED HERE: the missing full stop after "Yourgi Concierge",
+             "everytime" -> "every time", "incure" -> "incur", "cost effective" -> "cost-effective".
+             Verbatim-from-the-Figma is the right default for wording, but not for spelling on a
+             page that takes money.
+
+           - THE CANCEL ANSWER WAS REWRITTEN, not just repunctuated. It told people to cancel "from
+             the link on your receipt"; Legal's own Annex A (row 11) says Stripe receipts carry no
+             portal link by default. It now routes to the Concierge, which works today.
+
+           - THE REFUND ANSWER WAS RESTORED. The Figma dropped the question; the T&Cs answer it
+             (§12), and it is the question a use-it-or-lose-it plan gets asked first.
+
+             MEASURE: raised, measured, and overruled — 13 Aug 2026, twice, with the number in
+             front of her. Answers run 102-132 characters a line in the 1044px wrap, measured off
+             real line boxes rather than estimated. references/visual.md calls 30-60 a real
+             constraint, so this sits 1.7-2.2x over it.
+
+             THE WIDTH IS NOT A REGRESSION, which is the part to know before anyone "fixes" it. The
+             frame has always been 1044px at ~102 characters. The 350px max-width this page used to
+             put on .faq-item p was a LOCAL OVERRIDE of the source of truth — a good instinct that
+             silently put page and frame out of step. Removing it closed that gap rather than
+             opening this one.
+
+             DO NOT re-cap .faq-item p, and do not narrow the frame's answer column. Both are
+             against Lauren's explicit instruction, and the Figma-narrowing remedy that was briefly
+             on the table has been withdrawn on the same instruction.
+
+             What stays on record, because the cost is not evenly spread: this answer is the longest
+             on the page and is one sentence carrying three conditional clauses ("if we can't cover
+             your area, if we end the beta early, or if we cancel your plan for a reason that isn't
+             your fault"). Someone reading a refund policy is scanning for whether THEIR case is in
+             the list, and a 100-character line is the wrong shape for that. If it ever needs
+             solving, the route still open is the COPY, not the layout — break the exceptions into a
+             list so they scan at any measure. That changes this answer only and contradicts no
+             decision that has been made.
+
+             If anyone measures this again: do it in the browser off real line boxes, not from
+             chars-per-pixel arithmetic. An earlier estimate here said ~146 by scaling a 350px
+             measurement up to 1040px, which is too high — wrapping lands where words allow, so the
+             last line of each answer is short and pulls the average down. Browser and frame agree
+             on ~102 for this answer; both are measuring National 2.
+
+           - THE PLAN-CHANGE ANSWER NOW DESCRIBES BOTH ROUTES (Lauren's call, 13 Aug 2026). It used
+             to send everyone to the Concierge while Stripe's customer portal was configured for
+             self-serve switching — the page and the billing system describing different products.
+             Both are offered now, so BOTH have to keep working.
+
+             It also had the mechanics wrong, which mattered more than the routing. It said a
+             downgrade "will give you Plus plan benefits until the end of your billing cycle" —
+             that is period-end switching. The portal is set to `create_prorations`, so a change
+             lands immediately and the difference is prorated: an upgrade bills the balance for the
+             days remaining, a downgrade credits them against the next invoice. The copy now says
+             what the setting actually does. If anyone changes proration_behavior, this sentence is
+             wrong again — see docs/stripe-webhook.md §1.5.
+
+             TWO THINGS THIS DEPENDS ON, neither of them copy:
+               1. Self-serve needs a door. Stripe receipts carry no portal link (Annex A row 11), so
+                  "your billing page" needs a permanent URL that mints a portal session — the same
+                  gap Terms §9.1 leaves open with a placeholder.
+               2. Self-serve upgrades bypass a completed-sessions cap on a Payment Link, because
+                  that cap limits checkouts and not upgrades. If the $499 plan's subsidy ceiling is
+                  ever set that way, this route is the way around it.
+
+           - THE ONE-PET PENALTY now has support. It states cancellation without refund for using
+             the plan across pets, which was flagged while the refund policy was undecided.
+             §12.2(e) refunds only where we cancel "for a reason not attributable to you", so a
+             cancellation the subscriber caused is outside the refund cases. Consistent as written.
+
          The rollover question ("what happens to services I don't use") is no longer in the Figma,
          so it is no longer here — the term now appears only in the comparison table. -->
     <div class="faq-item"><h3>How many pets are covered by the plans?</h3><p>The Yourgi Plus subscription exclusively covers one pet. Multiple pets can not use services under each plan, and using the plan for multiple or varying pets will cause cancellation of plan without refund.</p></div>
     <div class="faq-item"><h3>What if I need an extra walk one week?</h3><p>Book it the normal way and pay for that one walk. Your plan isn't a cap on how much care you can get &mdash; it's the part that repeats.</p></div>
-    <div class="faq-item"><h3>Can I cancel?</h3><p>Yes, any month, from the link on your receipt, or through your Yourgi Concierge Your plan runs through the month you've already paid for.</p></div>
-    <div class="faq-item"><h3>Can I change plans?</h3><p>Just contact your dedicated Yourgi Concierge &mdash; they will upgrade or downgrade your subscription on the spot. Downgrading will give you Plus plan benefits until the end of your billing cycle, upgrades will incure an up-charge of the difference of your plan, and cancellations will end renewal of your plan.</p></div>
-    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Up to you. You can choose the same Provider everytime or try someone new. Your Yourgi Concierge helps every step of the way.</p></div>
-    <div class="faq-item"><h3>What if I need an extra service?</h3><p>Your Yourgi Concierge will either help you make the most cost effective decision, or just help you book a single additional service.</p></div>
+    <div class="faq-item"><h3>Can I cancel?</h3><p>Yes, any month, and you never have to phone anyone. Ask your Yourgi Concierge and they'll cancel it for you. Your plan runs through the month you've already paid for &mdash; that month isn't refunded &mdash; and you won't be charged again.</p></div>
+    <!-- REFUNDS — restored 13 Aug 2026, and written from the T&Cs rather than from intent.
+         This question had an answer, then lost it in the brand pass. It is worth having: the plan is
+         use-it-or-lose-it and renews on its own, so "can I get my money back" is asked early and
+         often, and an unanswered question at the point of sale gets answered by whoever picks up the
+         phone.
+
+         The wording tracks Terms §12. 12.1 is the rule — fees are non-refundable, and partial months
+         and unused allowance are not credited. 12.2 lists the exceptions; the three named below are
+         (b) we cannot serve your area, (c) we discontinue the beta, and (e) we cancel for a reason
+         not attributable to you. 12.4 keeps anything else discretionary, which is why the last line
+         invites the ask without promising the outcome.
+
+         An earlier version of this answer promised a refund whenever someone had not used the plan.
+         That was drafted from an intent ("we should probably refund if they haven't consumed
+         anything") before the T&Cs existed, and §12.1 does not support it. Do not soften this back
+         toward that without Legal, because it is the sentence a customer will quote at us. -->
+    <div class="faq-item"><h3>Can I get a refund?</h3><p>Monthly fees aren&rsquo;t refundable, and we don&rsquo;t refund part-months or days you didn&rsquo;t use. There are exceptions: if we can&rsquo;t cover your area, if we end the beta early, or if we cancel your plan for a reason that isn&rsquo;t your fault, you get that month back. Anything else, ask your Concierge and we&rsquo;ll look at it.</p></div>
+    <div class="faq-item"><h3>Can I change plans?</h3><p>Any time, and either way &mdash; do it yourself from your billing page, or ask your Concierge to do it for you. Changes take effect straight away: move up and you pay the difference for the rest of the month, move down and the difference comes off your next bill.</p></div>
+    <div class="faq-item"><h3>Do I get the same Pro every time?</h3><p>Up to you. You can choose the same Provider every time or try someone new. Your Yourgi Concierge helps every step of the way.</p></div>
+    <div class="faq-item"><h3>What if I need an extra service?</h3><p>Your Yourgi Concierge will either help you make the most cost-effective decision, or just help you book a single additional service.</p></div>
     <div class="faq-item"><h3>What qualifies as a service provider?</h3><p>Only services booked with a Yourgi Pro can be used for Yourgi Plus subscriptions, Destination Pet-owned pet resorts and vet clinics are not included in Yourgi Plus plans.</p></div>
   </div>
 </section>

@@ -49,7 +49,7 @@
 
       "custom_text": {
         "terms_of_service_acceptance": {
-          "message": "This is a monthly plan. It renews automatically and charges this card every month until you cancel. Cancel any month from the link on your receipt; cancellation takes effect at the end of the month you've paid for. Yourgi Plus is a limited beta — we'll tell you before your next charge if anything changes."
+          "message": "This is a monthly plan. It renews automatically and charges this card every month until you cancel. You can cancel any month — ask your Yourgi Concierge and they'll do it for you. Cancellation takes effect at the end of the month you've paid for, and that month isn't refunded. Yourgi Plus is a limited beta — we'll tell you before your next charge if anything changes."
         }
       }
     }
