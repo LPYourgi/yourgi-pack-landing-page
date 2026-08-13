@@ -162,7 +162,7 @@ Links, and webhook endpoints — Part 1.2, 1.3 and Part 3 below.
 [dashboard.stripe.com/settings/mcp](https://dashboard.stripe.com/settings/mcp), and **access is
 managed separately for sandbox and live mode.** Enable **sandbox only** and leave live off. That
 turns "build it in test mode" from a discipline you have to remember into something the account
-enforces — an agent physically cannot create a live Product or a live Payment Link. Given the $399
+enforces — an agent physically cannot create a live Product or a live Payment Link. Given the $499
 plan below, that's the control worth having.
 
 **Never put a Stripe key in `.mcp.json`.** Stripe's MCP accepts a restricted key as a Bearer header
@@ -276,7 +276,7 @@ For orientation, these are what the page currently serves, per the internal pric
 |---|---|---|---|
 | Two Anything | $49/mo | Two services per month for one pet | `weekly` |
 | Five Anything | $99/mo | Five services per month for one pet | `twice` |
-| Full Coverage | $399/mo | **Unlimited** services every 30 days for one pet | `weekdays` |
+| Full Coverage | $499/mo | **Unlimited** services every 30 days for one pet | `weekdays` |
 
 The middle column was stale until 13 Aug 2026 — it still described the entry plan as "five walks
 a month, walking only", which stopped being true when all three plans became any-service. It now
@@ -288,7 +288,7 @@ plan names unless you change them in `PLAN_BENEFITS`, `PLAN_UNITS`, `STRIPE_PAYM
 `data-tier` attributes, and the tests together. The keys are what `client_reference_id` carries into
 the Teams card, so a half-done rename shows up as a mislabelled signup rather than an error.
 
-> **Read this before you create the $399 Product.** Stripe will charge it every month, and concierge
+> **Read this before you create the $499 Product.** Stripe will charge it every month, and concierge
 > zeroes out the bookings against it by hand, so the exposure doesn't happen once — it renews. §6
 > asks for a guardrail so a flat fee can't be spent on disproportionately expensive services, and
 > the page's head comment states plainly that on this plan there is no longer one: a month of
@@ -330,6 +330,22 @@ The keys must match the `data-tier` attributes exactly. **A typo here silently b
 wrong price** — it is the single most expensive mistake available in this file. Run
 `node test/prototype.test.mjs` after; it asserts each plan routes to its own link.
 
+**Then run `node stripe/verify-links.mjs`, because the offline suite cannot catch the worst case.**
+`prototype.test.mjs` compares two files in this repo to each other, so the page and `plans.json` can
+agree perfectly while Stripe charges something else entirely — which is exactly what happened on
+13 Aug 2026, when the top plan went to $499 here and stayed at $399 in Stripe for part of the day.
+`verify-links.mjs` reads the URLs out of `index.html`, resolves each one against the live API, and
+checks the amount, mode, active flag, tier metadata, submit line, phone collection, terms and
+redirect per tier. It needs network and an authenticated Stripe CLI, which is why it is a separate
+command and not part of the suite. **Run it after any price change, and before anyone is sent to
+the page.**
+
+**A price change is always a replacement, never an edit.** Stripe Prices are immutable: to move a
+plan's price you create a new Price, create a new Payment Link off it, put the new URL in
+`STRIPE_PAYMENT_LINKS`, and archive the old pair. Anything still holding the old URL keeps billing
+the old amount — it does not fail, it charges wrong. And do the archiving **after** the page points
+at the new link, so a half-finished change leaves an untidy account rather than a broken checkout.
+
 While the placeholder single-link state is in place, four tests in the "flagged placeholder" block
 fail on purpose. Replacing the links is what makes them pass.
 
@@ -345,7 +361,7 @@ what we'd have to reconcile, not as settled.
 
 | | Terms say | We have |
 |---|---|---|
-| **Full Coverage price** | **$499** (Schedule 1) | **$399** on the page, in `plans.json`, and in Stripe |
+| **Full Coverage price** | **$499** (Schedule 1) | **$499** on the page, in `plans.json`, and in Stripe |
 | **Refunds** | 12.1: monthly fees are **non-refundable**; no credit for partial months or unused allowance, with named exceptions in 12.2 | FAQ offers a discretionary refund for the current month |
 | **"Link on your receipt"** | Annex A row 11: *Stripe receipts do not contain a portal link by default* | FAQ and the Stripe terms text both tell people to cancel from that link |
 
@@ -428,7 +444,7 @@ Three things that cost time if you don't know them:
 Set proration to **create prorations** so a mid-month change bills the difference rather than
 charging twice, and cancellation to **at period end** so someone keeps the month they've paid for.
 
-> **Worth a decision, not just a setting.** Plan switching is another route into the uncapped $399
+> **Worth a decision, not just a setting.** Plan switching is another route into the uncapped $499
 > plan: someone can subscribe to Walks at $49 and upgrade mid-cycle, paying only the difference.
 > That's ordinary SaaS behaviour, but note it **bypasses any completed-sessions cap on the Payment
 > Link** — that cap limits checkouts, not upgrades. If the cap is your subsidy guardrail, it has a

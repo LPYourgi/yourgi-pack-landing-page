@@ -17,22 +17,29 @@
   Stripe-hosted checkout. Fulfillment after that is MANUAL (concierge issues coupons, per §4).
 
   RECONCILED AGAINST THE PRD — the four conflicts the README flagged are now fixed:
-  - Pricing is $49 / $99 / $399, set in the Figma pass and applied here on Lauren's call.
+  - Pricing is $49 / $99 / $499, set in the Figma pass and applied here on Lauren's call.
     THIS REOPENS A SETTLED DECISION: §7 q1 rejected $50 as too low and floated $100-$200, and
     docs/handoff.md records "no $49 plan" as a resolved conflict. The entry plan is now $49.
-    The top plan is $399, which works out to $28.50 a walk — more than the $25 pay-as-you-go
-    walk rate in LIST_RATES, so its "you save" figure rests entirely on the 2 daycare days.
-    Needs David and §7 q1 revisited before this goes to paid traffic.
+    THE TOP PLAN WENT $399 -> $499 ON 13 AUG 2026, on Lauren's call, and it RESOLVES a conflict
+    rather than creating one: Schedule 1 of Yourgi_Pack_Terms_and_Conditions_DRAFT_5 says $499,
+    and docs/stripe-webhook.md §1.3b had that logged as the first of three conflicts with the
+    T&Cs. The page, plans.json and the tests now agree with the Terms.
+    WHAT THE NEW NUMBER MEANS AGAINST OUR OWN RATES: at David's placeholder rates in LIST_RATES
+    ($30 walk / $55 daycare / $195 boarding) $499 breaks even at 17 walks, 10 daycare days, or
+    3 nights of boarding a month. Spent on walks it is a bad deal for the buyer and spent on
+    boarding it is a bad deal for us — which is the same unguarded exposure as below, just moved.
+    Still needs David and §7 q1 revisited before this goes to paid traffic.
+    STRIPE IS NOT YET AT $499 — see STRIPE_PAYMENT_LINKS below before anyone clicks through.
   - THE TOP PLAN IS UNLIMITED, and boarding and house-sitting are IN on the top two plans.
     Both of those reverse what this page used to say, on Lauren's internal pricing note of
-    12 Aug 2026: $49 buys five walks, $99 buys five days or nights of anything, $399 buys the
+    12 Aug 2026: $49 buys five walks, $99 buys five days or nights of anything, $499 buys the
     month outright. This RESOLVES §7 q1 and q2 rather than overriding them — q1 had "a flat
     'unlimited' price" and "packages that cap usage, up to 4-5 uses" as the two live options and
     this picks both, one per tier; q2's option (a) is exactly this walking-to-everything ladder.
     §7 q3's lean ("overnight likely excluded") is what got reversed.
     WHAT IS NOW UNGUARDED: §6 wants guardrails so a flat fee can't be spent on disproportionately
     expensive services, and says the specific guardrails are undefined. The cap used to BE that
-    guardrail. On the $399 plan there is no longer one — a month of nightly house-sitting is the
+    guardrail. On the $499 plan there is no longer one — a month of nightly house-sitting is the
     exposure §6 names, with Pros paid full rate throughout. That needs a real answer before this
     page takes money, and it is not a copy problem.
   - NO membership-specific Yourgi Guarantee claim appears anywhere on this page. §8 gap 4 says
@@ -530,10 +537,10 @@
             <span class="tier-price">$99<span class="per">/mo</span></span>
             <span class="tier-blurb">Five services per month for one pet.</span>
           </button>
-          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="399" data-label="Full Coverage" style="--tint:#F1E9EE;">
+          <button class="tier" role="radio" aria-checked="false" tabindex="-1" data-tier="weekdays" data-price="499" data-label="Full Coverage" style="--tint:#F1E9EE;">
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Full Coverage</span>
-            <span class="tier-price">$399<span class="per">/mo</span></span>
+            <span class="tier-price">$499<span class="per">/mo</span></span>
             <span class="tier-blurb">Unlimited services every 30 days for one pet.</span>
           </button>
         </div>
@@ -817,7 +824,7 @@
         checkout that can take real money. Swap in a test-mode link while this is under review.
      2. EVERY PLAN CHARGES WHATEVER THIS LINK CHARGES — and it charges $50/mo for a product called
         "Yourgi Membership", which is not any of the three plans on this page. So all three cards
-        ($49 / $99 / $399) currently hand off to a $50/mo checkout. Note the entry plan is now $49,
+        ($49 / $99 / $499) currently hand off to a $50/mo checkout. Note the entry plan is now $49,
         within a dollar of what this placeholder charges — so a mistaken charge on the Walks
         plan would look almost right on a receipt. Fix the links before anyone sees this page.
         The selected plan does still ride along in client_reference_id, so a mistaken charge is
@@ -862,13 +869,22 @@
      Objects behind these:
        weekly    prod_V4CAvZyCMwXFDm  price_1U43lgEC544F53vLic9GTR7s
        twice     prod_V4CACYKwRpOKHK  price_1U43liEC544F53vL0hXGoizP
-       weekdays  prod_V4CAW8wlwsl4Un  price_1U43lkEC544F53vL6dUJyuzP
+       weekdays  prod_V4CAW8wlwsl4Un  price_1U44ODEC544F53vLMEJQwfxj
      Fifteen stale products from five earlier runs were archived on the same day; if you see them
-     in the Dashboard, they are inactive and nothing points at them. */
+     in the Dashboard, they are inactive and nothing points at them.
+
+     THE WEEKDAYS PRICE AND LINK WERE REPLACED, NOT EDITED (13 Aug 2026, when the plan went from
+     $399 to $499). Stripe Prices are immutable, so a price change means a new Price, a new Payment
+     Link off it, and a new URL in this map — there is no way to edit the old pair in place, and
+     anything still holding the old URL keeps billing the old amount. The $399 pair is archived:
+     price_1U43lkEC544F53vL6dUJyuzP and plink_1U43lkEC544F53vLFohPuUH5, both active:false. Verified
+     against the API after the swap: the link above resolves to a single line item of 49900 on
+     price_1U44ODEC544F53vLMEJQwfxj, livemode:false. Do the same check on any future price change —
+     a stale URL here is not a broken link, it is a wrong charge. */
   var STRIPE_PAYMENT_LINKS = {
     weekly:   'https://buy.stripe.com/test_14A4gz1mpcQuaWOc4e2sM0f',   // Two Anything  ($49/mo)
     twice:    'https://buy.stripe.com/test_cNi4gz8OR8Ae0iagku2sM0g',   // Five Anything ($99/mo)
-    weekdays: 'https://buy.stripe.com/test_7sY6oHaWZ17M1me5FQ2sM0h'    // Full Coverage ($399/mo)
+    weekdays: 'https://buy.stripe.com/test_9B6eVd7KN17M3umgku2sM0i'    // Full Coverage ($499/mo)
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record
@@ -906,7 +922,7 @@
      Every plan is CAPPED and walking-led. The caps are not a UI detail — they are the subsidy
      guardrail §6 asks for. An "unlimited" plan at these prices is exactly the exposure the team
      flagged (someone booking $200/night house-sitting on a flat fee). THAT PLAN NOW EXISTS — the
-     $399 tier is unlimited, so this page no longer carries the guardrail it used to. See the head
+     $499 tier is unlimited, so this page no longer carries the guardrail it used to. See the head
      comment; §6 needs a real answer. NO Guarantee bullet — see the head comment.
 
      ROLLOVER IS NOW DECIDED — use it or lose it (12 Aug 2026), and the FAQ says so plainly. There

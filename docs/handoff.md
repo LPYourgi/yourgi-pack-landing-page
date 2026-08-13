@@ -25,14 +25,14 @@ here; they're the product.
 ## The offer, and why it's shaped this way
 
 A coverage ladder: **$49** five walks (walking only), **$99** five days or nights of any service,
-**$399** unlimited for the month. `stripe/plans.json` is the machine-checked source of truth for the numbers.
+**$499** unlimited for the month. `stripe/plans.json` is the machine-checked source of truth for the numbers.
 
 | Choice | Why | Source |
 |---|---|---|
-| Prices are $49 / $99 / $399, not approved | David owns pricing | §7 q1 |
+| Prices are $49 / $99 / $499, not approved | David owns pricing | §7 q1 |
 | A coverage ladder, not a walking-frequency ladder | Walking only → any service → everything | §7 q2 |
 | Overnight and boarding included on the top two plans | | §7 q3 |
-| **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $399, with Pros paid full rate, is the exposure §6 names. **Highest open risk here** | §6, gap 10 |
+| **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $499, with Pros paid full rate, is the exposure §6 names. **Highest open risk here** | §6, gap 10 |
 | **The page claims nothing about who shows up** | A plan buys care, not continuity with a person. Don't add a familiarity promise back — a test blocks it | gap 3 |
 | No Guarantee claim anywhere on the page | Coverage is undetermined and legally risky | §8 gap 4 |
 | Beta framing above the fold | Enrolled subscribers need an off-ramp and honest comms | §8 gap 5 |
@@ -130,7 +130,7 @@ publishable keys are safe in page source; secret keys are not. The test suite as
 ## David's scenario model — and what it says
 
 From *Subscription Business Model Scenario Planning_v2*, shared 12 Aug 2026 and confirmed correct
-apart from the prices, which are $50 / $100 / $400 in the model and $49 / $99 / $399 on the page for
+apart from the prices, which are $50 / $100 / $400 in the model and $49 / $99 / $499 on the page for
 marketing reasons. The dollar difference doesn't change any conclusion below.
 
 **The unit rates, which the page had never had.** Cross-checked two ways each against the grid:

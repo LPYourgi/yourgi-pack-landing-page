@@ -111,9 +111,17 @@ console.log('\n— PRD reconciliation guards —');
      as a resolved conflict. The Figma set $49 / $99 / $399 and that was confirmed over the flag.
      The guards are kept, inverted, so the override stays visible instead of vanishing: they now
      pin the exact prices the page is supposed to be serving. Change them only with the same kind
-     of explicit decision, and re-open §7 q1 with David when you do. */
-  ok('prices are the Figma set: $49 / $99 / $399 (§7 q1 overridden — see comment)',
-    JSON.stringify(prices) === JSON.stringify([49, 99, 399]), prices);
+     of explicit decision, and re-open §7 q1 with David when you do.
+
+     THE TOP PLAN MOVED AGAIN ON 13 AUG 2026, $399 -> $499, Lauren's call. Unlike the $49, that one
+     resolves a conflict instead of creating one: Schedule 1 of the draft T&Cs already said $499 and
+     docs/stripe-webhook.md §1.3b had the page logged as the side that was wrong. The number is
+     pinned in four places that must move together — this assertion, data-price in index.html,
+     stripe/plans.json, and the Stripe Price the weekdays Payment Link is built on. The first three
+     are checked by this suite ("Stripe manifest matches the page"); the fourth is not checked by
+     anything, which is how the page and Stripe sat a hundred dollars apart for part of that day. */
+  ok('prices are $49 / $99 / $499 — top tier corrected to match the T&Cs, 13 Aug (§7 q1 overridden — see comment)',
+    JSON.stringify(prices) === JSON.stringify([49, 99, 499]), prices);
   ok('the §7 q1 override is written down in the page itself',
     /THIS REOPENS A SETTLED DECISION/.test(src) && /§7 q1/.test(src), 'head comment missing the override note');
 
@@ -341,7 +349,7 @@ console.log('\n— subscription-page conventions —');
   const rows = [...w.document.querySelectorAll('#cmp-body tr')];
   ok('comparison table renders the four Figma rows', rows.length === 4, rows.length);
   ok('table headers carry each price',
-    $(w, 'cmp-p-weekly').textContent === '$49/mo' && $(w, 'cmp-p-twice').textContent === '$99/mo' && $(w, 'cmp-p-weekdays').textContent === '$399/mo');
+    $(w, 'cmp-p-weekly').textContent === '$49/mo' && $(w, 'cmp-p-twice').textContent === '$99/mo' && $(w, 'cmp-p-weekdays').textContent === '$499/mo');
   const rowByLabel = l => rows.find(r => r.querySelector('th')?.textContent.includes(l));
   const cells = l => [...rowByLabel(l).querySelectorAll('td')].map(td => td.textContent.trim());
   ok('coverage counts services, not walks',
@@ -414,7 +422,7 @@ console.log('\n— plan switching —');
   ok('the entry plan shows its own bullet, not the top plan\'s',
     /walks, drop-ins, house sitting, daycare, or overnights/i.test($(w, 'incl').textContent) &&
     !/all-you-need|just more/i.test($(w, 'incl').textContent), $(w, 'incl').textContent);
-  ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 399));
+  ok('Plan Selected tracked', w.__mp.some(([n, p]) => n === 'Plan Selected' && p.plan_tier === 'weekdays' && p.plan_price === 499));
 }
 
 // Validation only runs once there is a Stripe handoff to protect — with no links the CTA is inert

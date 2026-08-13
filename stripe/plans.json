@@ -89,14 +89,14 @@
     {
       "tier": "weekdays",
       "label": "Full Coverage",
-      "price_usd": 399,
-      "unit_amount": 39900,
+      "price_usd": 499,
+      "unit_amount": 49900,
       "product": {
         "name": "Yourgi Plus — Full Coverage",
         "description": "Unlimited services every 30 days for one pet."
       },
-      "price_nickname": "Plus Full Coverage — $399/mo",
-      "submit_message": "You'll be charged $399.00 today, then $399.00 every month until you cancel.",
+      "price_nickname": "Plus Full Coverage — $499/mo",
+      "submit_message": "You'll be charged $499.00 today, then $499.00 every month until you cancel.",
       "_page_benefits": [
         "All-you-need pet care, for one low monthly rate.",
         "One charge a month, cancel any month"
@@ -104,7 +104,7 @@
 
       "_subsidy_note": [
         "THIS IS THE UNCAPPED PLAN, and §6's subsidy guardrail is currently missing on it — a month of",
-        "nightly house-sitting for $399 with Pros paid full rate is the exposure §6 names by name.",
+        "nightly house-sitting for $499 with Pros paid full rate is the exposure §6 names by name.",
         "index.html's head comment already flags it as needing a real answer before this page takes money.",
         "",
         "There is a concrete guardrail available in Stripe itself, and Chris's link already used it:",

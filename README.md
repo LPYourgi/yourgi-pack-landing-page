@@ -49,7 +49,7 @@ not approved** — David owns pricing, and the note below lists what still has n
 |---|---|---|
 | Two Anything | $49/mo | Two services per month for one pet |
 | Five Anything (default) | $99/mo | Five services per month for one pet |
-| Full Coverage | $399/mo | Unlimited services every 30 days for one pet |
+| Full Coverage | $499/mo | Unlimited services every 30 days for one pet |
 
 The "Included" column is the plan tile's own blurb, verbatim — the same string
 `stripe/plans.json` uses as the Stripe product description, which a test pins to the page.
@@ -61,7 +61,7 @@ Change it in one place and the suite tells you about the other.
 Three open risks worth knowing before you touch anything, all tracked in the PRD:
 
 - **The top plan is uncapped and nothing guards it.** A usage cap used to be §6's subsidy guardrail. A month
-  of nightly house-sitting on $399, with Pros paid full rate, is the exposure §6 names verbatim. PRD gap 10,
+  of nightly house-sitting on $499, with Pros paid full rate, is the exposure §6 names verbatim. PRD gap 10,
   highest priority.
 - **The headline doesn't match the offer.** "Stop re-hiring a stranger every week" was carrying the Connection
   value prop, and a plan makes no promise about who turns up (PRD gap 3). Left standing on purpose — replacing
@@ -93,7 +93,7 @@ player sells what Yourgi Plus sells:**
 | [Rover](https://www.rover.com/dog-walking/) | **No subscription at all** — "Repeat Weekly" recurring bookings with auto-billing at normal rates | The recurring-revenue outcome without prepayment. Some walkers discount recurring bookings themselves. |
 | [ClassPass](https://help.classpass.com/hc/en-us/articles/209367426-Do-my-credits-roll-over) | Monthly credits for third-party services, **rollover capped at one cycle's worth** | The closest structural analog to Yourgi Plus, and the source of our proposed rollover answer. |
 
-Nobody in pet care is selling a prepaid, capped bundle at $49–$399. That's either the opportunity or the
+Nobody in pet care is selling a prepaid, capped bundle at $49–$499. That's either the opportunity or the
 warning — worth putting in front of David and Scott either way, because **there is a materially cheaper
 experiment available**: a Wag-style ~$10–20/mo discount membership tests willingness to pay for a
 relationship with roughly none of the subsidy exposure in §6. It answers a slightly different question, but
@@ -135,7 +135,7 @@ stops being computable on two of the three plans.** At the placeholder rates:
 |---|---|---|---|---|
 | Two Anything | $125 (5 × $25) | $49 | **$76 (61%)** | $9.80 a walk |
 | Five Anything | **unknown — floored at $125** | $99 | at least $26 (21%) | $19.80 a visit |
-| Full Coverage | **no cap, no list value** | $399 | not quotable | — |
+| Full Coverage | **no cap, no list value** | $499 | not quotable | — |
 
 **Five Anything can't be priced against a list total**, because the customer decides the mix — five walks is worth
 $125, five nights of house-sitting is worth several times that, and `LIST_RATES` has no overnight rate at all.

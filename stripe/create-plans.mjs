@@ -10,7 +10,7 @@
  *
  * TEST MODE ONLY, BY CONSTRUCTION. The CLI defaults to test mode, this script never passes --live,
  * and it aborts the moment Stripe returns an object with livemode:true. That last check is the one
- * that matters: prices here are not approved (blocking decision #1) and the $399 plan has no
+ * that matters: prices here are not approved (blocking decision #1) and the $499 plan has no
  * subsidy ceiling yet, so a live object created by accident is a real liability, not a tidy-up.
  *
  * It creates its OWN products and reuses nothing. It does not touch, edit or reference the
