@@ -83,7 +83,7 @@ div#signup.card
 │  ├─ div#tiers.tier-row               role="radiogroup"  aria-label="Choose a plan"
 │  │  └─ button.tier  × 3              ← see the attribute table below
 │  ├─ ul#incl.incl                     aria-live="polite"          [JS]
-│  ├─ p#save-line.save                                             [JS]
+│  ├─ p#save-line.save                                             [JS] per-plan, from PLAN_SAVE
 │  ├─ div  (flex, gap 12)              ← email + phone side by side
 │  │  ├─ div  → label[for=q-email] + input#q-email + div#e-email.err-msg
 │  │  └─ div  → label[for=q-phone] + input#q-phone + div#e-qphone.err-msg
@@ -161,8 +161,28 @@ the plan name and price rendered blue on iPhones while the other three lines sta
 ### 3b–3d. The three result panels
 
 All three: `text-align:center; padding:10px 4px`, a `div.display` heading, a paragraph, and a
-`button.btn-dark`. Buttons are `#restart`, `#restart2`, `#restart3` — three separate ids, all wired to
-the same reset.
+`button.btn-dark`. **Only two of the three are resets.** `#restart2` (out of market) and `#restart3`
+(backed out) both clear the form and return to the plan step. The paid screen's button is
+**`#browse-providers`** — labelled "Browse providers", and it **navigates to the live provider map**,
+centred on the zip the visitor typed:
+
+```
+https://www.yourgi.com/app/search?zipcode=80202
+```
+
+The app geocodes `?zipcode=` itself and rewrites to `lat`/`lng`/`zoom` — verified against the live app
+on 14 Aug 2026. Two things this depends on, both handled in the footer script:
+
+- **The zip comes from `sessionStorage`, not the form.** By the time this screen renders, Stripe's
+  redirect has reloaded the page and the form is empty. Checkout stashes the zip alongside the plan
+  before handing off.
+- **No zip is a working state, not an error.** Bare `/app/search` redirects to the map's own default
+  centre, so anyone arriving without a stored zip (typed `?checkout=success`, or came back in a new
+  tab) still gets a usable map. Do not gate the button on having a zip.
+
+There was a `#restart` here until 14 Aug 2026. Do not recreate it — a button labelled "Browse
+providers" that silently re-rendered the plan picker is the name-versus-behaviour drift this project
+keeps getting caught by.
 
 `#step-confirm`'s paragraph must have **`id="confirm-body"`**. The script prepends the plan name and
 price to whatever text is in it, so the approved paragraph has to be there as real text in Designer.
@@ -251,7 +271,7 @@ taking recurring money from the public. Build it as specified; flag it.
 section.band#faq
 └─ div.wrap                            ← the default 1080px; do NOT cap the answers
    ├─ h2                               "FAQ's"
-   └─ div.faq-item × 8 → h3 + p
+   └─ div.faq-item × 9 → h3 + p
 ```
 
 **Do not add a max-width to `.faq-item p`.** The answers run 102–132 characters a line, which is over
@@ -316,7 +336,9 @@ Publish to staging, then check all of these. Several are things that look fine a
 - [ ] Submitting empty shows three errors and focuses the first bad field.
 - [ ] An out-of-market zip (e.g. `90210`) shows "No Pros there yet" and **never reaches Stripe**.
 - [ ] An in-market zip (e.g. `80202`) reaches Stripe's hosted checkout.
-- [ ] Every "Back to plans" / "Start over" / "Pick a plan" button returns a usable empty form.
+- [ ] "Start over" and "Pick a plan" both return a usable empty form.
+- [ ] "Browse providers" on the paid screen opens `yourgi.com/app/search?zipcode=<their zip>` and the map
+      lands on their area. With no stored zip it still opens the map rather than doing nothing.
 - [ ] `?checkout=success` shows the paid screen; `?checkout=cancel` shows the no-charge screen.
 - [ ] The closing CTA scrolls to the signup card rather than navigating.
 

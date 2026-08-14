@@ -657,7 +657,14 @@
             <span class="tier-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="white" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.25 12.75L10.5 15L15.75 9.75" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             <span class="tier-name">Full Coverage</span>
             <span class="tier-price">$499<span class="per">/mo</span></span>
-            <span class="tier-blurb">Unlimited services every 30 days for one pet.</span>
+            <!-- "for one pet" IS GONE FROM THIS TILE ONLY (Figma 4095:655, 14 Aug 2026). The other two
+                 tiles still carry it. Verbatim from the frame, but worth knowing what it drops: the
+                 one-pet restriction is a real term, not decoration — the FAQ says using a plan across
+                 pets cancels it without refund, and the T&Cs back that. It is still stated in the FAQ
+                 and in the comparison table's "What it covers" row, so it is disclosed; it is just no
+                 longer on the most expensive tile, which is the one whose buyer is most likely to have
+                 two pets. Flagged for Kai rather than silently re-added. -->
+            <span class="tier-blurb">Unlimited care for a month that won't sit still.</span>
           </button>
         </div>
 
@@ -727,36 +734,71 @@
                   making that promise — and the worst one, because it lands right after payment.
              What this says instead is limited to what's actually true: the plan is live, the code is
              coming, the booking is theirs to make, and concierge is there if they'd rather not pick. -->
-        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Receipt's in your email, and your plan is live from today. Your booking code comes next &mdash; then the days are yours to pick, as the month goes. Don't want to choose? Our concierge will find you someone.</p>
-        <!-- §8 GAP 6 IS STILL OPEN: fulfilment is manual — concierge issues the booking code by
-             hand — and nobody has confirmed who sends it or how fast. That is why the line above
-             says the code "comes next" and promises no timing. Do not add a timeframe here until
-             that answer exists; it would be the one promise on this page made to someone who has
-             already paid.
+        <!-- REPLACED AGAIN 14 Aug 2026, from Figma 4086:396. Shorter, and it drops the booking code
+             and the pick-your-own-days framing entirely.
 
-             THIS WAS A VISIBLE PARAGRAPH UNTIL 14 Aug 2026. It rendered the word PLACEHOLDER and
-             the whole §8-gap-6 note on the post-payment screen, so a customer who had just handed
-             over a card read an engineering note addressed to us. Reachable after any checkout —
-             the Payment Links redirect here with ?checkout=success — and by anyone typing that
-             parameter. Moved into this comment: the flag survives for whoever picks the gap up,
-             and stops being customer-facing copy. The sentence above it is unchanged. -->
-        <button class="btn-dark" style="margin-top:18px;" id="restart">Back to plans</button>
+             ⚠️ "SURPRISINGLY FAST" IS A FULFILMENT PROMISE AND §8 GAP 6 IS STILL OPEN. That gap is
+             precisely that fulfilment is manual — a concierge issues the booking code by hand — and
+             nobody has confirmed who sends it or how fast. The note that used to sit here said "do not
+             add a timeframe here until that answer exists; it would be the one promise on this page
+             made to someone who has already paid." This copy adds one. It is vaguer than "within a
+             day" and it is not a number, which is why the guards below do not reject it, but a customer
+             who waits three days has been told something untrue by the screen that took their money.
+             SHIPPED because the frame is the source of truth for copy and this is Lauren's own edit;
+             RECORDED because it is a promise the ops side has not agreed to. It belongs with ask 3
+             (Jeff) in docs/open-asks.md, not with the copy.
+
+             It also reinstates concierge contact as the next step, which the 13 Aug pass removed for
+             contradicting Step 2 of #how. That contradiction is now back: Step 2 has the customer
+             choosing providers from Concierge's shortlist, and this says Concierge gets in touch —
+             those are reconcilable (Concierge reaches out, then sends matches) but the page never says
+             so. Not invented here; flagged.
+
+             WHAT IT DOES NOT DO, and must keep not doing: it makes no claim about a single assigned
+             Pro. Five guards pin that plus the two retired sentences, and they are the reason this
+             screen can be re-edited safely. See the note on handleReturn() for why the JS must prepend
+             to this paragraph rather than replace it. -->
+        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">A receipt was emailed, your Yourgi Plus plan is live, and the Yourgi Concierge team will be in touch surprisingly fast.</p>
+        <!-- NOW A REAL NAVIGATION, NOT A RESET (14 Aug 2026, Figma 4086:400 + Lauren).
+             This was id="restart" with "Back to plans", wired into the same reset as the other two
+             screens. It is neither any more, so it no longer carries that id — a button labelled
+             "Browse providers" that silently re-rendered the plan picker would be the same
+             name-versus-behaviour drift this file keeps getting caught by.
+             It drops into the live map at the zip the visitor gave us. See goToMap(). -->
+        <button class="btn-dark" style="margin-top:18px;" id="browse-providers">Browse providers</button>
       </div>
 
       <!-- STEP 2b: out of market — no sale, no Stripe. We already have their email and phone from
            the form, so there is nothing more to ask for; we just tell them the truth and log it. -->
       <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
-        <div class="display" style="font-size:24px;">No Pros there yet.</div>
-        <p style="font-size:15px; margin:12px auto 0; max-width:360px;">We don't have Pros on your streets yet, so we're not going to take your money for a plan we can't run. We've kept your details and we'll email you the week we get there. <strong>You have not been charged.</strong></p>
-        <!-- STATES, NOT CITIES, AND NO LONGER A PLACEHOLDER. Confirmed by Lauren 14 Aug 2026:
-             the market is these seven states, which is what MARKET_RANGES has always encoded.
-             The six-city list this replaces was narrower than the gate in a way that mattered —
-             Maine, New Hampshire and Washington could all reach Stripe and pay while the page
-             named no market of theirs, and "Portland" was ambiguous between the Oregon and Maine
-             markets, both of which are open. Listing what the gate actually opens removes both
-             problems. Alphabetical, matching the order MARKET_RANGES is commented in.
-             This answers §8 gap 8 for the page; the gate itself is unchanged. -->
-        <p class="fineprint" style="margin-top:10px; max-width:288px; margin-inline:auto;">Right now we cover Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas, and Washington.</p>
+        <!-- HEADING AND BODY REWRITTEN 14 Aug 2026 from Figma 4073:252. Shorter, and it drops the
+             "we're not going to take your money for a plan we can't run" line — which was doing real
+             work (it explained WHY there is no sale) but is also the page arguing with itself on a
+             screen where nobody is buying anything. "Isn't available in your neighborhood yet" says
+             the same thing in the customer's terms. -->
+        <div class="display" style="font-size:24px;">Hang tight</div>
+        <!-- "You have not been charged." KEEPS ITS <strong> AND THE FRAME DOES NOT HAVE ONE.
+             4191:1093 is a single uniform text run, so this bold is a deliberate deviation from the
+             design, not an oversight in transcribing it. The sentence is the only thing on this screen
+             a worried person is scanning for, the screen is reachable from a form that mentions
+             payment, and emphasis is presentation rather than copy — so following the frame on the
+             WORDS while keeping the emphasis is the safe reading of "match the Figma". Flagged so it
+             can be overruled deliberately; if it is, drop the tag rather than rewording anything. -->
+        <p style="font-size:15px; margin:12px auto 0; max-width:360px;">Yourgi Plus isn&rsquo;t available in your neighborhood yet, but we'll email you when we get there. <strong>You have not been charged.</strong></p>
+        <!-- THE SEVEN-STATE LIST IS GONE, and this is the change on this screen most worth a second
+             look. Figma 4073:256/257 (the fineprint block) is HIDDEN, and hidden-in-the-frame means
+             absent-from-the-page by this file's convention, so it is removed rather than kept.
+             WHAT IT COST: that line was ADDED on 14 Aug, hours earlier, on Lauren's own confirmation
+             that the market is Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas and
+             Washington — and it was added to fix a real bug, a six-city list narrower than the gate
+             that named no market for Maine, New Hampshire or Washington while all three could pay.
+             It answered §8 gap 8 for the page. Removing it reopens exactly that: the page now tells an
+             out-of-market visitor nothing about where we DO operate, so someone in Denver who mistypes
+             a zip has no way to tell a typo from a genuine gap.
+             The gate itself is untouched — MARKET_RANGES still encodes the seven states, so nothing
+             about who can buy has changed. This is a disclosure question, not a coverage one.
+             If the list should come back, it comes back in the FRAME first (unhide 4073:256) so the
+             two do not drift again — that is the same rule the FAQ width follows. -->
         <button class="btn-dark" style="margin-top:18px;" id="restart2">Start over</button>
       </div>
 
@@ -1030,8 +1072,28 @@
 
          The rollover question ("what happens to services I don't use") is no longer in the Figma,
          so it is no longer here — the term now appears only in the comparison table. -->
-    <div class="faq-item"><h3>How many pets are covered by the plans?</h3><p>The Yourgi Plus subscription exclusively covers one pet. Multiple pets can not use services under each plan, and using the plan for multiple or varying pets will cause cancellation of plan without refund.</p></div>
+    <!-- REWRITTEN 14 Aug 2026 from the Figma. The previous answer stated only the penalty ("will
+         cause cancellation of plan without refund"); this one states the remedy first — enrol the
+         second pet in its own plan — and puts the cancellation after it as a consequence of a
+         violation Yourgi determines. Better for the reader and better for us: the old wording told a
+         two-pet household that the product forbids them, this one tells them what to buy.
+         "Services" is capitalised because it is a defined term in the T&Cs; kept as the frame has it. -->
+    <div class="faq-item"><h3>How many pets are covered by the plans?</h3><p>Each plan covers Services for one pet. If you wish to cover an additional or different pet, you must enroll the pet in a separate plan. If Yourgi determines there has been a violation, it may immediately cancel the plan without refund or credit.</p></div>
     <div class="faq-item"><h3>What if I need an extra walk one week?</h3><p>Book it the normal way and pay for that one walk. Your plan isn't a cap on how much care you can get &mdash; it's the part that repeats.</p></div>
+    <!-- THE ROLLOVER QUESTION IS BACK (14 Aug 2026, Figma node 4191:1095), third in the list.
+         It was removed on 13 Aug for one reason only — the Figma had dropped it — and the note here
+         recorded that the term then lived solely in the comparison table's "Unused days" row. It is
+         restored on the same rule that removed it: the frame is the source of truth for copy.
+         THIS IS THE HARSHEST TERM IN THE OFFER and it now says so in the place people actually look
+         for it. Use it or lose it was settled on 12 Aug; "Services do not accrue or rollover" is the
+         plainest statement of it the page has ever carried, and it agrees with the table rather than
+         contradicting it. A PRD guard checks the page never promises rollover — this answer is the
+         reason that guard can stay simple.
+         The frame's layer name for this node is still "What if I need an extra walk one week?", a
+         copy-paste artifact from the instance it was duplicated from. Its TEXT is the new question,
+         and text wins over layer name in this file — that drift has already hidden a missing FAQ
+         answer here once. -->
+    <div class="faq-item"><h3>What happens to services I don&rsquo;t use?</h3><p>Your limits reset every month. All bookings must be made and used within the month your plan is active. Services do not accrue or rollover.</p></div>
     <div class="faq-item"><h3>Can I cancel?</h3><p>Yes, any month, and you never have to phone anyone. Ask your Yourgi Concierge and they'll cancel it for you. Your plan runs through the month you've already paid for &mdash; that month isn't refunded &mdash; and you won't be charged again.</p></div>
     <!-- REFUNDS — restored 13 Aug 2026, and written from the T&Cs rather than from intent.
          This question had an answer, then lost it in the brand pass. It is worth having: the plan is
@@ -1279,6 +1341,36 @@
     weekdays: ['All-you-need pet care, for one low monthly rate.', 'One charge a month, cancel any month']
   };
 
+  /* THE CALLOUT UNDER THE BULLETS, NOW ONE LINE PER PLAN (14 Aug 2026, Figma 4095:655).
+     This is the per-plan lookup the note above renderBenefits() said would replace the single
+     hardcoded string, and it arrived the way that note predicted: Kai wrote the two missing lines.
+     Previously all three plans showed the Five Anything line because the other two tiles read
+     "@kai need copy here" in the frame — a designer's TODO, deliberately not carried onto the page.
+
+     WHAT THIS RETIRES IS THE POINT. Every plan used to display:
+       "Save more than 50% on pet care with Yourgi Plus subscriptions!"
+     That was the page's ONLY value claim and it was unverified. Against David's rates ($30 walk /
+     $55 daycare / $195 boarding) these plans save about 18% (Two Anything) and 34% (Five Anything)
+     spent on walks; the claim only cleared 50% if spent on overnights, and the page stated no basis
+     for it anywhere — the fineprint that used to qualify it was removed with the Figma's hidden
+     savings rows. It was the first of the four launch blockers in docs/open-asks.md.
+     NONE OF THE THREE LINES BELOW MAKES A NUMERIC CLAIM, so that blocker is closed by deletion
+     rather than by verification. "The absolute best value in pet care, ever." is superlative
+     marketing, not arithmetic a customer can check a receipt against — a different kind of claim
+     with a different owner (brand, not finance). David's boarding rate still matters for the
+     comparison table and for sizing subsidy exposure; it is no longer load-bearing for page copy.
+
+     THE FULL COVERAGE LINE IS SET IN ARCHIVO SEMIBOLD IN THE FRAME, with the single word "the" in
+     National 2 Bold mid-sentence. The other two are National 2 Bold throughout, and .save styles all
+     three identically. That is an editing artifact rather than a design decision, so it is NOT
+     reproduced — a mid-sentence typeface switch on one word is not something anyone specified. Raise
+     it if it was deliberate. */
+  var PLAN_SAVE = {
+    weekly:   'The absolute best value in pet care, ever.',
+    twice:    'Our most popular Yourgi Plus subscription.',
+    weekdays: 'Overflowing toy basket, unlimited pet care for the pet who has it all.'
+  };
+
   /* What each plan actually contains, and what those services cost booked one at a time.
      These two objects drive the per-walk price on the cards, the savings callout, and the
      comparison table — so those three can never drift apart or contradict the copy.
@@ -1408,33 +1500,26 @@
      A side effect worth noticing: per-use price now FALLS as the plan grows ($24.50 -> $19.80),
      so the ladder finally rewards buying more. It used to rise.
 
-     WHAT IS STILL A LITERAL, AND STILL UNVERIFIED: the savings line below.
-       "Save more than 50% on pet care with Yourgi Plus subscriptions!"
-     Against David's rates ($30 walk / $55 daycare / $195 boarding) these plans save about 18%
-     (Two Anything) and 34% (Five Anything) when spent on walks. The claim only clears 50% if a
-     plan is spent on overnights, and the page does not state that basis. It ships verbatim on
-     Lauren's instruction; David and Legal own it before launch. Unverified pricing claim.
+     THE UNVERIFIED 50% CLAIM IS GONE (14 Aug 2026) and this note used to be where it was flagged.
+     The callout is now one line per plan from PLAN_SAVE, none of which states a number, so the page
+     no longer makes a savings claim of any kind. See the comment on PLAN_SAVE for what that closes.
 
-     The comparison table no longer carries "Works out at" or "You save", because the Figma hides
-     both rows — so the table can no longer check this claim, and nothing else on the page does. */
+     NOTHING ON THE PAGE CHECKS ARITHMETIC ANY MORE, which is worth knowing before someone adds a
+     figure back. The comparison table dropped "Works out at" and "You save vs. one at a time" when
+     the Figma hid both rows, and the per-visit line left the tiles in the same pass. So a new numeric
+     claim would arrive with no other cell able to contradict it — the condition that let "$9.80 a
+     walk" sit on a two-service plan in the frame for a day. If a figure comes back, derive it from
+     PLAN_UNITS and LIST_RATES through economics() and render it, so it cannot go stale on its own. */
   function renderBenefits(){
     var list=PLAN_BENEFITS[state.tier]||[];
     $('incl').innerHTML=list.map(function(b){
       return '<li>'+CHECK_SVG+'<span>'+b+'</span></li>';
     }).join('');
-    /* One line for every plan, verbatim from the Figma. Was a per-plan computed figure.
-
-       THE FIGMA ONLY HAS THIS LINE FOR ONE OF THE THREE PLANS. In the states frame (4095:655) the
-       Five Anything card carries the sentence below; the Two Anything and Full Coverage cards both
-       read "@kai need copy here" — a designer's TODO addressed to Kai, not copy. That placeholder
-       is deliberately NOT carried onto the page, so all three plans keep showing the one real line
-       until Kai writes the other two. Two consequences to know about:
-         - The 50% claim is now shown on the two plans it is least likely to be true for. Against
-           David's rates it is the middle plan that comes closest, and that is the plan the Figma
-           actually attaches it to.
-         - When Kai's copy arrives this becomes a per-plan lookup like PLAN_BENEFITS, not an edit
-           to this string. */
-    $('save-line').innerHTML = 'Save more than 50% on pet care with Yourgi Plus subscriptions!';
+    /* Per plan now, from PLAN_SAVE — see the comment there for what the old single line was and why
+       losing it closes a launch blocker. textContent, not innerHTML: these are plain sentences with
+       no markup, and the frame's one-word typeface switch on the Full Coverage line is deliberately
+       not reproduced. */
+    $('save-line').textContent = PLAN_SAVE[state.tier] || '';
   }
 
   /* ===== THE PER-UNIT PRICE IS GONE FROM THE CARDS (13 Aug 2026) ===============================
@@ -1732,7 +1817,14 @@
     btn.style.pointerEvents='none';
 
     trackEvent('Checkout Started',{plan_tier:state.tier,plan_price:state.price,book_zip_code:zip.value});
-    try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price}));}catch(e){}
+    /* THE ZIP RIDES ALONG NOW, and it has to: the "Browse providers" button on the paid screen drops
+       the visitor into the map at their own zip, and by the time that screen renders this page has
+       been reloaded by Stripe's redirect, so the form is empty. sessionStorage is the only thing that
+       survives the round trip — it persists across navigations within the same tab, and the handoff
+       navigates the top-level window rather than opening a new one, so the key is still there on the
+       way back. Anyone reaching ?checkout=success without it (typed by hand, or a new tab) gets the
+       map with no zip, which is a working page rather than a broken button. */
+    try{sessionStorage.setItem('yg_plan',JSON.stringify({tier:state.tier,label:state.label,price:state.price,zip:zip.value}));}catch(e){}
     handOffToStripe(url);
   };
 
@@ -1748,9 +1840,43 @@
     submitErr.style.display='none';
     renderBenefits();
   }
-  ['restart','restart2','restart3'].forEach(function(id){
+  /* TWO RESET BUTTONS NOW, NOT THREE. The paid screen's button became "Browse providers" and
+     navigates instead — see goToMap(). #restart is gone with it; #restart2 (out of market) and
+     #restart3 (backed out) are the two screens someone still needs handing back a usable form from. */
+  ['restart2','restart3'].forEach(function(id){
     $(id).onclick=function(){trackEvent('Form Restarted');resetForm();show('step-plan');};
   });
+
+  /* Drops someone into the live provider map, centred on the zip they gave us.
+     yourgi.com/app/search geocodes ?zipcode= server-side and rewrites it to lat/lng/zoom — verified
+     14 Aug 2026 against the live app: ?zipcode=80202 resolves to lat=39.751907&lng=-104.997633 and
+     returns 125 Denver results. So we pass the zip and let the app do the lookup rather than shipping
+     a geocoder or a zip-to-latlng table on this page.
+     WITHOUT A ZIP IT STILL WORKS. Bare /app/search redirects to a default centre (it geolocates, and
+     falls back to Miami), which is a working map rather than an error — so a visitor who reached this
+     screen without a stored zip gets something usable instead of a dead button. That is the whole
+     reason this is built as "append if present" rather than as a required parameter.
+     NOT A NEW WINDOW: someone who has just paid should not have to hunt for the tab their receipt is
+     in. Same top-level navigation as the Stripe handoff, and for the same reason. */
+  var MAP_URL='https://www.yourgi.com/app/search';
+  function goToMap(zip){
+    var url=MAP_URL+(/^\d{5}$/.test(zip||'')?'?zipcode='+encodeURIComponent(zip):'');
+    var target=window;
+    try{ if(window.top && window.top!==window) target=window.top; }catch(e){}
+    target.location.href=url;
+  }
+
+  /* The zip the visitor gave us, recovered from sessionStorage on the way back from Stripe.
+     handleReturn() sets it; it stays null on every other path. */
+  var returnZip=null;
+  /* BOUND ONCE, HERE, RATHER THAN INSIDE handleReturn's SUCCESS BRANCH. Only that branch can show
+     #step-confirm today, so binding there would work — and would leave a silently dead button behind
+     the moment anyone opens a second route to this screen. A button whose handler depends on how you
+     arrived is the same trap as the copy override that only ran for real customers. */
+  $('browse-providers').onclick=function(){
+    trackEvent('Browse Providers Clicked',{plan_tier:state.tier,has_zip:!!returnZip});
+    goToMap(returnZip);
+  };
 
   /* Handles the return trip from Stripe. Set each Payment Link's "After payment" redirect to
      this page with ?checkout=success appended.
@@ -1787,6 +1913,11 @@
         var body=$('confirm-body');
         body.textContent='Your '+plan.label+' plan is live at $'+plan.price+'/mo. '+body.textContent;
       }
+      /* HAND THE ZIP TO THE MAP BUTTON. Captured now rather than read on click, because the cleanup
+         at the end of this function deletes yg_plan — by the time anyone clicks, it is gone.
+         An absent zip is fine and stays fine: goToMap() falls back to the map's own default centre.
+         Do not gate the button on having one. */
+      returnZip=plan.zip||null;
       trackEvent('Subscription Started',{plan_tier:plan.tier||'unknown',plan_price:plan.price||null,verified:false});
       show('step-confirm');
     }else if(p==='cancel'){

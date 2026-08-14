@@ -87,7 +87,14 @@ it either.
 | Price | $49 | $99 | $499 |
 | Suffix | /mo | /mo | /mo |
 | Badge | — | Most picked | — |
-| Blurb | Two services per month for one pet. | Five services per month for one pet. | Unlimited services every 30 days for one pet. |
+| Blurb | Two services per month for one pet. | Five services per month for one pet. | Unlimited care for a month that won't sit still. |
+
+⚠️ **The Full Coverage blurb no longer says "for one pet"** (changed 14 Aug 2026); the other two still
+do. The one-pet restriction is a real term — the FAQ says using a plan across pets can cancel it
+without refund — and it is still stated in the FAQ and the comparison table, so it is disclosed. But
+it is now absent from the most expensive tile, whose buyer is the most likely to have two pets.
+Flagged for Kai. **This string is also the Stripe product description** (`stripe/plans.json`), which
+renders on the hosted checkout page — see `assets.md`.
 
 **Prices are final** — approved by Lauren, 14 Aug 2026 — and $499 matches Schedule 1 of the T&Cs.
 
@@ -113,16 +120,33 @@ countable quantity a buyer could check against a receipt; two of these state no 
 one is relative to a plan the reader may not have read. Carried because the Figma is the source of
 truth for copy. The count now lives only in the tile blurb and the comparison table.
 
-### Savings line — injected by JS
+### Callout line — injected by JS, per plan
 
-> Save more than 50% on pet care with Yourgi Plus subscriptions!
+One per plan now. In `PLAN_SAVE` in `index.html`, not in Designer:
 
-⚠️ **Unverified pricing claim, and it is the same line on all three plans.** Against David's rates
-($30 walk / $55 daycare / $195 boarding) these plans save ~18% (Two Anything) and ~34% (Five Anything)
-when spent on walks. It only clears 50% if spent on overnights, and **the page states no basis for it
-anywhere** — the fineprint that used to qualify it is gone. In the Figma this line is attached to the
-middle plan only; the other two read "@kai need copy here", a designer's TODO that is deliberately not
-carried onto the page. **David and Legal own this before launch** (`docs/open-asks.md` ask 1).
+| Plan | Line |
+|---|---|
+| Two Anything | The absolute best value in pet care, ever. |
+| Five Anything | Our most popular Yourgi Plus subscription. |
+| Full Coverage | Overflowing toy basket, unlimited pet care for the pet who has it all. |
+
+✅ **This retired the page's only numeric claim** (14 Aug 2026). All three plans used to show *"Save
+more than 50% on pet care with Yourgi Plus subscriptions!"* — unverified, and true only if a plan was
+spent on overnights, with no basis stated anywhere on the page. It was launch blocker #1. **None of
+the three lines above states a number**, so that blocker closes by deletion rather than by
+verification. Two consequences worth carrying forward:
+
+- The claim that replaced it is *superlative* ("the absolute best value in pet care, ever"), which is
+  a brand/legal question rather than a finance one. Different owner, not no owner.
+- **Nothing on the page checks arithmetic any more.** The comparison table dropped "Works out at" and
+  "You save", and the per-visit line left the tiles in the same pass. If a figure ever comes back it
+  should be derived through `economics()` and rendered, not typed — untyped figures are how the Figma
+  ended up showing "$9.80 a walk" on a two-service plan.
+
+⚠️ In the frame the Full Coverage line is set in **Archivo SemiBold with the single word "the" in
+National 2 Bold** mid-sentence, while the other two are National 2 Bold throughout. That is an editing
+artifact, not a design decision, and it is deliberately **not** reproduced — `.save` styles all three
+identically. Raise it if it was intentional.
 
 ### Form
 
@@ -151,34 +175,53 @@ checkouts. **Worth raising with Lauren** — it may not have been a deliberate d
 
 **Paragraph** — type this into Designer exactly. The script *prepends* `Your [plan] plan is live at $[price]/mo.` to it.
 
-> Receipt's in your email, and your plan is live from today. Your booking code comes next &mdash; then the days are yours to pick, as the month goes. Don't want to choose? Our concierge will find you someone.
+> A receipt was emailed, your Yourgi Plus plan is live, and the Yourgi Concierge team will be in touch surprisingly fast.
 
-**Button:** Back to plans
+**Button:** Browse providers — **this navigates**, see below.
 
-⚠️ **This is the most dangerous string on the page and it has already been wrong twice.** Until 13 Aug
-it read "Someone from our team calls within a day to lock in your days and introduce your Pro." — a
-concierge callback that contradicts Step 2 of How it works, plus the single-assigned-Pro claim the FAQ
-answers "Up to you." Until 14 Aug a JS override was **still injecting that exact sentence** for every
-real paying customer, because the fix landed on the static paragraph and missed the override. Before
-that it rendered the word PLACEHOLDER and an internal engineering note to people who had just paid.
+⚠️ **This is the most dangerous string on the page and it has now been wrong twice and rewritten
+three times.** Until 13 Aug it read *"Someone from our team calls within a day to lock in your days and
+introduce your Pro."* — a concierge callback that contradicts Step 2 of How it works, plus the
+single-assigned-Pro claim the FAQ answers "Up to you." Until 14 Aug a JS override was **still injecting
+that exact sentence** for every real paying customer, because the fix landed on the static paragraph
+and missed the override. Before that it rendered the word PLACEHOLDER and an internal engineering note
+to people who had just paid.
 
-Five tests now guard it. **No callback promise, no named Pro, no timeframe.** Facts checkable against a
-receipt only.
+⚠️ **"will be in touch surprisingly fast" is a fulfilment promise, and §8 gap 6 is open.** That gap is
+exactly that fulfilment is manual — a concierge issues the booking code by hand — and **nobody has
+confirmed who sends it or how fast.** It is vaguer than "within a day" and not a number, which is why
+the guards accept it, but a customer who waits three days has been told something untrue by the screen
+that took their money. It also reinstates concierge contact as the next step, which the 13 Aug pass
+removed for contradicting Step 2. Shipped because the frame is the source of truth for copy and this is
+Lauren's own edit; **flagged because ops has not agreed to it** — this belongs with ask 3 (Jeff).
+
+Seven tests guard this screen. **No named Pro, no callback-within-a-day, no numeric timeframe**, and
+the JS must *prepend* rather than replace.
 
 ### Out of market — `#step-oom`
 
-**Heading:** No Pros there yet.
+**Heading:** Hang tight
 
-> We don't have Pros on your streets yet, so we're not going to take your money for a plan we can't run. We've kept your details and we'll email you the week we get there. **You have not been charged.**
-
-**Fineprint:** Right now we cover Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas, and Washington.
+> Yourgi Plus isn’t available in your neighborhood yet, but we'll email you when we get there. **You have not been charged.**
 
 **Button:** Start over
 
-The seven states are confirmed (Lauren, 14 Aug 2026) and match what the zip gate actually opens.
-**States, not cities** — an earlier six-city list was narrower than the gate, so Maine, New Hampshire
-and Washington could reach Stripe and pay while the page named no market of theirs. Keep them
-alphabetical and keep them in step with `MARKET_RANGES`.
+⚠️ **"You have not been charged." keeps its bold and the frame does not have one.** Node 4191:1093 is a
+single uniform run, so this is a deliberate deviation. The sentence is the only thing a worried person
+scans this screen for, and emphasis is presentation rather than copy — so the words follow the frame
+while the emphasis stays. Overrule it deliberately if you want; drop the bold, don't reword.
+
+⚠️ **The seven-state list is gone** — the frame's fineprint block (4073:256) is hidden, and
+hidden-in-the-frame means absent-from-the-page. Worth a second look, because that line was added on
+14 Aug — hours before this change — on Lauren's own confirmation of the market, and it fixed a real
+bug: a six-city list narrower than the gate, naming no market for Maine, New Hampshire or Washington
+while all three could pay. It answered §8 gap 8. Removing it means an out-of-market visitor is told
+nothing about where we *do* operate, so someone who mistypes a zip cannot tell a typo from a real gap.
+
+For reference, the line was: *"Right now we cover Colorado, Maine, Massachusetts, New Hampshire,
+Oregon, Texas, and Washington."* **The gate itself is unchanged** — `MARKET_RANGES` still encodes those
+seven states, so nothing about who can buy has changed. This is a disclosure question, not a coverage
+one. If it should come back, unhide it in the frame first so the two do not drift again.
 
 ### Backed out — `#step-cancel`
 
@@ -269,11 +312,32 @@ Questions are **sentence case** — `.faq-item h3` sets `text-transform:none`, u
 
 **Heading:** FAQ’s
 
+**Nine items now** — one was restored on 14 Aug 2026. Order matters; it is the frame's.
+
 **How many pets are covered by the plans?**
-> The Yourgi Plus subscription exclusively covers one pet. Multiple pets can not use services under each plan, and using the plan for multiple or varying pets will cause cancellation of plan without refund.
+> Each plan covers Services for one pet. If you wish to cover an additional or different pet, you must enroll the pet in a separate plan. If Yourgi determines there has been a violation, it may immediately cancel the plan without refund or credit.
+
+Rewritten 14 Aug. The old answer stated only the penalty; this one leads with the remedy — enrol the
+second pet in its own plan — and puts cancellation after it as the consequence of a violation Yourgi
+determines. Better for the reader and better for us: the old wording told a two-pet household the
+product forbids them, this one tells them what to buy. **"Services" is capitalised** because it is a
+defined term in the T&Cs; keep it.
 
 **What if I need an extra walk one week?**
 > Book it the normal way and pay for that one walk. Your plan isn't a cap on how much care you can get &mdash; it's the part that repeats.
+
+**What happens to services I don’t use?**
+> Your limits reset every month. All bookings must be made and used within the month your plan is active. Services do not accrue or rollover.
+
+✅ **The rollover question is back** (14 Aug 2026, node 4191:1095), third in the list. It was removed on
+13 Aug for one reason only — the frame had dropped it — and it returns on the same rule. **This is the
+harshest term in the offer**, and it now sits where people go looking for it rather than only in the
+comparison table's "Unused days" row. It agrees with that row rather than contradicting it, and four
+tests pin both.
+
+Note: the frame's layer name for this node is still "What if I need an extra walk one week?", a
+copy-paste artifact. **Trust the text, not the layer name** — that exact drift once hid a missing FAQ
+answer in this file.
 
 **Can I cancel?**
 > Yes, any month, and you never have to phone anyone. Ask your Yourgi Concierge and they'll cancel it for you. Your plan runs through the month you've already paid for &mdash; that month isn't refunded &mdash; and you won't be charged again.
@@ -319,8 +383,7 @@ Four typos in the Figma are fixed here: a missing full stop after "Yourgi Concie
 "every time", "incure" → "incur", "cost effective" → "cost-effective". All four are still open in the
 Figma. Verbatim-from-the-Figma is right for wording, not for spelling on a page that takes money.
 
-**The rollover question is gone** — it is no longer in the Figma, and the term now appears only in the
-comparison table's "Unused days" row.
+**The rollover question is back** — see it in position 3 above. This note used to say it was gone.
 
 ## 8. Closing CTA
 
@@ -359,11 +422,18 @@ From `docs/open-asks.md`. Every one of these touches copy above.
 
 | # | What | Who |
 |---|---|---|
-| 1 | The boarding rate ($195/night is inferred, never stated) and the "save more than 50%" claim | David |
+| 1 | ~~The "save more than 50%" claim~~ — **closed 14 Aug**, the claim is gone. The boarding rate ($195/night, inferred and never stated) still matters for the comparison table and subsidy sizing, but no longer for page copy. | David |
 | 2 | The Guarantee, auto-renewal, and the refund copy | Kai / Legal |
-| 3 | The notification channel, and what we may claim about Pros | Jeff |
+| 3 | The notification channel, and what we may claim about Pros — **now also covers "in touch surprisingly fast"** on the paid screen | Jeff |
 | 4 | Power Automate licence + a Stripe key an admin creates | IT / Stripe admin |
 
-Also unresolved and copy-adjacent: the **"Guaranteed coverage within 48-hours"** hero bullet, the
-**8am-8pm** and **named-concierge** lines in the Why card, and whether dropping the **Stripe mention
-before the jump** was deliberate.
+Also unresolved and copy-adjacent:
+
+- **"Guaranteed coverage within 48-hours"** — hero bullet, Guarantee-adjacent with a timeframe
+- **8am-8pm** and the **named concierge with a direct number** — Why card
+- Whether dropping the **Stripe mention before the jump** was deliberate
+- **NEW 14 Aug:** **"in touch surprisingly fast"** on the paid screen, against open §8 gap 6
+- **NEW 14 Aug:** the **seven-state list** disappearing from the out-of-market screen
+- **NEW 14 Aug:** **"for one pet"** dropped from the Full Coverage tile and its Stripe description
+- **NEW 14 Aug:** *"The absolute best value in pet care, ever."* — a superlative that replaced a
+  numeric claim, so it needs brand/legal eyes rather than finance's

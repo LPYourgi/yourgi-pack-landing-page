@@ -16,13 +16,14 @@ These are looked up by `getElementById`. **Wrong id = silently dead feature**, n
 | `signup` | the card wrapper | scroll target for the closing CTA |
 | `tiers` | plan row | the radiogroup the script queries for `.tier` children |
 | `incl` | `<ul>` | **`[JS]`** benefit bullets, rewritten on every plan change |
-| `save-line` | `<p>` | **`[JS]`** the savings claim |
+| `save-line` | `<p>` | **`[JS]`** the per-plan callout line, from `PLAN_SAVE` |
 | `q-email` / `q-phone` / `q-zip` | inputs | validation, masking, lead capture |
 | `e-email` / **`e-qphone`** / `e-zip` | `.err-msg` divs | error messages. **Note `e-qphone`, not `e-phone`.** |
 | `to-checkout` | button | the CTA. The script also inserts a hidden retry message after it. |
 | `step-plan` / `step-confirm` / `step-oom` / `step-cancel` | panels | the four card states |
 | `confirm-body` | `<p>` inside `#step-confirm` | the script **prepends** plan + price to its text |
-| `restart` / `restart2` / `restart3` | buttons | reset, one per result panel |
+| `restart2` / `restart3` | buttons | reset — out-of-market and backed-out screens only |
+| `browse-providers` | button | paid screen. **Navigates** to the provider map at their zip; not a reset. |
 | `cmp-body` | `<tbody>` | **`[JS]`** table rows |
 | `cmp-p-weekly` / `cmp-p-twice` / `cmp-p-weekdays` | spans in `<thead>` | **`[JS]`** prices |
 | `closer-cta` | button | scrolls to `#signup` |
@@ -41,7 +42,7 @@ These are looked up by `getElementById`. **Wrong id = silently dead feature**, n
 | `steps-head` | above the grid | so the heading centres over the full width |
 | `why` | Why band | **1213px wrap, 3 fixed columns.** Wider than every other band, deliberately. |
 | `closer` | closing CTA | sky background |
-| `faq-item` | 8 divs | bottom rule + padding |
+| `faq-item` | 9 divs | bottom rule + padding |
 | `foot-grid` / `foot-col` / `foot-bottom` / `foot-social` | footer | |
 
 **Two deliberate `wrap` overrides.** `#compare`'s wrap is capped to **820px** (inline in the source);

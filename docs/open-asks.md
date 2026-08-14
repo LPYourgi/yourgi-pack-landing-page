@@ -13,36 +13,44 @@ Status legend: ⬜ not sent · 📨 sent, waiting · ✅ answered (record it her
 
 | # | Ask | Who | Status |
 |---|---|---|---|
-| 1 | The boarding rate, and the "save more than 50%" claim | David | ⬜ (narrowed — see Answers) |
+| 1 | The boarding rate | David | ⬜ (narrowed twice — the 50% claim closed itself, see §1) |
 | 2 | The Guarantee, auto-renewal, and the refund copy | Kai / Legal | ⬜ (reviewed 14 Aug, sent intact) |
-| 3 | Notification channel, and what we may claim about Pros | Jeff | ⬜ |
+| 3 | Notification channel, what we may claim about Pros, **and the post-payment turnaround** | Jeff | ⬜ (widened 14 Aug — see §3c) |
 | 4 | Power Automate licence + a Stripe key an admin creates | IT / Stripe admin | ⬜ (narrowed — see §4) |
 
 ---
 
-## 1 → David: the boarding rate, and the "save more than 50%" claim
+## 1 → David: the boarding rate
 
-> **Narrowed 14 Aug 2026.** This ask originally carried four decisions. Lauren answered two of them
-> that day — the prices are final, and the top plan stays uncapped on purpose — so only the two below
-> still need David. Don't send him the price question; it's settled. Both answers are in Answers.
+> **Narrowed twice.** This ask originally carried four decisions. Lauren answered two on 14 Aug 2026 —
+> the prices are final, and the top plan stays uncapped on purpose. Part **b**, the "save more than
+> 50%" claim, closed later the same day when Kai's per-plan copy replaced it in the Figma. **One
+> decision is left.** Don't send David the price question or the claim question; both are settled.
 
-Two decisions, and the second depends on the first.
-
-**a. The pay-as-you-go rates.** The page computes against $30 a walk, $55 a daycare day and $195 a
+**The pay-as-you-go rates.** The page computes against $30 a walk, $55 a daycare day and $195 a
 boarding night. Walk and daycare are cross-checked two ways each against your grid and agree exactly.
 **Boarding at $195 is a residual** — what's left of the Baseline unlimited column once walks and
-daycare come out — so it's inferred from your model, not stated in it. **Is $195 right?** Every
-savings figure the page shows rests on it.
+daycare come out — so it's inferred from your model, not stated in it. **Is $195 right?**
 
-**b. "Save more than 50%."** That sentence ships on all three plan cards with no stated basis. At the
-rates above the plans save about **18%** (Two Anything) and **34%** (Five Anything) when spent on
-walks. It only clears 50% if a plan is spent on overnights — and it currently shows on the entry
-plan, which is the one least likely to be spent that way. Three options: state the basis in
-fineprint, drop the figure, or replace it with one that's true on walks. **Which?**
+**What it still drives, now that no savings claim depends on it.** This got less urgent on 14 Aug but
+not less real:
 
-For context on why this isn't urgent-but-cosmetic: it's the only unverified pricing claim left on a
-page that now has approved prices, so it's the last thing standing between the copy and a clean
-legal read.
+- The comparison table's numbers.
+- Every read on **subsidy exposure**, which is the live risk on the uncapped plan. The −$1,256
+  ten-night figure Lauren sized and accepted is computed from $195. If the true rate is materially
+  higher, the exposure that was accepted is not the exposure that exists.
+- The breakeven arithmetic `economics()` computes for the uncapped plan.
+
+> **Part b is closed — for the record.** It read: *"'Save more than 50%' ships on all three plan cards
+> with no stated basis. At the rates above the plans save about 18% (Two Anything) and 34% (Five
+> Anything) when spent on walks. It only clears 50% if a plan is spent on overnights."* The three
+> options offered were state the basis, drop the figure, or replace it. **The second happened**: Kai
+> wrote per-plan copy and none of the three lines states a number, so the page now makes no savings
+> claim at all. Nothing on the page makes a numeric claim about money any more.
+>
+> One thing moved rather than vanished. *"The absolute best value in pet care, ever."* now shows on the
+> entry plan — a superlative rather than an arithmetic claim, so it is **Kai's and Legal's to clear
+> (ask 2), not David's**. Do not treat this as fully resolved just because the percentage is gone.
 
 ---
 
@@ -82,7 +90,7 @@ either way.
 
 ---
 
-## 3 → Jeff: the notification channel, and what we may say about Pros
+## 3 → Jeff: the notification channel, what we may say about Pros, and the post-payment turnaround
 
 **a. A dedicated Teams channel for signups.** When someone subscribes, Stripe fires a webhook at a
 Power Automate flow that posts a card into Teams. That card is the only notification anyone should act
@@ -99,6 +107,22 @@ That's the safe position, but it's a thin one for a page asking for a recurring 
 *can* we say?** Specifically: how are Pros matched to subscription bookings, do they know a booking is
 subscription-driven, are they paid differently, and does a subscriber get any continuity at all in
 practice? Whatever's true and repeatable, we can use.
+
+**c. How fast does Concierge actually reach a new subscriber? — added 14 Aug 2026.** The post-payment
+screen now tells everyone who pays that *"the Yourgi Concierge team will be in touch surprisingly
+fast."* That copy came from the Figma and is Lauren's own edit, so it ships — but **nobody on the ops
+side has agreed to a turnaround**, and §8 gap 6 is precisely that fulfilment is manual: a concierge
+issues the booking code by hand and no one has confirmed who sends it or how quickly.
+
+This is the only promise on the page made to someone who has **already paid**, which makes it the most
+expensive one to get wrong — a customer who waits three days was told something untrue by the screen
+that took their money, and their recourse is a refund conversation that is itself manual and
+discretionary. The page deliberately carried no timing claim for exactly this reason until now; the
+comment that held that line is still in `index.html` above `#confirm-body`.
+
+**What we need:** a turnaround you will actually hold at expected signup volume — hours, one business
+day, whatever is real. Then either the copy matches it, or "surprisingly fast" gets replaced with
+something that does. Not a copy question; a staffing one.
 
 ---
 

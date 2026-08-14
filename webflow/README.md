@@ -50,16 +50,16 @@ Measured on the current page:
 
 | Block | Chars | Of 50k |
 |---|---|---|
-| `head-code.html` | 15,758 | 32% |
-| `footer-code.js` | 19,816 | 40% |
+| `head-code.html` | 14,439 | 29% |
+| `footer-code.js` | 20,535 | 41% |
 | `embed-compare-table.html` | 1,902 | 4% |
-| **Total** | **37,476** | **75%** |
+| **Total** | **36,876** | **74%** |
 
 Webflow's limit is 50,000 characters, and its own documentation is ambiguous about whether that is
 per field or a total across the site — the announcement says "up to 50,000 characters of custom code
 across Site settings, Page settings, Code Embed elements and CMS Rich text fields", while the Help
 Center says a Code Embed "cannot exceed 50,000 characters" and suggests splitting long code across
-several embeds, which only helps if the limit is per element. **At 75% of the ceiling the page fits
+several embeds, which only helps if the limit is per element. **At 74% of the ceiling the page fits
 either way**, so this does not need resolving before you start. It does need watching if the page
 grows.
 
@@ -123,11 +123,10 @@ Keep running it against `index.html`:
 node test/prototype.test.mjs
 ```
 
-All 300 assertions pass against the page. Run against a page assembled from `dist/`, **290 pass and
+All 315 assertions pass against the page. Run against a page assembled from `dist/`, **305 pass and
 10 fail — and all 10 are correct failures.** Every one of them asserts that a piece of *reasoning* is
 written down in the page source ("the §7 q1 override is written down in the page itself", "the source
-still records why it was blanked", "and warns that `stripe config --list` cannot tell you if the
-sandbox is claimed"). Comment-stripping removes exactly those. No behavioural assertion fails.
+still records why it was blanked", "the zipcode parameter is documented as verified against the live app"). Comment-stripping removes exactly those. No behavioural assertion fails.
 
 So: the suite's job is to guard `index.html`, which is where the reasoning lives. Do not point it at
 `dist/`, and do not "fix" those ten guards by deleting them — they are the reason this page's

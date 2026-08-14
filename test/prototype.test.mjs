@@ -40,10 +40,17 @@ async function boot({ search = '', links = null, plan = null } = {}) {
       : `weekly: '${links}w', twice: '${links}t', weekdays: '${links}d'`;
     html = html.replace(LINKS_BLOCK, `var STRIPE_PAYMENT_LINKS = { ${seeded} };`);
   }
-  // jsdom's location.href is unforgeable, so swap the redirect for a recorder.
-  // The "redirect line intact" assertion below guards against this stub drifting from the source.
-  if (!html.includes(NAV_LINE)) throw new Error('redirect line changed — update NAV_LINE in the harness');
-  html = html.replace(NAV_LINE, 'window.__nav.push(url);');
+  /* jsdom's location.href is unforgeable, so swap the redirects for a recorder.
+     BOTH of them, which is why this is replaceAll: handOffToStripe() and goToMap() each carry this
+     line. It used to be a single replace, and when goToMap arrived on 14 Aug 2026 that silently
+     stubbed only the Stripe handoff — the map button then performed a real assignment jsdom drops on
+     the floor, so three map assertions failed with an empty __nav and no hint why.
+     The count is asserted rather than assumed: a third navigation should break the harness loudly
+     here rather than go untested. The "every navigation goes through a named helper" assertion
+     further down guards the same number from the other direction. */
+  const navHits = (html.match(new RegExp(NAV_LINE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+  if (navHits !== 2) throw new Error(`expected 2 redirect lines to stub, found ${navHits} — update NAV_LINE or the count in the harness`);
+  html = html.replaceAll(NAV_LINE, 'window.__nav.push(url);');
 
   const dom = new JSDOM(html, {
     url: 'https://www.yourgi.com/pack' + search,
@@ -226,14 +233,27 @@ console.log('\n— PRD reconciliation guards —');
   const faqText = $(w, 'faq').textContent;
   ok('no plan bullet promises rollover (there is none to promise)',
     !/roll(over| a day| your day| forward)|carry over/.test(benefitText), benefitText);
-  /* INVERTED AGAIN 13 Aug 2026. The Figma removed the rollover FAQ entirely, so the guard can no
-     longer look for it there. The term itself did not go away — the comparison table still says
-     "Expire monthly" on all three plans — so that is now the thing pinned. If the term disappears
-     from the page altogether, a subscriber's harshest condition would be undisclosed, and that
-     should break a test. */
+  /* INVERTED A THIRD TIME, 14 Aug 2026 — and this one goes back to asking the FAQ, because the
+     rollover question RETURNED to the Figma (node 4191:1095) and therefore to the page. The 13 Aug
+     version of this guard could only check the comparison table, since the frame had dropped the
+     question; it now checks both, which is stronger than either.
+     Read the three inversions as one story: the term was undecided, then decided and disclosed only
+     in a table, and is now answered in the place people actually go looking for it. What must never
+     happen is the page promising rollover, and that is pinned above on the bullets and below on the
+     answer's own wording. */
   const cmpText = $(w, 'cmp-body').textContent;
   ok('the page still discloses use-it-or-lose-it somewhere',
     /expire monthly/i.test(cmpText), 'no expiry disclosure left on the page');
+  ok('the FAQ answers the rollover question again',
+    /What happens to services I don’t use\?/.test(faqText), 'the restored rollover question is missing');
+  ok('and answers it restrictively, in the T&Cs\' own terms',
+    /do not accrue or rollover/i.test(faqText) && /limits reset every month/i.test(faqText),
+    faqText.match(/[^.]*accrue[^.]*/i)?.[0]);
+  /* The table and the FAQ now both state the term. They must not contradict each other — that pairing
+     is what made the old "$9.80 a walk on a 2-service plan" mismatch possible in the frame. */
+  ok('the table and the FAQ agree that nothing carries over',
+    /expire monthly/i.test(cmpText) && !/roll(s)? over|carries over/i.test(faqText),
+    faqText.match(/[^.]*(rolls over|carries over)[^.]*/i)?.[0]);
   // Cancelling and switching are now real, self-service Stripe behaviour — the copy has to match
   // what the customer portal was actually configured to allow (see docs/stripe-webhook.md §1.4).
   ok('cancel answer no longer defers to a placeholder',
@@ -339,16 +359,55 @@ console.log('\n— subscription-page conventions —');
      not state. The comparison table's "Works out at" and "You save" rows are gone with it, so the
      table can no longer contradict the callout, and nothing can check it either.
 
-     What is left is a guard that the claim has not quietly changed, plus one that the unreconciled
-     numbers stay flagged in the source. Restore the arithmetic guards the day the basis is
-     approved — do not re-derive them from whatever the page happens to say then. */
+     THE 50% CLAIM IS GONE (14 Aug 2026) and the guards below changed shape with it. Kai's per-plan
+     copy landed in Figma 4095:655, replacing the single sentence with three that state no number at
+     all, so there is no longer a numeric claim on this page to hold to arithmetic OR to flag as
+     unverified. The guard that asserted the claim was still flagged in the source has been INVERTED
+     rather than deleted: it now asserts the claim is absent, because the failure worth catching
+     flipped direction. A well-meaning "let's put the savings back" edit is exactly the thing that
+     needs to fail loudly, and it would have passed the old guard.
+
+     Restore the arithmetic guards the day a figure comes back WITH an approved basis — and derive it
+     through economics() rather than from whatever the page happens to say then. */
   const save = $(w, 'save-line').textContent;
-  ok('the savings callout is the verbatim Figma claim',
-    save === 'Save more than 50% on pet care with Yourgi Plus subscriptions!', save);
   const pageSrc = fs.readFileSync(PAGE, 'utf8');
-  ok('the unverified 50% claim is flagged in the source',
-    /Unverified pricing claim|unverified pricing claim/.test(pageSrc) && /David/.test(pageSrc),
-    'the override must stay documented where the next reader will find it');
+  ok('the callout is this plan\'s own line, not one shared sentence',
+    save === 'Our most popular Yourgi Plus subscription.', save);
+  /* Every tier has its own, and switching plans switches it. This is the property that could not be
+     asserted before Kai's copy existed — all three tiers rendered the same string. */
+  {
+    const expected = {
+      weekly:   'The absolute best value in pet care, ever.',
+      twice:    'Our most popular Yourgi Plus subscription.',
+      weekdays: 'Overflowing toy basket, unlimited pet care for the pet who has it all.',
+    };
+    const seen = {};
+    for (const tier of Object.keys(expected)) {
+      $(w, 'tiers').querySelector(`[data-tier="${tier}"]`)
+        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+      seen[tier] = $(w, 'save-line').textContent;
+    }
+    ok('each plan shows its own callout', JSON.stringify(seen) === JSON.stringify(expected), JSON.stringify(seen));
+    ok('and the three are actually different', new Set(Object.values(seen)).size === 3);
+    // back to the default so later assertions in this block see the preselected plan
+    $(w, 'tiers').querySelector('[data-tier="twice"]').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  }
+  /* INVERTED 14 Aug 2026 — was "the unverified 50% claim is flagged in the source". The claim it
+     guarded no longer exists, so the guard now stops it coming back.
+     RENDERED TEXT ONLY, with script and style stripped — the same care the single-Pro guards take,
+     and for the same reason: the source comments discuss the retired claim at length on purpose, so
+     body.textContent (which includes the inline <script>) matches its own documentation and reports a
+     failure that is not there. This assertion caught exactly that on its first run. */
+  const savePlain = (() => {
+    const b = w.document.body.cloneNode(true);
+    b.querySelectorAll('script, style').forEach(n => n.remove());
+    return b.textContent;
+  })();
+  ok('no savings percentage is claimed anywhere on the page',
+    !/\b\d{1,3}\s?%/.test(savePlain) && !/save more than/i.test(savePlain),
+    savePlain.match(/[^.]*(save more than|\d{1,3}\s?%)[^.]*/i)?.[0]);
+  ok('the retired 50% claim is not lurking in a hidden element',
+    !/50% on pet care/.test(savePlain));
   ok('the resolved unit price is explained in the source',
     /weekly is now \{ uses: 2/.test(pageSrc),
     'the note must record that the plan definition was fixed rather than the number copied');
@@ -702,8 +761,13 @@ console.log('\n— return from Stripe —');
   const paid = await boot({ search: '?checkout=success', plan: { tier: 'twice', label: 'Five Anything', price: 99 } });
   const confirm = $(paid, 'confirm-body').textContent;
   ok('the paid screen names the plan just bought', /Five Anything plan is live at \$99\/mo/.test(confirm), confirm);
+  /* RE-PINNED 14 Aug 2026 to the Figma's new paragraph (4086:396). The old anchors were "booking code
+     comes next" and "concierge will find you someone", both of which that rewrite dropped. What this
+     assertion is actually for has not changed: the JS must PREPEND to whatever the markup says, never
+     replace it — replacing is how the retired copy survived a correction once already. So it anchors
+     on the current paragraph's own tail rather than on any particular promise. */
   ok('and keeps the approved paragraph rather than replacing it',
-    /booking code comes next/.test(confirm) && /concierge will find you someone/i.test(confirm), confirm);
+    /in touch surprisingly fast\.$/.test(confirm), confirm);
   ok('no concierge-callback promise on the post-payment screen',
     !/calls within a day/i.test(confirm) && !/lock in your days/i.test(confirm), confirm);
   ok('no single-assigned-Pro promise on the post-payment screen',
@@ -729,8 +793,58 @@ console.log('\n— reset —');
   ok('plan reset to Twice a Week', $(w, 'tiers').querySelector('[data-tier="twice"]').getAttribute('aria-checked') === 'true');
   ok('fields cleared', ['q-zip', 'q-email', 'q-phone'].every(id => $(w, id).value === ''));
 
-  // Every dead-end screen offers a way back.
-  for (const id of ['restart', 'restart2', 'restart3']) ok(`${id} exists`, !!$(w, id));
+  /* Every dead-end screen offers a way out — but only two of them offer a way BACK.
+     #restart is gone (14 Aug 2026): the paid screen's button became "Browse providers" and navigates
+     to the provider map instead of re-rendering the plan picker, so it is no longer a reset and no
+     longer carries a reset id. The two screens below are the genuine dead ends — out of market and
+     backed out — and both still have to hand someone a usable form. */
+  for (const id of ['restart2', 'restart3']) ok(`${id} exists`, !!$(w, id));
+  ok('the paid screen offers the map instead of a reset',
+    !!$(w, 'browse-providers') && !$(w, 'restart'));
+  ok('and its label says so', $(w, 'browse-providers').textContent === 'Browse providers');
+}
+
+/* The paid screen sends people into the live provider map, centred on the zip they typed.
+   This is a real outbound navigation off a screen someone reaches after paying, so it gets the same
+   treatment as the Stripe handoff: assert the URL, assert the frame breakout, and assert it degrades
+   to something usable when the zip is missing. */
+console.log('\n— browse providers drops into the map at their zip —');
+{
+  const w = await boot({ search: '?checkout=success', plan: { tier: 'twice', label: 'Five Anything', price: 99, zip: '80202' } });
+  $(w, 'browse-providers').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  ok('navigates to the provider map with the zip attached',
+    w.__nav[0] === 'https://www.yourgi.com/app/search?zipcode=80202', w.__nav[0]);
+  ok('Browse Providers Clicked tracked, with whether we had a zip',
+    w.__mp.some(([n, p]) => n === 'Browse Providers Clicked' && p.has_zip === true));
+
+  /* The zip only exists because checkout stashes it. Verified end to end rather than assumed, since
+     the whole feature depends on that one key surviving the Stripe round trip. */
+  const w2 = await boot({ links: 'https://buy.stripe.com/test_' });
+  fill(w2, { zip: '80202' });
+  $(w2, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await settle();
+  ok('checkout stashes the zip for the return trip',
+    JSON.parse(w2.sessionStorage.getItem('yg_plan')).zip === '80202');
+
+  /* No stored zip — someone typing ?checkout=success, or returning in a new tab. The button must
+     still go somewhere real; a dead button on the post-payment screen is the worst place for one. */
+  const w3 = await boot({ search: '?checkout=success' });
+  $(w3, 'browse-providers').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  ok('without a zip it still reaches the map, unfiltered',
+    w3.__nav[0] === 'https://www.yourgi.com/app/search', w3.__nav[0]);
+  ok('and reports the missing zip rather than inventing one',
+    w3.__mp.some(([n, p]) => n === 'Browse Providers Clicked' && p.has_zip === false));
+
+  /* A malformed zip must not be passed through to the map as a query the app cannot geocode. */
+  const w4 = await boot({ search: '?checkout=success', plan: { tier: 'twice', label: 'Five Anything', price: 99, zip: '8020' } });
+  $(w4, 'browse-providers').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  ok('a partial zip is dropped rather than sent', w4.__nav[0] === 'https://www.yourgi.com/app/search', w4.__nav[0]);
+
+  const src = fs.readFileSync(PAGE, 'utf8');
+  ok('the map helper breaks out of the review iframe, like the Stripe handoff does',
+    /function goToMap\(zip\)\{[\s\S]*?if\(window\.top && window\.top!==window\) target=window\.top;/.test(src));
+  ok('the zipcode parameter is documented as verified against the live app',
+    /zipcode=80202 resolves to lat=39\.751907/.test(src));
 }
 
 // The public review link must not manufacture demand in the experiment's own numbers, and must
@@ -1266,8 +1380,15 @@ console.log('\n— the shipped Stripe links are real, per-plan, and test mode �
 console.log('\n— the Stripe handoff escapes the review iframe —');
 {
   const src = fs.readFileSync(PAGE, 'utf8');
-  ok('handoff goes through one helper, not a bare assignment',
-    /function handOffToStripe\(url\)\{/.test(src) && (src.match(/location\.href=url;/g) || []).length === 1);
+  /* TWO NAVIGATION HELPERS NOW, NOT ONE (14 Aug 2026). goToMap() joined handOffToStripe() when the
+     paid screen's button started sending people to the provider map. The point of this assertion is
+     unchanged — no bare `location.href=` may bypass a named helper that handles the iframe breakout —
+     so it counts the assignments and pins each one to its helper, rather than just expecting one.
+     If this fails at 3, someone has added a third navigation without the breakout. */
+  const hrefAssignments = (src.match(/location\.href=url;/g) || []).length;
+  ok('every navigation goes through a named helper, none bare',
+    /function handOffToStripe\(url\)\{/.test(src) && /function goToMap\(zip\)\{/.test(src)
+      && hrefAssignments === 2, `${hrefAssignments} assignments`);
   ok('the helper retargets window.top when framed',
     /if\(window\.top && window\.top!==window\) target=window\.top;/.test(src));
   ok('a cross-origin embed cannot throw the handoff away',
