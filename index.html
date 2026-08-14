@@ -1253,14 +1253,43 @@
      $399 to $499). Stripe Prices are immutable, so a price change means a new Price, a new Payment
      Link off it, and a new URL in this map — there is no way to edit the old pair in place, and
      anything still holding the old URL keeps billing the old amount. The $399 pair is archived:
-     price_1U43lkEC544F53vL6dUJyuzP and plink_1U43lkEC544F53vLFohPuUH5, both active:false. Verified
-     against the API after the swap: the link above resolves to a single line item of 49900 on
-     price_1U44ODEC544F53vLMEJQwfxj, livemode:false. Do the same check on any future price change —
-     a stale URL here is not a broken link, it is a wrong charge. */
+     price_1U43lkEC544F53vL6dUJyuzP and plink_1U43lkEC544F53vLFohPuUH5, both active:false. Do the
+     same check on any future price change — a stale URL here is not a broken link, it is a wrong
+     charge.
+
+     ⚠️ EVERYTHING ABOVE THIS LINE DESCRIBES THE SANDBOX (TEST-MODE) OBJECTS, AND THE PAGE NO LONGER
+     POINTS AT THEM. On 14 Aug 2026 the map below was swapped to live-mode links against different
+     Products and Prices, created outside this repo. The product/price IDs listed above, the
+     sandbox-expiry warnings, and the "livemode:false" verification that used to close this comment
+     all refer to the retired test objects. They are kept because they are still the record of how
+     the $399 -> $499 replacement was done, and that procedure is unchanged. Do not read them as
+     describing what the page charges today — the block immediately below is what does. */
+  /* ⚠️ THESE ARE LIVE-MODE LINKS AS OF 14 AUG 2026. THEY TAKE REAL MONEY.
+     Swapped from the sandbox test links on Lauren's instruction. A live Payment Link is
+     buy.stripe.com/<id>; a test one carries a test_ prefix. These have no prefix — that is the
+     whole check, and it is the check that was missed the last time a live link sat in this file.
+
+     VERIFIED IN A BROWSER AGAINST STRIPE ITSELF, 14 Aug 2026, all three opened and read:
+       weekly    -> "Yourgi Plus — Two Anything"   $49.00 today, then $49.00 every month
+       twice     -> "Yourgi Plus — Five Anything"  $99.00 today, then $99.00 every month
+       weekdays  -> "Yourgi Plus — Full Coverage"  $499.00 today, then $499.00 every month
+     Product and price map correctly on each, and none showed a test banner. Do this same check on
+     any future swap: the offline suite seeds its own fixture links, so NOTHING here asserts these
+     are the right links or even the right mode. A wrong URL is a wrong charge, not a broken page.
+
+     TWO THINGS THAT ARE NOT VERIFIED AND MATTER:
+       1. WHERE A PAYING CUSTOMER LANDS AFTERWARDS. The redirect is configured on the Payment Link
+          in Stripe, not here, and these links were created outside this repo. stripe/plans.json
+          still documents the GitHub Pages review URL. If that is what these carry, someone who has
+          just paid real money is dropped on a review build instead of the confirmation screen.
+          Check each link's "After payment" setting in the Dashboard before this page takes traffic.
+       2. ANYWHERE THIS PAGE IS REACHABLE NOW CHARGES REAL MONEY. That includes the Webflow staging
+          domain and the gh-pages review link. A live link on a public review build is exactly the
+          incident this file already carries a comment about from 12 Aug 2026. */
   var STRIPE_PAYMENT_LINKS = {
-    weekly:   'https://buy.stripe.com/test_14A4gz1mpcQuaWOc4e2sM0f',   // Two Anything  ($49/mo)
-    twice:    'https://buy.stripe.com/test_cNi4gz8OR8Ae0iagku2sM0g',   // Five Anything ($99/mo)
-    weekdays: 'https://buy.stripe.com/test_9B6eVd7KN17M3umgku2sM0i'    // Full Coverage ($499/mo)
+    weekly:   'https://buy.stripe.com/bJe4gzaCff7N9sJdYA2ZO01',   // Two Anything  ($49/mo)  plink_1U4SPvIgv5bQybH7C0p3RyFh
+    twice:    'https://buy.stripe.com/9B628r7q3gbR7kB2fS2ZO02',   // Five Anything ($99/mo)  plink_1U4SPvIgv5bQybH7kqIoUlGq
+    weekdays: 'https://buy.stripe.com/8x2bJ1eSv1gXbAR9Ik2ZO03'    // Full Coverage ($499/mo) plink_1U4SPvIgv5bQybH7yfh361Fg
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record
