@@ -177,6 +177,17 @@
   .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
   .btn-dark:hover{opacity:.9;}
   .btn-dark:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
+
+  /* NO VISIBLE RING ON THE STEP PANELS, AND THIS IS NOT THE USUAL OUTLINE:NONE MISTAKE.
+     show() gives the panel it reveals tabindex="-1" and focuses it, so a screen reader announces
+     the new screen instead of leaving the user at the top of a page that silently changed. That
+     focus is worth keeping. What it also did was paint the browser's default focus ring around the
+     whole panel — a blue rectangle around "You're in." on the screen someone lands on straight after
+     paying, reported 14 Aug 2026.
+     Suppressing it is safe HERE specifically because tabindex="-1" means these panels are not in the
+     tab order: no keyboard user can ever reach one by tabbing, so no one loses a focus indicator
+     they were relying on. Do NOT copy this rule onto anything a user can tab to. */
+  #step-plan:focus, #step-confirm:focus, #step-oom:focus, #step-cancel:focus{outline:none;}
   label{font-size:12px; color:#4a4a46; display:block; margin-bottom:5px;}
   /* 16px is not a style choice: iOS Safari zooms the whole page when it focuses an input under
      16px, which throws the layout sideways mid-form on exactly the device most ad traffic uses. */
