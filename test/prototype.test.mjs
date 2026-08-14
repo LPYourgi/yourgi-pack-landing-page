@@ -1102,8 +1102,13 @@ console.log('\n— Stripe manifest matches the page —');
     !/prod_V19cNesnBYgwPl|price_1U17JRIgv5bQybH7nXIy7G6O|plink_1U17Jm/.test(
       raw.replace(/"_readme"[\s\S]*?\],/, '')),
     'manifest references an object from Chris\'s test');
-  ok('manifest is flagged as unapproved pricing',
-    /prices not approved/i.test(manifest.shared.metadata.status), manifest.shared.metadata.status);
+  // WAS 'manifest is flagged as unapproved pricing', matching /prices not approved/i. The prices were
+  // approved by Lauren on 14 Aug 2026, so that string is gone and asserting it would fail on a fact
+  // that is simply no longer true. The REASON for the test outlives the reason for the string: these
+  // are sandbox objects, and approved pricing does not make them production ones. So the assertion now
+  // guards what still needs guarding — that the status keeps saying DRAFT out loud.
+  ok('manifest is flagged as a draft, not production',
+    /draft/i.test(manifest.shared.metadata.status), manifest.shared.metadata.status);
 }
 
 console.log('\n— no secrets in page source —');
@@ -1147,9 +1152,14 @@ console.log('\n— no secrets in page source —');
  *
  * What replaces it guards the property that actually matters now, and it is a sharper one than
  * "empty": THE COMMITTED LINKS MUST BE TEST MODE. gh-pages is served publicly. A live link here
- * would let anyone who finds the review URL be charged real money at prices nobody has approved —
- * which has happened on this repo once already, with a shared live $50/mo link. Test-mode links
+ * would let anyone who finds the review URL be charged real money — on an uncapped top plan whose
+ * exposure was accepted (14 Aug 2026) on the understanding that nobody could actually buy it yet.
+ * Which has happened on this repo once already, with a shared live $50/mo link. Test-mode links
  * are safe to publish; that difference is one substring, so a test reads it rather than a person.
+ *
+ * This used to say "at prices nobody has approved". The prices were approved on 14 Aug 2026 and the
+ * guard did not get one bit less necessary, which is the tell that the old reasoning was wrong: what
+ * protects the money is the `test_` prefix, never the approval status of the number beside it.
  */
 console.log('\n— the shipped Stripe links are real, per-plan, and test mode —');
 {

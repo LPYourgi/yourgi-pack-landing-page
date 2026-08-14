@@ -10,8 +10,11 @@
  *
  * TEST MODE ONLY, BY CONSTRUCTION. The CLI defaults to test mode, this script never passes --live,
  * and it aborts the moment Stripe returns an object with livemode:true. That last check is the one
- * that matters: prices here are not approved (blocking decision #1) and the $499 plan has no
- * subsidy ceiling yet, so a live object created by accident is a real liability, not a tidy-up.
+ * that matters. The prices ARE approved now (Lauren, 14 Aug 2026) — but approval is not the reason
+ * this script stays in test mode. The $499 plan is uncapped by deliberate choice, made the same day
+ * with the exposure sized at roughly -$1,256 for a ten-night month, so a live object created by
+ * accident sells an unbounded subsidy to whoever finds the link. That is a real liability, not a
+ * tidy-up, and it is why the livemode check stays.
  *
  * It creates its OWN products and reuses nothing. It does not touch, edit or reference the
  * "Yourgi Membership" feasibility test already on the account — different offer, different owner.
@@ -94,7 +97,7 @@ if (!GO) {
   console.log('  switch plans   enabled   (makes Step 1\'s "move up, move down" true)');
   console.log('  cancel         at period end');
   console.log('  applied to     the account\'s DEFAULT portal configuration\n');
-  console.log('Test mode only. Prices are NOT approved — blocking decision #1.\n');
+  console.log('Test mode only. Prices approved 14 Aug 2026; the $499 plan is uncapped on purpose.\n');
   process.exit(0);
 }
 

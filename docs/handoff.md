@@ -31,10 +31,10 @@ All three cover walks, drop-ins, house sitting, daycare and overnights — the e
 
 | Choice | Why | Source |
 |---|---|---|
-| Prices are $49 / $99 / $499, not approved | David owns pricing | §7 q1 |
+| Prices are $49 / $99 / $499 — **approved 14 Aug 2026 by Lauren**, final | Was David's to own; now settled | §7 q1 |
 | A volume ladder over any service, not a service-type ladder | Two of anything → five of anything → everything. No tier is restricted to one service | §7 q2 |
 | Overnight and boarding included on **all three** plans | Was "the top two" here, which the 13 Aug Figma sync superseded — Two Anything covers overnights too | §7 q3 |
-| **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $499, with Pros paid full rate, is the exposure §6 names. **Highest open risk here** | §6, gap 10 |
+| **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $499, with Pros paid full rate, is the exposure §6 names. **Decided 14 Aug 2026 by Lauren: it stays uncapped, deliberately.** §5 permits running underwater, and the number was sized before it was accepted (~−$1,256 from a ten-night month on one subscriber) rather than discovered afterwards. Still the largest financial exposure on the page — now a chosen one | §6, gap 10 |
 | **The page claims nothing about who shows up** | A plan buys care, not continuity with a person. Don't add a familiarity promise back — a test blocks it | gap 3 |
 | No Guarantee claim anywhere on the page | Coverage is undetermined and legally risky | §8 gap 4 |
 | Beta framing above the fold | Enrolled subscribers need an off-ramp and honest comms | §8 gap 5 |
@@ -88,8 +88,9 @@ separately carries "Guaranteed coverage within 48-hours", which is a deliberate 
 every one of them test mode (`buy.stripe.com/test_…`). "Continue to payment" validates, checks the zip,
 captures the lead and hands off to a real Stripe checkout. **Nobody can be charged real money** — a
 test-mode link cannot take it — which is the only reason these can sit on a publicly served branch. A test
-asserts the `test_` prefix on all three; the day one loses it, this page is taking real payments at prices
-nobody has approved.
+asserts the `test_` prefix on all three; the day one loses it, this page starts selling an uncapped plan
+for real money. The prices are approved (14 Aug 2026) and that changes nothing here: the `test_` prefix is
+what guards the money, not the approval.
 
 This section used to read "Inert — `STRIPE_PAYMENT_LINKS` is empty on this branch". That stopped being
 true when the links were wired on 13 Aug 2026, and it was the most misleading line in this file: it told
@@ -137,7 +138,8 @@ you may only need to publish it and grab the links.
 the Payment Links, the Power Automate flow, and the test plan. In outline:
 
 1. ~~Build it all in **test mode** first.~~ **Done** — every object is test mode and stays that way while
-   prices are unapproved and this branch is served publicly.
+   this branch is served publicly and the top plan is uncapped. Approving the prices (14 Aug 2026)
+   did not change that; going live is gated on the webhook and on Stripe access, not on pricing.
 2. ~~Three recurring **Products**, one per plan.~~ **Done** — see the table below for the ids.
 3. ~~A **Payment Link** each, redirecting to this page with `?checkout=success`, with **phone collection
    on**.~~ **Done** — `phone_number_collection.enabled` is set in `stripe/plans.json`.

@@ -82,7 +82,12 @@
     so no longer expiring), and why a price change is a replacement rather than an edit. Run `node stripe/verify-links.mjs` to check the links against
     Stripe itself — the offline suite only checks this page against stripe/plans.json, and both can
     agree while Stripe charges something else, which is exactly what happened with the $499 price.
-  - PRICES AND CAPS are structurally sound but not approved. David/pricing owns the numbers (§7 q1).
+  - PRICES AND CAPS WERE SETTLED 14 Aug 2026 by Lauren. $49/$99/$499 are final, and Full Coverage
+    stays uncapped as a deliberate subsidy rather than an oversight — the exposure was sized first
+    (about -$1,256 from a ten-night month on one subscriber) and accepted. What is NOT settled is
+    the boarding rate those savings figures are computed against: $195/night is inferred from
+    David's model as a residual, never stated in it, and LIST_RATES below still carries the
+    placeholder warning for that reason. See docs/open-asks.md.
   - Sign-up itself finishes on Stripe. This page validates, checks coverage by ZIP, captures the
     lead, then hands off; it never takes a card and never confirms a subscription on its own.
   - Staff notifications DO NOT come from this page. They come from a Stripe webhook, so Teams only
@@ -1147,8 +1152,10 @@
      EVERY ONE IS TEST MODE — note the `test_` in each URL. That is the check the comment above
      asks for and it is the reason these can sit on a publicly served branch: a test-mode link
      cannot take real money from anyone who finds this page. The moment one of these loses its
-     `test_`, this page is taking real payments for prices nobody has approved. A test asserts the
-     prefix is still there.
+     `test_`, this page is taking real payments — on an uncapped top plan whose exposure was
+     accepted on the understanding that nobody could actually buy it yet. The prices being approved
+     (14 Aug 2026) lowers none of that: what guards the money is the `test_` prefix, not the
+     approval. A test asserts the prefix is still there.
 
      THE SANDBOX EXPIRY IS GONE — CLAIMED 13 Aug 2026. This used to read "THEY LIVE IN A SANDBOX
      THAT EXPIRES 19 AUG 2026", which was true while the sandbox was unclaimed: it carried

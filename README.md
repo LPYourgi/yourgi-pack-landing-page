@@ -28,6 +28,9 @@ paying.
   Power Automate flow, and how a signup gets verified before staff act on it.
 - `docs/flow-build-brief.md` — a self-contained one-pager to hand to whoever has a Power Automate
   Premium licence, since Lauren doesn't. They own the flow; we only need the URL back.
+- `docs/open-asks.md` — **the four decisions blocking launch that aren't ours to make**, one
+  paste-ready ask each for David, Kai/Legal, Jeff and IT. Answers get recorded there, then copied
+  into the blocking-decisions table below and into `project-context.md`.
 - `webhook/teams-card-*.json` — the Adaptive Cards that flow posts, annotated with why each field is
   what it is. Not loaded by the page.
 - `webhook/teams-card-*.paste.json` — the same cards with the explanatory keys stripped, so they
@@ -42,8 +45,10 @@ paying.
 
 ## What the page offers
 
-Three plans on a frequency ladder: two services a month, five, then uncapped — any service at every tier. **The numbers are
-not approved** — David owns pricing, and the note below lists what still has no answer.
+Three plans on a frequency ladder: two services a month, five, then uncapped — any service at every tier.
+**The prices were approved by Lauren on 14 Aug 2026 and are final**, as is the decision to leave the top
+plan uncapped. What is still open is the *boarding rate* the savings claims are computed against — see the
+note below and `docs/open-asks.md`.
 
 | Plan | Price | Included |
 |---|---|---|
@@ -156,9 +161,16 @@ it live in `LIST_RATES` in `index.html` and need David's real figures.
 
 ## Status
 
-**MVP, not production.** No Stripe links are configured on this branch, so "Continue to payment" is
-**inert** — it does nothing at all rather than faking a sale. Nothing here has been priced,
-brand-reviewed, or legally approved.
+**MVP, not production — but the CTA is live.** `STRIPE_PAYMENT_LINKS` holds three real per-plan
+Payment Links, wired 13 Aug 2026, and "Get started" validates, checks the zip, captures the lead and
+hands off to a real Stripe checkout. **Every link is test mode** (`buy.stripe.com/test_…`), so nobody
+can be charged real money — which is the only reason they can sit on a publicly served branch. A test
+asserts the `test_` prefix on all three; the day one loses it, this page starts selling an uncapped
+plan for real money. **Pricing is settled** (14 Aug 2026) — brand polish and legal review are not.
+
+This section used to say no links were configured and the button was inert. That stopped being true
+on 13 Aug 2026. **The guard it described is still real:** empty the links and `STRIPE_READY` goes
+false, which parks the button — it does nothing at all rather than faking a sale.
 
 **Staff notifications come from Stripe, not from this page.** The page posts to no channel of its
 own: it captures the lead to Segment and Mixpanel, then hands off. A Stripe webhook is what puts a
@@ -171,19 +183,19 @@ Full detail in `docs/project-context.md` §7 (Open Questions) and §8 (Gaps). Co
 
 | # | Decision | Owner |
 |---|----------|-------|
-| 1 | **The actual prices and caps.** The page proposes a structure; David owns the numbers. | Facilitator / David |
+| 1 | ~~**The actual prices and caps.** The page proposes a structure; David owns the numbers.~~ **Answered 14 Aug 2026 by Lauren: $49/$99/$499 are final, and Full Coverage stays uncapped as a deliberate subsidy** — the exposure was sized (~−$1,256 from a ten-night month on one subscriber) and then accepted, rather than discovered later. **Two things did NOT close with it**, both still David's: the **$195 boarding rate** every savings figure is computed against is inferred from his model as a residual, never stated in it; and the **"Save more than 50%" claim** ships on all three cards with no basis, when it only clears 50% if a plan is spent on overnights. See `docs/open-asks.md` §1. | ~~prices, caps~~ done · rate + claim: David |
 | 2 | ~~**Rollover** — what happens to unused walks.~~ **Answered 12 Aug 2026: use it or lose it, no rollover.** The FAQ now states it plainly; the previous answer proposed the opposite (ClassPass-style roll-forward) and was reversed. | ~~Facilitator / David~~ done |
 | 3 | **Guarantee coverage** for subscription bookings. Until this lands, no Guarantee claim goes on the page. | Kai / Legal |
 | 4 | **Wind-down terms** — the beta band promises notice before the next charge. Confirm we can hold that. | Legal / Kai |
-| 5 | **Geography** — the zip gate is inherited, not decided. See below. | Undecided |
-| 6 | **Stripe access for Lauren — REOPENED 13 Aug 2026.** Access was granted 12 Aug, but it's a limited role: *"you don't have permission to create an API key for this merchant."* That blocks `stripe login`, and blocks the **restricted key the webhook's verification step needs**. Needs Developer or Administrator on Yourgi Pro — or an admin who creates the objects and the key on her behalf. | Facilitator / Stripe admin |
-| 7 | **Concierge capacity** — the page promises a callback within one business day. Confirm the team can. | Concierge lead |
+| 5 | ~~**Geography** — the zip gate is inherited, not decided.~~ **Answered 14 Aug 2026 by Lauren: the market is Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas and Washington** — exactly what `MARKET_RANGES` has always encoded. The gate is unchanged; the page's copy was the stale half and now names those seven states instead of six cities. See below. | ~~Undecided~~ done |
+| 6 | **Stripe access for Lauren — partly resolved 13 Aug 2026.** The Products and Payment Links exist and the CTA works, but they live in an auto-generated sandbox (`acct_1U3hh6EC544F53vL`) that `stripe login` created, **not in Yourgi's live account** — since the granted role still returns *"you don't have permission to create an API key for this merchant."* The sandbox has since been claimed under Yourgi Pro. **What remains blocked is the restricted key the webhook's verification step needs**, and any move to live mode. **Route chosen 14 Aug 2026: ask an admin to create the key** — read-only, scoped to Checkout Sessions and Subscriptions — rather than request a role change. Narrower, and an easier yes. The role change is what the sandbox-to-live-mode move would need, and that is deliberately not being asked for yet. See `docs/open-asks.md` §4. | Facilitator / Stripe admin |
+| 7 | **Concierge capacity** — ~~the page promises a callback within one business day.~~ **The page no longer promises this**; the callback line went with the move to self-serve booking, and a test blocks it coming back. The load is still real and still unscoped: the signup Teams card tells staff to call within 1 business day, and §8 gap 6 wants the manual coupon-issuing and setup load sized. Confirm the team can. | Concierge lead |
 | 8 | **Success metric** — no target, baseline, or kill threshold defined. | Facilitator / Scott |
 | 12 | **Refund policy.** The intent is "refund if nothing was used, partial if some was" — but that's an intent, not a rule, and Stripe refunds nothing automatically on cancellation. Every refund is a manual action in the dashboard. The FAQ promises only what's certainly true until this lands. | David / Legal |
 | 13 | **Consumption tracking is manual** for the launch build. Nothing counts what a subscriber has used, so nothing enforces the caps and nobody can answer "how many do I have left?" — on a use-it-or-lose-it plan that question arrives in week one. | Concierge lead |
 | 9 | **Notification channel** — a new dedicated Teams channel, never the concierge order-form channel. Needed before the Stripe webhook can be pointed anywhere; the flow can be built and tested against a private channel first. | Jeff |
-| 11 | **Power Automate premium licence** — **confirmed missing, 13 Aug 2026.** Flow checker: *"This flow's owner needs a Power Automate Premium license."* The flow saves but cannot run. Unblock with the free 90-day trial offered in Flow checker, or an admin licence request; otherwise the design drops event verification. See [`docs/stripe-webhook.md`](docs/stripe-webhook.md). | Facilitator / IT |
-| 10 | Page slug, National 2 font + official logo lockup, dog-walking reviews to replace the boarding/cat ones. | Webflow / brand |
+| 11 | **Power Automate premium licence** — **confirmed missing, 13 Aug 2026.** Flow checker: *"This flow's owner needs a Power Automate Premium license."* The flow saves but cannot run. **Route chosen 14 Aug 2026: request a real licence, not the free 90-day trial** — the trial expires and the flow would then stop posting to Teams *silently*, which looks exactly like nobody signing up. Trial kept as a fallback if the licence stalls. Without either, the design drops event verification. See [`docs/stripe-webhook.md`](docs/stripe-webhook.md) and `docs/open-asks.md` §4. | Facilitator / IT |
+| 10 | Page slug, National 2 font + official logo lockup. ~~Dog-walking reviews to replace the boarding/cat ones.~~ **The reviews were removed entirely on 13 Aug 2026** — the Figma hides the testimonial block and puts the "Why Yourgi Plus" band in its place, so there is nothing to replace. If testimonials come back, git history has the markup and the swap-in-walking-reviews point stands again. | Webflow / brand |
 
 ### One deliberate disagreement with the PRD
 

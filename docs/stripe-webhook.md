@@ -121,13 +121,23 @@ list and can be added to a flow whether or not you're licensed. Saving succeeds 
 only surfaces in **Flow checker → Warnings**, or in the banner *"Your flow is saved but can't be
 used."* Don't take an addable trigger or a successful save as evidence — open Flow checker.
 
-Options, in the order I'd try them:
+**Decided 14 Aug 2026 by Lauren: request the licence. Do not take the trial.** The order below used to
+recommend the opposite, on the grounds that 90 days is a good match for a beta that may be wound down
+inside a quarter. The flaw in that: when the trial lapses the flow **stops posting to Teams silently**
+— no error reaches anyone who isn't looking at Flow checker. Signups keep arriving and the channel
+goes quiet, which is indistinguishable from nobody signing up, and that number is the entire point of
+the experiment. A notification system whose failure mode mimics its success criterion isn't worth 90
+free days.
 
-- **The free 90-day trial**, offered directly in that Flow checker panel. Free, self-service, and 90
-  days is a good match for a beta that may be wound down inside a quarter. After enabling it, **edit
-  and re-save the flow** — the licence doesn't apply to an already-saved flow until you do.
-- **A licence request to your admin**, also linked from that panel. Slower, and Microsoft warns it
-  can take up to 7 days to propagate.
+Options, in the order to try them:
+
+- **A licence request to your admin**, linked from that Flow checker panel. Microsoft warns it can
+  take up to 7 days to propagate. This is the chosen route — the ask is drafted in
+  [`open-asks.md`](open-asks.md) §4.
+- **The free 90-day trial**, offered in the same panel. **Fallback only, if the licence stalls and
+  the build can't wait.** If you take it: record the expiry date at the top of this file, and set a
+  reminder before it — the whole point is that nothing else will tell you. After enabling it, **edit
+  and re-save the flow**; the licence doesn't apply to an already-saved flow until you do.
 - **Go non-premium** — see [If you don't have premium](#if-you-dont-have-premium). Workable, but it
   loses event verification, which changes what the channel means.
 - **Skip Power Automate for the beta** — see the same section. Stripe can email on every successful
@@ -226,9 +236,15 @@ Payment Links — it never touches an API key. So if the Dashboard lets you crea
 checkout can ship while the key question is still being sorted, and only the Teams notification
 waits.
 
-If neither is available, the ask to whoever administers Stripe is: **Developer role on Yourgi Pro**,
-which covers both. Failing that, they can create the three Products and Payment Links from
-[`stripe/plans.json`](../plans.json) and issue a restricted key with read on Events.
+**Decided 14 Aug 2026 by Lauren: ask an admin to issue the key; don't ask for a role.** A restricted
+key with **read on Events and nothing else** is a far easier yes than Developer on the live account,
+and it unblocks the only thing actually waiting on it. The Developer role is what a move to live mode
+would need — that's deliberately not being asked for yet, since live mode is gated on everything else
+here anyway. The drafted ask is in [`open-asks.md`](open-asks.md) §4.
+
+If the role does come up instead: **Developer on Yourgi Pro** covers both permissions in the table
+above. Failing that, an admin can create the three Products and Payment Links from
+[`stripe/plans.json`](../stripe/plans.json) and issue the restricted key.
 
 ### Fastest route: create them from the manifest
 
@@ -313,8 +329,9 @@ For each one:
     from, which is this page; `?checkout=cancel` exists for the return-trip handler and for manual
     testing.
 - **Turn on phone number collection.** Phone is optional on the landing page, so without this some
-  paying subscribers arrive with no way to reach them, and the page promises a callback within one
-  business day.
+  paying subscribers arrive with no way to reach them — and the signup card tells staff to call
+  within 1 business day. (The page itself no longer promises a callback; that claim went with the
+  move to self-serve booking.)
 
 Then paste the three links into `STRIPE_PAYMENT_LINKS` in `index.html`:
 

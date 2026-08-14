@@ -11,8 +11,11 @@
     "",
     "Amounts are in CENTS, as Stripe expects. $49.00 is 4900.",
     "",
-    "STATUS: prices are NOT approved (David owns them, blocking decision #1). Create these in a SANDBOX.",
-    "Every object carries status metadata saying so, so nobody finds them later and assumes otherwise."
+    "STATUS: the three PRICES were approved by Lauren on 14 Aug 2026 and are final. What is still open",
+    "is the boarding rate these savings claims are computed against ($195/night, inferred rather than",
+    "stated) — see docs/open-asks.md. Create these in a SANDBOX regardless: approved pricing does not",
+    "make them production objects, and every object carries status metadata saying so, so nobody finds",
+    "them later and assumes they are live."
   ],
 
   "shared": {
@@ -24,13 +27,13 @@
       "campaign": "pack-landing-page",
       "owner": "lauren.palma",
       "source": "yourgi-pack-landing-page",
-      "status": "DRAFT - experiment, prices not approved"
+      "status": "DRAFT - experiment, sandbox objects, prices approved 14 Aug 2026"
     },
 
     "payment_link": {
       "submit_type": "subscribe",
 
-      "_phone": "Phone is OPTIONAL on the landing page, so this is where concierge actually gets a number. The page promises a callback within one business day; without this, some paying subscribers arrive unreachable.",
+      "_phone": "Phone is OPTIONAL on the landing page, so this is where concierge actually gets a number. Without this, some paying subscribers arrive unreachable — and the signup Teams card tells staff to call them within 1 business day. (The PAGE itself no longer promises a callback; that claim went with the move to self-serve booking.)",
       "phone_number_collection": { "enabled": true },
 
       "_billing_address": "auto, not required. The page's stated principle is that every required field before payment costs signups — that's why phone was made optional there. Chris's link used 'required'; if Finance needs it for tax, change it here and say why.",
