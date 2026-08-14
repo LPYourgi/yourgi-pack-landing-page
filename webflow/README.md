@@ -16,6 +16,22 @@ looks wrong, fix `index.html` and re-run — never edit `dist/`. This repo alrea
 hand-maintained copy of the page (`deploy/index.html`, removed 12 Aug 2026) after it drifted and
 outlived the comment telling people to sync it.
 
+**The live build is the no-analytics one:**
+
+```bash
+node webflow/build.mjs --no-analytics
+```
+
+Decided 14 Aug 2026 by Lauren: the Webflow page ships with **no Mixpanel and no Segment**, because
+wiring the page's analytics is Emily's to do later and shipping no tracking beats shipping half of
+it. The flag stubs `trackEvent()` and `sendToSegment()` to no-ops, so all 15 call sites in the
+behaviour script keep working and the page's real behaviour — plan selection, validation, the ZIP
+market gate, the Stripe hand-off, the confirmation screen — is untouched. It also drops the footer
+block from 20,535 to 15,903 characters. What you lose is every event and every `identify()`, which
+is the point. It is safe only because the behaviour script never calls `mixpanel.*` or `analytics.*`
+directly; if that changes, the flag starts lying, so re-check with
+`grep -nE 'mixpanel\.|analytics\.' index.html` first.
+
 ## The files
 
 | File | What it is |
@@ -30,9 +46,15 @@ outlived the comment telling people to sync it.
 ## Order of operations
 
 1. **`node webflow/build.mjs`** — you need the numbers before you plan anything.
-2. **Check `Site settings > Fonts` for National 2** before touching the head block. See `assets.md`;
-   if it is already uploaded, delete the `@font-face` rules from the generated head code so the
-   site is not serving two copies of the same face.
+2. **Fonts: nothing to do — checked 14 Aug 2026, keep the `@font-face` rules.** National 2 (400,
+   700) and National 2 Condensed *are* uploaded under `Site settings > Fonts`, and they point at the
+   **same three CDN files** the generated rules do. Same URL, same cache entry, so this is not a
+   second copy of the face and there is nothing to delete. Keep them: they make the page render
+   without depending on a Designer-applied font class. Two caveats — Webflow registers Condensed at
+   weight **700** while the rule declares **800** (same file, renders identically; check a published
+   h1/h2 before "fixing" either), and Klim's `-test-` **trial** builds are also on that site as
+   "National 2 Test" / "National 2 Condensed Test". Never apply the trial faces to anything; a test
+   in `test/prototype.test.mjs` guards that the licensed builds ship.
 3. **Paste the head block** into `Page settings > Custom code > Inside <head> tag`.
 4. **Build the sections** per `build-spec.md`, using the exact class names in `classes.md`. The
    class names are the contract between Designer and the CSS block — a typo silently unstyles a
@@ -102,19 +124,33 @@ section, if and when marketing actually needs to restyle something.
 
 ## Two things that will bite you
 
-**Mixpanel will double-count if you are not careful.** This page's Mixpanel block is a *fallback*.
-`index.html` records that the page expects the site-wide Mixpanel already initialised in Webflow's
-**site** footer custom code, on the same project token, so cross-page UTM and referrer attribution
-survives. The loader in the generated footer only fires when no site-wide instance exists — a local
-file, or the GitHub Pages review link. On Webflow it should no-op. **Verify that it does**, because
-two initialised instances double every event on the one page whose entire output is a signup count.
+**Neither of these applies to the current build**, which ships with `--no-analytics`. Both are
+written down for whoever wires the tracking up later.
 
-**Nothing will reach Segment from staging, and that is correct.** `YG_IS_PROD` tests the hostname
-against `yourgi.com`, so a `webflow.io` staging domain tags every Mixpanel event `test_mode:true` and
-suppresses Segment `identify()` completely. That gate is deliberate — `identify()` writes a real
-person record keyed on a real email and fans out to downstream tooling, and a colleague testing the
-form should not become a marketing contact. While testing on staging, look for the
-`[preview] Segment suppressed:` line in the browser console instead of Segment traffic.
+**The Mixpanel fallback does NOT no-op on Webflow — this section used to claim it would.** Verified
+against the live site 14 Aug 2026. The site's **own** footer custom code already initialises Mixpanel
+on token `1542ee4c…d3d1` with `track_pageview:false`, then calls `track_pageview()` manually. This
+page's block guards only on `typeof mixpanel === 'undefined'`, and **both blocks live in footer
+fields**, so whichever runs first wins. If the page block wins, it initialises with
+`track_pageview:true` and the site-wide block then fires a *second* pageview — two pageviews per
+visit, on the one page whose entire output is a signup count. Before shipping any analytics build,
+read the published HTML and confirm the actual order rather than assuming it. The site-wide instance
+already handles UTM and referrer attribution and fires a pageview on every page, so the likeliest
+right answer is to delete the page-level fallback entirely rather than to guard it harder.
+
+**`YG_IS_PROD` passes in production — the gate is correct.** It tests the hostname against
+`/(^|\.)yourgi\.com$/i`, and the live page is served from **`www.yourgi.com`**, which matches. (This
+Webflow site is what serves `yourgi.com`: `/book/best-care-guarantee` is live there, and the site's
+head code hard-redirects its own `webflow.yourgipet.com` domain to `https://www.yourgi.com` with the
+path preserved.) A `webflow.io` staging domain still fails the gate, which is deliberate — it tags
+every Mixpanel event `test_mode:true` and suppresses Segment `identify()` completely, because
+`identify()` writes a real person record keyed on a real email and fans out to downstream tooling,
+and a colleague testing the form should not become a marketing contact. While testing on staging,
+look for the `[preview] Segment suppressed:` line in the browser console instead of Segment traffic.
+
+**One consequence of that redirect:** you cannot preview this page on `webflow.yourgipet.com` — the
+site's head script will bounce you to `www.yourgi.com` before the page renders. Use the Designer
+preview or the `.webflow.io` staging domain.
 
 ## The test suite does not test the Webflow build
 
