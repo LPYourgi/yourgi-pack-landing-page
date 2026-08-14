@@ -63,9 +63,10 @@ several embeds, which only helps if the limit is per element. **At 74% of the ce
 either way**, so this does not need resolving before you start. It does need watching if the page
 grows.
 
-The build strips comments to get there. The annotated behaviour script is **45,390 characters on its
-own — 91% of the limit** — and those comments are the most valuable documentation in this project.
-They belong in git. Read them in `index.html`; do not try to carry them into a Webflow text field.
+The build strips comments to get there. The annotated behaviour script is **50,608 characters on its
+own — 101% of the limit, so it no longer fits in a Webflow field at all** — and those comments are
+the most valuable documentation in this project. They belong in git. Read them in `index.html`; do
+not try to carry them into a Webflow text field. Stripping is now mandatory, not merely tidy.
 
 If the page ever does outgrow the limit, the escape is to self-host the behaviour script and
 reference it with `<script src>` rather than to start deleting things.
