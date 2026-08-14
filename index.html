@@ -776,7 +776,24 @@
              Pro. Five guards pin that plus the two retired sentences, and they are the reason this
              screen can be re-edited safely. See the note on handleReturn() for why the JS must prepend
              to this paragraph rather than replace it. -->
-        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">A receipt was emailed, your Yourgi Plus plan is live, and the Yourgi Concierge team will be in touch surprisingly fast.</p>
+        <!-- THE ACCOUNT-CREATION LINE IS LOAD-BEARING, ADDED 14 AUG 2026. It is not marketing copy.
+             Until that day the Payment Links used after_completion:hosted_confirmation, so Stripe
+             showed its own screen after payment carrying this instruction: "create your Yourgi
+             account using this same email address so we can link your membership and issue your
+             first Plus code." When the links were switched to redirect (so buyers come back here,
+             as the preview always did), that Stripe screen stopped being shown — and the
+             instruction silently left the flow. Nobody noticed because the page's own copy had
+             never needed to carry it.
+             The failure it prevents is ugly and quiet: someone pays, never creates an account,
+             concierge has a paying subscriber they cannot link to anything, and the customer waits.
+             If the linking step ever stops depending on a matching email, delete this sentence —
+             but delete it deliberately, not because it reads like filler.
+             DELIBERATELY NOT PROMISED HERE: the "first Plus code" half of Stripe's wording. The
+             14 Aug Figma pass dropped booking-code language from this screen, and §8 gap 6 (nobody
+             has committed to who issues it or how fast) is still open. Ask Jeff before it returns.
+             NOTE FOR EDITORS: handleReturn() PREPENDS "Your <plan> plan is live at $X/mo. " to this
+             paragraph, so read any rewrite with that sentence in front of it. -->
+        <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">A receipt is on its way. Next: create your Yourgi account with this same email address so we can link your membership. The Yourgi Concierge team will be in touch surprisingly fast.</p>
         <!-- NOW A REAL NAVIGATION, NOT A RESET (14 Aug 2026, Figma 4086:400 + Lauren).
              This was id="restart" with "Back to plans", wired into the same reset as the other two
              screens. It is neither any more, so it no longer carries that id — a button labelled
