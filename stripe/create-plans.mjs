@@ -216,5 +216,5 @@ console.log('\nPaste into STRIPE_PAYMENT_LINKS in index.html:\n');
 console.log('  var STRIPE_PAYMENT_LINKS = {');
 for (const r of results) console.log(`    ${(r.tier + ':').padEnd(10)}'${r.url}',`);
 console.log('  };\n');
-console.log('Then: node test/prototype.test.mjs && cp index.html deploy/index.html\n');
+console.log('Then: node test/prototype.test.mjs\n');
 console.table(results.map(({ label, product, price, link }) => ({ label, product, price, link })));

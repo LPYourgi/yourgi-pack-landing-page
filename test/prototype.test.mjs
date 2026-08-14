@@ -16,7 +16,12 @@ const ok = (name, cond, extra) => { cond ? (pass++, console.log('  ok  ', name))
 // No `webhook` option any more: the page posts to nothing. fetch is still stubbed below so the
 // suite can assert that — a silent outbound POST from this page is exactly what we're guarding
 // against, and you can only catch it by watching for a call that should never come.
-async function boot({ search = '', links = null } = {}) {
+/* `plan` seeds sessionStorage.yg_plan BEFORE the page's scripts run, which is the only way to
+   exercise the real return-from-Stripe path: the page writes that key immediately before handing
+   off, so anyone coming back from an actual payment has it set. Booting without it takes the
+   fallback branch instead — and that gap is exactly how a retired promise survived on the
+   post-payment screen until 14 Aug 2026. See the guard in the return-from-Stripe block. */
+async function boot({ search = '', links = null, plan = null } = {}) {
   let html = fs.readFileSync(PAGE, 'utf8');
   // Strip the Mixpanel + Segment loader blocks; we install stubs instead so nothing real fires.
   html = html.replace(/<script type="text\/javascript">[\s\S]*?<\/script>/, `<script>
@@ -44,7 +49,10 @@ async function boot({ search = '', links = null } = {}) {
     url: 'https://www.yourgi.com/pack' + search,
     runScripts: 'dangerously', pretendToBeVisual: true,
     // Must exist before parse: the return-from-Stripe handler runs during load.
-    beforeParse(w) { w.HTMLElement.prototype.scrollIntoView = () => {}; },
+    beforeParse(w) {
+      w.HTMLElement.prototype.scrollIntoView = () => {};
+      if (plan) w.sessionStorage.setItem('yg_plan', JSON.stringify(plan));
+    },
   });
   const w = dom.window;
   w.__fetches = [];
@@ -675,6 +683,35 @@ console.log('\n— return from Stripe —');
   ok('cancel shows the no-charge step', vis(w2, 'step-cancel'));
   ok('Checkout Abandoned tracked', w2.__mp.some(([n]) => n === 'Checkout Abandoned'));
   ok('cancel does NOT show confirmation', !vis(w2, 'step-confirm'));
+
+  /* THE PATH A PAYING CUSTOMER ACTUALLY TAKES, which went unguarded until 14 Aug 2026.
+     handleReturn() personalises #confirm-body only when sessionStorage.yg_plan is set, and the page
+     writes that key immediately before the Stripe handoff — so plan.label is ALWAYS present on a
+     return from real payment. Every assertion above boots without it and takes the fallback branch,
+     which is why this screen could carry retired copy for a day without a single test going red.
+
+     What it was carrying: "Someone from our team calls within a day to lock in your days and
+     introduce your Pro." Both halves are claims the rest of the page had already retired — a
+     concierge callback (Step 2 of #how has the customer booking) and a single assigned Pro (the FAQ
+     answers that "Up to you"). The static paragraph was corrected on 13 Aug; this override was not,
+     so the correction only ever reached people who typed the URL by hand.
+
+     The rule this pins: the personalised branch may ADD facts checkable against a receipt — plan
+     name, price — and may not introduce a promise. §8 gap 6 is still open on who issues the booking
+     code and how fast, so no timing claim belongs here either. */
+  const paid = await boot({ search: '?checkout=success', plan: { tier: 'twice', label: 'Five Anything', price: 99 } });
+  const confirm = $(paid, 'confirm-body').textContent;
+  ok('the paid screen names the plan just bought', /Five Anything plan is live at \$99\/mo/.test(confirm), confirm);
+  ok('and keeps the approved paragraph rather than replacing it',
+    /booking code comes next/.test(confirm) && /concierge will find you someone/i.test(confirm), confirm);
+  ok('no concierge-callback promise on the post-payment screen',
+    !/calls within a day/i.test(confirm) && !/lock in your days/i.test(confirm), confirm);
+  ok('no single-assigned-Pro promise on the post-payment screen',
+    !/introduce your Pro/i.test(confirm), confirm);
+  /* §8 gap 6: fulfilment is manual and nobody has committed to a turnaround. A timeframe here would
+     be the one promise on this page made to someone who has already paid. */
+  ok('and still promises no timing for the booking code',
+    !/within (a|\d+) (day|days|hour|hours)/i.test(confirm), confirm);
 }
 
 console.log('\n— reset —');

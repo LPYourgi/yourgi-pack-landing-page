@@ -19,9 +19,10 @@ paying.
 ## Files
 
 - `index.html` — the page (canonical). Double-click to open, or serve it (see below).
-- `preview.html` — **review harness.** Frames the page with a mobile / tablet / desktop toggle and
-  shortcuts to the post-Stripe screens. Send reviewers here. **Never goes into Webflow**, and a test
-  keeps it out of `index.html`.
+- `preview.html` — **review harness.** Frames the page at real mobile / tablet / desktop widths.
+  Send reviewers here. **Never goes into Webflow**, and a test keeps it out of `index.html`. It no
+  longer carries Paid / Backed-out toggles — sign-up finishes on Stripe, so those screens aren't
+  what a reviewer is being asked to look at. Reach them via `index.html?checkout=success` instead.
 - `test/prototype.test.mjs` — the headless check suite. See "Testing".
 - `docs/handoff.md` — start-here onboarding and open decisions.
 - `docs/stripe-webhook.md` — **the build runbook for Stripe → Teams.** Products, Payment Links, the
@@ -206,6 +207,23 @@ customer. Out-of-market visitors are never sent to Stripe — the lead is captur
 there yet" screen shows instead. If the real launch geography differs, change `MARKET_RANGES` in
 `index.html`; don't delete the gate.
 
+## Deploying
+
+**Two branches, both needed.** `main` is the default branch and where work lands. `gh-pages` is what
+GitHub Pages actually serves, from the repo root, at
+<https://lpyourgi.github.io/yourgi-pack-landing-page/>. There is no build step and no `deploy/`
+directory — Pages reads `index.html` off `gh-pages` as-is, so the two branches should sit at the same
+commit. Nothing here generates one branch from the other; keeping them level is manual:
+
+```bash
+node test/prototype.test.mjs && git push origin main && git push origin main:gh-pages
+```
+
+Run the suite first — pushing `gh-pages` publishes immediately, and **the repo is public**, so a bad
+commit is visible before you notice it. If the two branches ever diverge, `main` is right and
+`gh-pages` is stale: `git push origin main:gh-pages` is always the fix, never a merge in the other
+direction.
+
 ## Running it
 
 Open `index.html` directly, or serve it to exercise the JS:
@@ -218,9 +236,9 @@ To see the post-Stripe screens without a real payment, append `?checkout=success
 
 **Sharing it with reviewers:** send them `preview.html`, not `index.html`. It renders the page at real
 mobile (390×844), tablet (768×1024), and desktop (1280×800) viewport widths — actual widths, so the page's
-own breakpoints fire exactly as they would on a device — and has one-click access to the paid and
-backed-out screens. Switching device does **not** reload the frame, so anything typed into the form
-survives the switch.
+own breakpoints fire exactly as they would on a device. Switching device does **not** reload the frame,
+so anything typed into the form survives the switch. It does **not** shortcut to the paid or backed-out
+screens — use the query strings above against `index.html` for those.
 
 ## Testing
 

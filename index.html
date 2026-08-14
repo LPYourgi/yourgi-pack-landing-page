@@ -6,7 +6,9 @@
 <title>Yourgi Plus | Yourgi</title>
 <!--
   Subscription landing page MVP (working name "YOURGI PACK", target slug yourgi.com/pack — CONFIRM).
-  CANONICAL FILE. Keep deploy/index.html in sync.
+  CANONICAL FILE, and the only copy. deploy/index.html was deleted on 12 Aug 2026 — this line told
+  you to sync a directory that no longer exists. GitHub Pages serves the gh-pages branch straight
+  from this file; see "Deploying" in README.md.
 
   READ docs/project-context.md FIRST. It is the authoritative source, synthesized from the
   10 Aug 2026 team discussion. This page has been reconciled against it. Where they disagree,
@@ -1759,8 +1761,26 @@
     var plan={};
     try{plan=JSON.parse(sessionStorage.getItem('yg_plan')||'{}');}catch(e){}
     if(p==='success'){
+      /* PREPEND THE PLAN, DO NOT REPLACE THE PARAGRAPH — corrected 14 Aug 2026.
+         This branch used to overwrite #confirm-body wholesale with copy ending "Someone from our
+         team calls within a day to lock in your days and introduce your Pro." That is the exact
+         sentence the markup comment above #confirm-body records as REMOVED on 13 Aug 2026, for
+         two reasons that both still hold: it promises a concierge callback that contradicts Step 2
+         of #how, and "introduce your Pro" is the single-matched-Pro claim stripped from the
+         headline, the plan bullets and the comparison table, and answered "Not necessarily" in the
+         FAQ. The brand pass fixed the static paragraph and missed this override.
+         IT FAILED THE WRONG WAY ROUND, which is why it survived: sessionStorage.yg_plan is written
+         immediately before the Stripe handoff, so plan.label is ALWAYS set for someone returning
+         from a real payment — every paying customer got the retired copy, and the approved
+         paragraph only ever rendered for someone typing ?checkout=success by hand. That is the
+         opposite of the path anyone reviews.
+         The plan name and price are a FACT about what was just bought, not a promise, so they are
+         worth keeping — they now lead the approved paragraph instead of replacing it. Anything
+         added here must be checkable against a receipt; promises belong to §8 gap 6, which is still
+         open on who issues the booking code and how fast. */
       if(plan.label){
-        $('confirm-body').textContent='Your '+plan.label+' plan is live at $'+plan.price+'/mo. Receipt\'s in your email. Someone from our team calls within a day to lock in your days and introduce your Pro.';
+        var body=$('confirm-body');
+        body.textContent='Your '+plan.label+' plan is live at $'+plan.price+'/mo. '+body.textContent;
       }
       trackEvent('Subscription Started',{plan_tier:plan.tier||'unknown',plan_price:plan.price||null,verified:false});
       show('step-confirm');
