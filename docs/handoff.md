@@ -295,7 +295,7 @@ Two things follow that are worth saying out loud:
   service — and sets boarding to zero. The real tail is mix, not volume: five nights of boarding on
   Five Anything is 5 × $195 = $975 of value, $877 of Pro payout, against $99 collected — about **−$779
   from one subscriber in one month**, roughly six times the worst case the model shows for the
-  unlimited plan. On Full Coverage, ten nights is about −$1,356. The uncapped plan has no modelled
+  unlimited plan. On Full Coverage, ten nights is about −$1,256. The uncapped plan has no modelled
   ceiling because the scenario that would find it wasn't run.
 
 ## How billing actually behaves (confirmed 12 Aug 2026)
