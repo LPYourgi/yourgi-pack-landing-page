@@ -70,7 +70,11 @@ async function boot({ search = '', links = null, plan = null } = {}) {
 }
 
 const $ = (w, id) => w.document.getElementById(id);
-const vis = (w, id) => !$(w, id).classList.contains('hidden');
+/* `yg-hidden`, not `hidden`, since 14 Aug 2026. The page moved off the bare name because the
+   Webflow site it now lives on already owns `hidden` as a class. If this helper is ever wrong the
+   symptom is brutal and unobvious: every step reads as visible, so the market-gate and
+   confirmation-screen assertions all fail at once while the page itself is fine. */
+const vis = (w, id) => !$(w, id).classList.contains('yg-hidden');
 // The form asks for email, phone and zip. Nothing else.
 const fill = (w, { zip, email = 'test@example.com', phone = '3035550142' }) => {
   const vals = [['q-zip', zip], ['q-email', email], ['q-phone', phone]];
@@ -1320,9 +1324,32 @@ console.log('\n— the shipped Stripe links are real, per-plan, and test mode �
   /* THE GUARD THIS BLOCK EXISTS FOR. A live Payment Link is buy.stripe.com/<id>; a test-mode one
      carries test_. If this ever fails, the public review page is taking real payments — treat it
      as an incident, not a failing test. */
-  ok('EVERY committed link is test mode — no live link on a public branch',
-    urls.every(u => u.startsWith('https://buy.stripe.com/test_')),
+  /* NARROWED 14 AUG 2026, DELIBERATELY, AND IT IS WEAKER THAN WHAT IT REPLACED.
+     Lauren swapped in live-mode links that day, after all three were opened against Stripe and read
+     back the right product and price. So "every link is test mode" is now false on purpose, and a
+     permanently-red suite would get ignored — which is worse than a narrower guard.
+
+     What this still catches is the case that actually hurt this repo: someone pasting a live link in
+     WITHOUT knowing. A deliberate swap comes with the block comment above STRIPE_PAYMENT_LINKS; an
+     accidental one does not. That is a weaker signal than a URL substring and it is worth being
+     honest about — it can be defeated by copying the comment along with the link.
+
+     WHAT IS NO LONGER GUARDED AT ALL, and needs a human: gh-pages is served publicly, and this file
+     now contains links that take real money. Nothing in this suite can see which branch it is on.
+     If gh-pages is ever updated from main while these links are live, the review URL starts charging
+     real people — the exact incident from 12 Aug 2026, with a bigger top-line number. That is a
+     branch/publishing decision, not a test. */
+  const liveDeliberate = /⚠️ THESE ARE LIVE-MODE LINKS AS OF 14 AUG 2026\. THEY TAKE REAL MONEY\./.test(src);
+  ok('links are test mode, OR live mode is explicitly declared above the link map',
+    urls.every(u => u.startsWith('https://buy.stripe.com/test_')) || liveDeliberate,
     urls.filter(u => !u.startsWith('https://buy.stripe.com/test_')));
+  ok('a live-mode build says so where the links are, not only in a commit message',
+    urls.every(u => u.startsWith('https://buy.stripe.com/test_')) || liveDeliberate,
+    'live links present with no declaration above STRIPE_PAYMENT_LINKS');
+  ok('a live-mode build records that public surfaces now charge real money',
+    urls.every(u => u.startsWith('https://buy.stripe.com/test_'))
+      || /ANYWHERE THIS PAGE IS REACHABLE NOW CHARGES REAL MONEY/.test(src),
+    'live links present without the public-surface warning');
   /* One shared link across three plans is the specific failure that shipped before: all three
      cards handed off to a single $50/mo checkout, so two of the three charged the wrong price. */
   ok('no link is shared between plans — each plan has its own',
@@ -1357,7 +1384,11 @@ console.log('\n— the shipped Stripe links are real, per-plan, and test mode �
   fill(w, { zip: '80202', email: 'placeholder@example.com' });
   $(w, 'to-checkout').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   await settle();
-  ok('the CTA now hands off to Stripe', (w.__nav[0] || '').startsWith('https://buy.stripe.com/test_'), w.__nav[0]);
+  /* Mode-agnostic on purpose since the 14 Aug 2026 live swap. This assertion is about the CTA
+     reaching a Stripe Payment Link at all; whether that link is test or live is the dedicated
+     guard's job above, and asserting it twice meant a deliberate swap failed here for a reason
+     this block was never about. */
+  ok('the CTA now hands off to Stripe', /^https:\/\/buy\.stripe\.com\/(test_)?[A-Za-z0-9]+/.test(w.__nav[0] || ''), w.__nav[0]);
   ok('the handoff uses the chosen plan\'s own link',
     (w.__nav[0] || '').startsWith(src.match(/weekdays:\s*'([^']+)'/)[1]), w.__nav[0]);
   // The page still never invents a subscription of its own — Stripe's redirect is what shows that.

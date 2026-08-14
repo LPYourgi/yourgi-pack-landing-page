@@ -15,13 +15,22 @@
    WHAT IT DOES
      - pulls the <style> block, the main behaviour <script>, the two analytics blocks, and the
        comparison-table shell out of index.html
-     - strips comments from the CSS and JS builds, because the annotated JS is 45,391 characters
-       against Webflow's 50,000 limit — 91% of the budget, for a limit that has already moved once
-       (it was 10,000 until 2025). The comments are the most valuable documentation in this project
-       and they belong in git, not in a Webflow text field.
+     - strips comments from the CSS and JS builds, because the annotated JS is 50,608 characters
+       against Webflow's 50,000 limit — 101%, so it does not fit in the field at all any more, for
+       a limit that has already moved once (it was 10,000 until 2025). Stripping is load-bearing,
+       not tidiness. The comments are the most valuable documentation in this project and they
+       belong in git, not in a Webflow text field.
      - reports every block against the limit so a size problem is visible before someone pastes.
 
    Run:  node webflow/build.mjs
+         node webflow/build.mjs --no-analytics
+
+   --no-analytics ships the page with NO Mixpanel and NO Segment. It replaces both analytics blocks
+   with no-op stubs of trackEvent() and sendToSegment(), so the 15 call sites in the behaviour
+   script keep working and the page behaves identically minus the tracking. Added 14 Aug 2026:
+   Lauren's call was that analytics for the Webflow page is Emily's to wire up later, and shipping
+   no tracking is safer than shipping half of it. It also sidesteps the double-count trap described
+   below, which is real rather than theoretical — see the FOOTER comment.
 */
 
 import fs from 'node:fs';
@@ -40,6 +49,9 @@ const DIST = path.join(HERE, 'dist');
    only helps if the limit is per-element. Treated as per-field here, and every block is reported
    with its share of the total as well, so the plan holds either way. Paid site plans only. */
 const LIMIT = 50000;
+
+/* Ship the page with no Mixpanel and no Segment. See the header comment. */
+const NO_ANALYTICS = process.argv.includes('--no-analytics');
 
 const src = fs.readFileSync(PAGE, 'utf8');
 
@@ -148,42 +160,84 @@ const HEAD = `<!-- YOURGI PLUS — page <head> custom code.
 
      Webflow: Page settings > Custom code > Inside <head> tag.
 
-     The @font-face rules below are only needed if National 2 is NOT already uploaded under
-     Site settings > Fonts. Check first — these files are served off this site's own Webflow CDN,
-     which means they may already be there as custom fonts, in which case Designer can apply them
-     natively and you should delete the @font-face block to avoid a second copy of the same face.
-     See webflow/assets.md. -->
+     KEEP THE @font-face RULES. Checked against the live site 14 Aug 2026: National 2 (400, 700) and
+     National 2 Condensed ARE uploaded under Site settings > Fonts — and they point at the exact
+     same three CDN files these rules do, so this is not a second copy of the face. Same URL, same
+     cache entry, no extra download. The rules are kept because they make the page render correctly
+     without depending on a Designer-applied font class, which matters while the markup is not built
+     from Designer styles. One wrinkle: Webflow registers the Condensed face at weight 700 while the
+     rule below declares 800. Same file, so it renders identically — but do not "fix" one to match
+     the other without checking the h1/h2 weight on a published page first.
+
+     Also on that site: Klim's \`-test-\` TRIAL builds of both faces are uploaded as separate custom
+     fonts ("National 2 Test", "National 2 Condensed Test"). This page does not touch them and a
+     test in test/prototype.test.mjs asserts the licensed builds ship instead. Do not apply the
+     trial faces to anything — see webflow/assets.md. -->
 ${fontLink}
 <style>
 ${css}
 </style>`;
+
+/* The analytics half of the footer field. Either the real Mixpanel + Segment blocks, or no-op
+   stubs standing in for them. The behaviour script is byte-identical either way — it only ever
+   calls trackEvent() and sendToSegment(), never mixpanel.* or analytics.* directly, which is what
+   makes stubbing them safe. If that stops being true, this flag starts lying: check with
+   `grep -nE 'mixpanel\.|analytics\.' index.html` before trusting a --no-analytics build. */
+const ANALYTICS = NO_ANALYTICS
+  ? `<script>
+/* ANALYTICS DELIBERATELY OMITTED — generated with --no-analytics.
+
+   This page ships NO Mixpanel and NO Segment. Lauren's call, 14 Aug 2026: wiring the Webflow
+   page's analytics is Emily's, later, and shipping no tracking beats shipping half of it.
+
+   trackEvent() and sendToSegment() are stubbed below so the behaviour script's 15 call sites keep
+   working untouched. Everything the page actually DOES — plan selection, validation, the ZIP
+   market gate, the Stripe hand-off, the confirmation screen — is unaffected. What you lose is
+   every event and every Segment identify(), which is the point.
+
+   To restore: re-run without the flag, and read the double-count and host-gate notes in that
+   build's output BEFORE pasting, because the fallback loader does not no-op the way the older
+   comment claimed. */
+function trackEvent(){}
+function sendToSegment(){}
+</script>`
+  : `<script type="text/javascript">
+${stripComments(mixpanel, { js: true })}
+</script>
+<script>
+${stripComments(segment, { js: true })}
+</script>`;
+
+const ANALYTICS_NOTES = NO_ANALYTICS
+  ? `     ANALYTICS IS NOT IN THIS BUILD. Generated with --no-analytics: no Mixpanel, no Segment, and
+     trackEvent()/sendToSegment() stubbed to no-ops. The stub block below says the rest. Nothing on
+     this page reports to anything — do not read a signup count off it.`
+  : `     ORDER MATTERS. The analytics block must run before the behaviour block: trackEvent() and
+     sendToSegment() are defined there and called throughout the behaviours. Both are in this one
+     field, in the right order, so keep them together.
+
+     THE MIXPANEL FALLBACK DOES NOT NO-OP ON WEBFLOW. Measured 14 Aug 2026 against the live site:
+     Webflow's SITE footer custom code already initialises Mixpanel on token 1542ee…d3d1 with
+     track_pageview:false and then fires track_pageview() manually. This block's guard only skips
+     its own init when \`mixpanel\` is already defined, so whichever of the two footer fields runs
+     first wins — and if this one does, the page initialises with track_pageview:true and the
+     site-wide block then fires a second pageview. That is two pageviews per visit on the one page
+     whose entire output is a signup count. Verify the order in the published HTML before trusting
+     it, or build with --no-analytics and let someone wire this deliberately.
+
+     YG_IS_PROD gates on a yourgi.com host. The live page is served from www.yourgi.com (the site's
+     webflow.yourgipet.com domain hard-redirects there in site head code), so the gate PASSES in
+     production and events are not test-tagged. A webflow.io staging domain still tags every event
+     test_mode:true and suppresses Segment identify() entirely, which is correct and deliberate —
+     while testing on staging, check the console for '[preview] Segment suppressed' instead.`;
 
 const FOOTER = `<!-- YOURGI PLUS — page footer custom code (before </body>).
      GENERATED by node webflow/build.mjs from index.html. Do not edit; edit the page and re-run.
 
      Webflow: Page settings > Custom code > Before </body> tag.
 
-     ORDER MATTERS. The analytics block must run before the behaviour block: trackEvent() and
-     sendToSegment() are defined there and called throughout the behaviours. Both are in this one
-     field, in the right order, so keep them together.
-
-     MIXPANEL IS A FALLBACK HERE, NOT THE INSTANCE. index.html's own comment records that this page
-     expects the site-wide Mixpanel already initialised in Webflow's SITE footer custom code, with
-     the same project token, so cross-page UTM and referrer attribution survives. The loader below
-     only fires when no site-wide instance exists (a local file, the GitHub Pages review link). On
-     Webflow it should no-op — verify that it does rather than assuming, because two initialised
-     instances double-count every event on the one page whose output is a signup count.
-
-     YG_IS_PROD gates on a yourgi.com host, so a webflow.io staging domain tags every event
-     test_mode:true and suppresses Segment identify() entirely. That is correct and deliberate —
-     see the comments in index.html. It also means you will see NO Segment traffic while testing on
-     staging; check the browser console for the '[preview] Segment suppressed' line instead. -->
-<script type="text/javascript">
-${stripComments(mixpanel, { js: true })}
-</script>
-<script>
-${stripComments(segment, { js: true })}
-</script>
+${ANALYTICS_NOTES} -->
+${ANALYTICS}
 <script>
 ${js}
 </script>`;
@@ -211,7 +265,10 @@ const files = [
 ];
 for (const [name, body] of files) fs.writeFileSync(path.join(DIST, name), body + '\n');
 
-console.log('\n  Generated webflow/dist/ from index.html\n');
+console.log('\n  Generated webflow/dist/ from index.html');
+console.log(NO_ANALYTICS
+  ? '  ANALYTICS: OMITTED (--no-analytics). No Mixpanel, no Segment, trackEvent/sendToSegment stubbed.\n'
+  : '  ANALYTICS: INCLUDED. Read the footer block comment about the double-count before pasting.\n');
 const pad = (s, n) => String(s).padEnd(n);
 console.log(`  ${pad('FILE', 28)}${pad('CHARS', 10)}${pad('OF 50k', 9)}WHERE IT GOES`);
 console.log('  ' + '-'.repeat(96));

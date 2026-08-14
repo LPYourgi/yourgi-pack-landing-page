@@ -177,6 +177,17 @@
   .btn-dark{background:var(--black); color:var(--bone); border:none; border-radius:8px; padding:14px 18px; font-family:'National 2','Archivo',sans-serif; font-weight:700; font-size:16px; letter-spacing:.03em; text-transform:uppercase; cursor:pointer;}
   .btn-dark:hover{opacity:.9;}
   .btn-dark:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
+
+  /* NO VISIBLE RING ON THE STEP PANELS, AND THIS IS NOT THE USUAL OUTLINE:NONE MISTAKE.
+     show() gives the panel it reveals tabindex="-1" and focuses it, so a screen reader announces
+     the new screen instead of leaving the user at the top of a page that silently changed. That
+     focus is worth keeping. What it also did was paint the browser's default focus ring around the
+     whole panel — a blue rectangle around "You're in." on the screen someone lands on straight after
+     paying, reported 14 Aug 2026.
+     Suppressing it is safe HERE specifically because tabindex="-1" means these panels are not in the
+     tab order: no keyboard user can ever reach one by tabbing, so no one loses a focus indicator
+     they were relying on. Do NOT copy this rule onto anything a user can tab to. */
+  #step-plan:focus, #step-confirm:focus, #step-oom:focus, #step-cancel:focus{outline:none;}
   label{font-size:12px; color:#4a4a46; display:block; margin-bottom:5px;}
   /* 16px is not a style choice: iOS Safari zooms the whole page when it focuses an input under
      16px, which throws the layout sideways mid-form on exactly the device most ad traffic uses. */
@@ -189,7 +200,14 @@
   .req{color:#9a3b1e;}
   .err{border-color:#c0392b !important;}
   .err-msg{color:#c0392b; font-size:12px; margin-top:4px; display:none;}
-  .hidden{display:none !important;}
+  /* RENAMED FROM .hidden ON 14 AUG 2026, AND THE OLD NAME MUST NOT COME BACK.
+     The Webflow site this page now lives on already uses `hidden` as a class, in combos like
+     .section_faq5.hidden and .section-claims.bg-tan.hidden. Sharing the name meant this page's
+     three post-payment panels depended on a class the rest of the site also owns: if anyone ever
+     gives a site-wide base `.hidden` a style, "You're in.", "Hang tight" and "No charge made."
+     render stacked on top of each other on the screen that follows a real payment.
+     The prefix is the whole fix. Keep it on anything this page adds to a shared stylesheet. */
+  .yg-hidden{display:none !important;}
   /* THE .stepper RULES ARE GONE (14 Aug 2026). They styled the how-many-pets counter, and no
      markup on this page has used them since the form was narrowed to email/phone/zip — §4 puts
      service setup on a concierge call, so pet count is a question for that call rather than a toll
@@ -720,7 +738,7 @@
       </div>
 
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
-      <div id="step-confirm" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-confirm" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:26px;">You're in.</div>
         <!-- REWRITTEN 13 Aug 2026, brand pass. The old copy read "Someone from our team calls
              within a day to lock in your days and introduce your Pro." Two things were wrong with
@@ -770,7 +788,7 @@
 
       <!-- STEP 2b: out of market — no sale, no Stripe. We already have their email and phone from
            the form, so there is nothing more to ask for; we just tell them the truth and log it. -->
-      <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-oom" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <!-- HEADING AND BODY REWRITTEN 14 Aug 2026 from Figma 4073:252. Shorter, and it drops the
              "we're not going to take your money for a plan we can't run" line — which was doing real
              work (it explained WHY there is no sale) but is also the page arguing with itself on a
@@ -803,7 +821,7 @@
       </div>
 
       <!-- STEP 2c: returned from Stripe without completing -->
-      <div id="step-cancel" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-cancel" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:24px;">No charge made.</div>
         <p style="font-size:15px; margin:12px auto 0; max-width:340px;">You backed out before payment went through. Your plan is still here when you're ready.</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart3">Pick a plan</button>
@@ -1253,14 +1271,69 @@
      $399 to $499). Stripe Prices are immutable, so a price change means a new Price, a new Payment
      Link off it, and a new URL in this map — there is no way to edit the old pair in place, and
      anything still holding the old URL keeps billing the old amount. The $399 pair is archived:
-     price_1U43lkEC544F53vL6dUJyuzP and plink_1U43lkEC544F53vLFohPuUH5, both active:false. Verified
-     against the API after the swap: the link above resolves to a single line item of 49900 on
-     price_1U44ODEC544F53vLMEJQwfxj, livemode:false. Do the same check on any future price change —
-     a stale URL here is not a broken link, it is a wrong charge. */
+     price_1U43lkEC544F53vL6dUJyuzP and plink_1U43lkEC544F53vLFohPuUH5, both active:false. Do the
+     same check on any future price change — a stale URL here is not a broken link, it is a wrong
+     charge.
+
+     ⚠️ EVERYTHING ABOVE THIS LINE DESCRIBES THE SANDBOX (TEST-MODE) OBJECTS, AND THE PAGE NO LONGER
+     POINTS AT THEM. On 14 Aug 2026 the map below was swapped to live-mode links against different
+     Products and Prices, created outside this repo. The product/price IDs listed above, the
+     sandbox-expiry warnings, and the "livemode:false" verification that used to close this comment
+     all refer to the retired test objects. They are kept because they are still the record of how
+     the $399 -> $499 replacement was done, and that procedure is unchanged. Do not read them as
+     describing what the page charges today — the block immediately below is what does. */
+  /* ⚠️ THESE ARE LIVE-MODE LINKS AS OF 14 AUG 2026. THEY TAKE REAL MONEY.
+     Swapped from the sandbox test links on Lauren's instruction. A live Payment Link is
+     buy.stripe.com/<id>; a test one carries a test_ prefix. These have no prefix — that is the
+     whole check, and it is the check that was missed the last time a live link sat in this file.
+
+     VERIFIED IN A BROWSER AGAINST STRIPE ITSELF, 14 Aug 2026, all three opened and read:
+       weekly    -> "Yourgi Plus — Two Anything"   $49.00 today, then $49.00 every month
+       twice     -> "Yourgi Plus — Five Anything"  $99.00 today, then $99.00 every month
+       weekdays  -> "Yourgi Plus — Full Coverage"  $499.00 today, then $499.00 every month
+     Product and price map correctly on each, and none showed a test banner. Do this same check on
+     any future swap: the offline suite seeds its own fixture links, so NOTHING here asserts these
+     are the right links or even the right mode. A wrong URL is a wrong charge, not a broken page.
+
+     TWO THINGS THAT ARE NOT VERIFIED AND MATTER:
+       1. WHERE A PAYING CUSTOMER LANDS AFTERWARDS. The redirect is configured on the Payment Link
+          in Stripe, not here, and these links were created outside this repo. stripe/plans.json
+          still documents the GitHub Pages review URL. If that is what these carry, someone who has
+          just paid real money is dropped on a review build instead of the confirmation screen.
+          Check each link's "After payment" setting in the Dashboard before this page takes traffic.
+       2. ANYWHERE THIS PAGE IS REACHABLE NOW CHARGES REAL MONEY. That includes the Webflow staging
+          domain and the gh-pages review link. A live link on a public review build is exactly the
+          incident this file already carries a comment about from 12 Aug 2026. */
+  /* ############################################################################################
+     YOU ARE READING THE gh-pages BRANCH. THE LINKS ARE BLANK HERE AND ONLY HERE.
+     ############################################################################################
+
+     WHAT THIS MEANS: the CTA is inert. STRIPE_READY below evaluates false on an empty map, the
+     click handler returns before building a checkout URL, and the button does nothing at all
+     rather than faking a sale. Everything else on the page — plan selection, validation, the ZIP
+     market gate, all copy — behaves exactly as it does on main. This is a review build.
+
+     WHY: gh-pages is served publicly at lpyourgi.github.io. On 14 Aug 2026 main was pointed at
+     LIVE Stripe Payment Links that take real money ($49 / $99 / $499). Publishing those here would
+     mean anyone who found the review URL could be charged for real. That already happened once on
+     this repo, with a shared live $50/mo link, and it is why this file carries a comment about
+     12 Aug 2026 further up.
+
+     THE LAST TIME THE BRANCHES DIFFERED, THE COMMENT SAYING SO WENT STALE AND MISLED A LATER
+     SESSION. So, concretely and checkably: if `git diff main -- index.html` shows anything other
+     than this block, the branches have drifted for some reason nobody wrote down — find out why
+     before publishing. To refresh this branch: `git checkout main -- .` then re-blank this block.
+
+     DO NOT paste the live links in here to "fix" the button. A dead CTA is the intended behaviour
+     of a public review build. If a working checkout is needed for review, use the Webflow staging
+     page, which is not indexed and not linked from anywhere.
+
+     The test suite does NOT pass on this branch, and that is expected: one assertion requires three
+     committed Payment Links, which is true of main and deliberately false here. Run it on main. */
   var STRIPE_PAYMENT_LINKS = {
-    weekly:   'https://buy.stripe.com/test_14A4gz1mpcQuaWOc4e2sM0f',   // Two Anything  ($49/mo)
-    twice:    'https://buy.stripe.com/test_cNi4gz8OR8Ae0iagku2sM0g',   // Five Anything ($99/mo)
-    weekdays: 'https://buy.stripe.com/test_9B6eVd7KN17M3umgku2sM0i'    // Full Coverage ($499/mo)
+    weekly:   '',   // Two Anything  ($49/mo)  plink_1U4SPvIgv5bQybH7C0p3RyFh — live, on main only
+    twice:    '',   // Five Anything ($99/mo)  plink_1U4SPvIgv5bQybH7kqIoUlGq — live, on main only
+    weekdays: ''    // Full Coverage ($499/mo) plink_1U4SPvIgv5bQybH7yfh361Fg — live, on main only
   };
 
   /* THE CTA IS WIRED TO STRIPE AND NOTHING ELSE. Sign-up — email, card, the subscription record
@@ -1684,9 +1757,9 @@
   $('to-checkout').insertAdjacentElement('afterend',submitErr);
 
   function show(id){
-    ['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});
+    ['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('yg-hidden');});
     var step=$(id);
-    step.classList.remove('hidden');
+    step.classList.remove('yg-hidden');
     /* Focus the new panel so the change is announced and the keyboard lands somewhere sensible. */
     if(id!=='step-plan'){
       step.setAttribute('tabindex','-1');

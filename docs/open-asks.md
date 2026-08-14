@@ -232,3 +232,46 @@ question.
 Also updated: `README.md` blocking decisions #6 and #11 now record the chosen route rather than
 listing options, and a broken relative link to `stripe/plans.json` in `stripe-webhook.md` was fixed
 while in there.
+
+---
+
+## Not an ask — a held change: live Payment Links exist and are deliberately NOT wired in
+
+**14 Aug 2026.** Three per-plan Payment Links were created in **live mode** and handed over for the
+page. They were **not** pasted into `index.html`, and that was Lauren's call on the day.
+
+| Tier | Payment Link ID |
+|---|---|
+| Two Anything $49 | `plink_1U4SPvIgv5bQybH7C0p3RyFh` |
+| Five Anything $99 | `plink_1U4SPvIgv5bQybH7kqIoUlGq` |
+| Full Coverage $499 | `plink_1U4SPvIgv5bQybH7yfh361Fg` |
+
+The IDs are recorded rather than the `buy.stripe.com/...` URLs on purpose: an ID is enough to find
+the object in the Stripe dashboard, while a URL pasted in a public repo is a working live checkout
+one copy-paste away from the page.
+
+**Why they were held.** They are live-mode — `buy.stripe.com/<id>` with no `test_` prefix, which is
+the exact test `index.html` states at the top of `STRIPE_PLACEHOLDER_LINK`. `gh-pages` is served
+publicly, so wiring them in means any colleague opening the review link and completing the form is
+charged for real. **This repo has already had that failure**: a shared live link was blanked on
+12 Aug 2026 for precisely this reason, and the comment recording it is still in `index.html`. The
+page is also still unpublished and unreviewed, so there is nothing yet that needs to take money.
+
+**What is needed instead: test-mode equivalents.** `stripe/create-plans.mjs` makes them and is
+test-mode-only by construction — the Stripe CLI defaults to test mode, the script never passes
+`--live`, and it aborts if Stripe hands back an object with `livemode:true`. Run it, then paste the
+three `test_`-prefixed links into `STRIPE_PAYMENT_LINKS` in `index.html`, re-run
+`node webflow/build.mjs --no-analytics`, and update the Webflow page's footer custom code.
+
+**When the live links do go in**, they should go in last, together with: the `?checkout=success`
+redirect on each link repointed from the GitHub Pages URL to
+`https://www.yourgi.com/book/subscription?checkout=success` (`stripe/plans.json` still carries the
+old one), and a decision about whether `gh-pages` should keep serving a page whose CTA now charges
+real money. Verify with `node stripe/verify-links.mjs`, which checks the links against Stripe itself
+— the offline suite only checks the page against `stripe/plans.json`, and both can agree while
+Stripe charges something else, which is what happened with the $499 price.
+
+**Note the current links are on a clock.** `STRIPE_PAYMENT_LINKS` in `index.html` still holds the
+sandbox test links, and that sandbox **expires 19 Aug 2026**. When it lapses the links stop
+resolving; the page's own guard parks the CTA rather than faking a sale, but the page stops being
+demoable.
