@@ -200,7 +200,14 @@
   .req{color:#9a3b1e;}
   .err{border-color:#c0392b !important;}
   .err-msg{color:#c0392b; font-size:12px; margin-top:4px; display:none;}
-  .hidden{display:none !important;}
+  /* RENAMED FROM .hidden ON 14 AUG 2026, AND THE OLD NAME MUST NOT COME BACK.
+     The Webflow site this page now lives on already uses `hidden` as a class, in combos like
+     .section_faq5.hidden and .section-claims.bg-tan.hidden. Sharing the name meant this page's
+     three post-payment panels depended on a class the rest of the site also owns: if anyone ever
+     gives a site-wide base `.hidden` a style, "You're in.", "Hang tight" and "No charge made."
+     render stacked on top of each other on the screen that follows a real payment.
+     The prefix is the whole fix. Keep it on anything this page adds to a shared stylesheet. */
+  .yg-hidden{display:none !important;}
   /* THE .stepper RULES ARE GONE (14 Aug 2026). They styled the how-many-pets counter, and no
      markup on this page has used them since the form was narrowed to email/phone/zip — §4 puts
      service setup on a concierge call, so pet count is a question for that call rather than a toll
@@ -731,7 +738,7 @@
       </div>
 
       <!-- STEP 2a: confirmation (returned from Stripe, or dry-run) -->
-      <div id="step-confirm" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-confirm" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:26px;">You're in.</div>
         <!-- REWRITTEN 13 Aug 2026, brand pass. The old copy read "Someone from our team calls
              within a day to lock in your days and introduce your Pro." Two things were wrong with
@@ -781,7 +788,7 @@
 
       <!-- STEP 2b: out of market — no sale, no Stripe. We already have their email and phone from
            the form, so there is nothing more to ask for; we just tell them the truth and log it. -->
-      <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-oom" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <!-- HEADING AND BODY REWRITTEN 14 Aug 2026 from Figma 4073:252. Shorter, and it drops the
              "we're not going to take your money for a plan we can't run" line — which was doing real
              work (it explained WHY there is no sale) but is also the page arguing with itself on a
@@ -814,7 +821,7 @@
       </div>
 
       <!-- STEP 2c: returned from Stripe without completing -->
-      <div id="step-cancel" class="hidden" style="text-align:center; padding:10px 4px;">
+      <div id="step-cancel" class="yg-hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:24px;">No charge made.</div>
         <p style="font-size:15px; margin:12px auto 0; max-width:340px;">You backed out before payment went through. Your plan is still here when you're ready.</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart3">Pick a plan</button>
@@ -1724,9 +1731,9 @@
   $('to-checkout').insertAdjacentElement('afterend',submitErr);
 
   function show(id){
-    ['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('hidden');});
+    ['step-plan','step-confirm','step-oom','step-cancel'].forEach(function(s){$(s).classList.add('yg-hidden');});
     var step=$(id);
-    step.classList.remove('hidden');
+    step.classList.remove('yg-hidden');
     /* Focus the new panel so the change is announced and the keyboard lands somewhere sensible. */
     if(id!=='step-plan'){
       step.setAttribute('tabindex','-1');

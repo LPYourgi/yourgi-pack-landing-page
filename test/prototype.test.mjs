@@ -70,7 +70,11 @@ async function boot({ search = '', links = null, plan = null } = {}) {
 }
 
 const $ = (w, id) => w.document.getElementById(id);
-const vis = (w, id) => !$(w, id).classList.contains('hidden');
+/* `yg-hidden`, not `hidden`, since 14 Aug 2026. The page moved off the bare name because the
+   Webflow site it now lives on already owns `hidden` as a class. If this helper is ever wrong the
+   symptom is brutal and unobvious: every step reads as visible, so the market-gate and
+   confirmation-screen assertions all fail at once while the page itself is fine. */
+const vis = (w, id) => !$(w, id).classList.contains('yg-hidden');
 // The form asks for email, phone and zip. Nothing else.
 const fill = (w, { zip, email = 'test@example.com', phone = '3035550142' }) => {
   const vals = [['q-zip', zip], ['q-email', email], ['q-phone', phone]];
