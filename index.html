@@ -30,13 +30,19 @@
     boarding it is a bad deal for us — which is the same unguarded exposure as below, just moved.
     Still needs David and §7 q1 revisited before this goes to paid traffic.
     STRIPE IS NOT YET AT $499 — see STRIPE_PAYMENT_LINKS below before anyone clicks through.
-  - THE TOP PLAN IS UNLIMITED, and boarding and house-sitting are IN on the top two plans.
-    Both of those reverse what this page used to say, on Lauren's internal pricing note of
-    12 Aug 2026: $49 buys five walks, $99 buys five days or nights of anything, $499 buys the
-    month outright. This RESOLVES §7 q1 and q2 rather than overriding them — q1 had "a flat
-    'unlimited' price" and "packages that cap usage, up to 4-5 uses" as the two live options and
-    this picks both, one per tier; q2's option (a) is exactly this walking-to-everything ladder.
-    §7 q3's lean ("overnight likely excluded") is what got reversed.
+  - THE TOP PLAN IS UNLIMITED, and boarding and house-sitting are IN on ALL THREE plans.
+    The ladder is by VOLUME OF ANY SERVICE, not by service type: $49 buys two services, $99 buys
+    five, $499 buys the month outright, and every tier covers walks, drop-ins, house sitting,
+    daycare and overnights. stripe/plans.json is the source of truth and the suite checks the page
+    against it.
+    This bullet used to describe "$49 buys five walks" and a "walking-to-everything ladder", from
+    Lauren's internal pricing note of 12 Aug 2026. That shape was superseded by the Figma copy sync
+    on 13 Aug: the entry plan is Two Anything, not a walking plan, and nothing on the page restricts
+    a tier to one service. Corrected 14 Aug 2026.
+    This RESOLVES §7 q1 and q2 rather than overriding them — q1 had "a flat 'unlimited' price" and
+    "packages that cap usage, up to 4-5 uses" as the two live options and this picks both, one per
+    tier. §7 q3's lean ("overnight likely excluded") is what got reversed, and it is now reversed on
+    every tier rather than just the top two.
     WHAT IS NOW UNGUARDED: §6 wants guardrails so a flat fee can't be spent on disproportionately
     expensive services, and says the specific guardrails are undefined. The cap used to BE that
     guardrail. On the $499 plan there is no longer one — a month of nightly house-sitting is the
@@ -72,8 +78,8 @@
     it is no longer true. There are three real per-plan links, every one of them TEST mode, and a
     test asserts the `test_` prefix on each. The guard the old bullet described is still real and
     still worth keeping: empty the links and STRIPE_READY parks the CTA rather than faking a sale.
-    See STRIPE_PAYMENT_LINKS below for the objects, the sandbox expiry, and why a price change is a
-    replacement rather than an edit. Run `node stripe/verify-links.mjs` to check the links against
+    See STRIPE_PAYMENT_LINKS below for the objects, the sandbox they live in (claimed 13 Aug 2026,
+    so no longer expiring), and why a price change is a replacement rather than an edit. Run `node stripe/verify-links.mjs` to check the links against
     Stripe itself — the offline suite only checks this page against stripe/plans.json, and both can
     agree while Stripe charges something else, which is exactly what happened with the $499 price.
   - PRICES AND CAPS are structurally sound but not approved. David/pricing owns the numbers (§7 q1).
@@ -719,7 +725,15 @@
       <div id="step-oom" class="hidden" style="text-align:center; padding:10px 4px;">
         <div class="display" style="font-size:24px;">No Pros there yet.</div>
         <p style="font-size:15px; margin:12px auto 0; max-width:360px;">We don't have Pros on your streets yet, so we're not going to take your money for a plan we can't run. We've kept your details and we'll email you the week we get there. <strong>You have not been charged.</strong></p>
-        <p class="fineprint" style="margin-top:10px; max-width:288px; margin-inline:auto;">Right now we cover Denver, Dallas, Fort Worth, Houston, Boston, and Portland. PLACEHOLDER &mdash; confirm the market list (&sect;8 gap 8).</p>
+        <!-- STATES, NOT CITIES, AND NO LONGER A PLACEHOLDER. Confirmed by Lauren 14 Aug 2026:
+             the market is these seven states, which is what MARKET_RANGES has always encoded.
+             The six-city list this replaces was narrower than the gate in a way that mattered —
+             Maine, New Hampshire and Washington could all reach Stripe and pay while the page
+             named no market of theirs, and "Portland" was ambiguous between the Oregon and Maine
+             markets, both of which are open. Listing what the gate actually opens removes both
+             problems. Alphabetical, matching the order MARKET_RANGES is commented in.
+             This answers §8 gap 8 for the page; the gate itself is unchanged. -->
+        <p class="fineprint" style="margin-top:10px; max-width:288px; margin-inline:auto;">Right now we cover Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas, and Washington.</p>
         <button class="btn-dark" style="margin-top:18px;" id="restart2">Start over</button>
       </div>
 
@@ -1125,9 +1139,21 @@
      `test_`, this page is taking real payments for prices nobody has approved. A test asserts the
      prefix is still there.
 
-     THEY LIVE IN A SANDBOX THAT EXPIRES 19 AUG 2026. When it goes, these links 404 and the CTA
-     breaks rather than falling back to anything — blank them and STRIPE_READY parks the button,
-     which is the honest failure. Re-run the script against a fresh sandbox to replace them.
+     THE SANDBOX EXPIRY IS GONE — CLAIMED 13 Aug 2026. This used to read "THEY LIVE IN A SANDBOX
+     THAT EXPIRES 19 AUG 2026", which was true while the sandbox was unclaimed: it carried
+     sandbox_expires_at = 2026-08-19 and an orange "Unclaimed sandbox" badge on every checkout
+     page. Claiming it under Yourgi Pro cleared both. Checkout now shows a plain grey "Sandbox"
+     pill, which is inherent to test mode and is not something branding removes.
+
+     DO NOT RE-DERIVE THIS FROM `stripe config --list`. It still reports sandbox_expires_at and a
+     sandbox_claim_url, because both were written to the local config at `stripe login` time and
+     are never refreshed. They say nothing about whether the sandbox is claimed today, and
+     trusting them is how this comment came to contradict docs/handoff.md for a day.
+
+     These links can still die — a fresh sandbox, a revoked key, someone deactivating a link. The
+     failure is the same shape whenever it happens: blank the links and STRIPE_READY parks the
+     button rather than 404ing. Re-run the script against a new sandbox to replace them, and note
+     that a new sandbox starts unclaimed and unbranded all over again.
 
      Objects behind these:
        weekly    prod_V4CAvZyCMwXFDm  price_1U43lgEC544F53vLic9GTR7s
@@ -1237,8 +1263,8 @@
      exposure (§6). If a plan's "you save" number looks alarming, that IS the subsidy — it's not a
      display bug. Check the Weekdays plan against what we pay Pros before anyone signs off. */
   /* PLACEHOLDER RATES, and now an incomplete set. Walk and daycare are guesses that need David's
-     real numbers (§7 q1). Boarding and house-sitting have NO rate here at all, and the Any Five
-     plan can be spent on them — see the floor logic in economics(). §6's worry is a $200/night
+     real numbers (§7 q1). Boarding and house-sitting have NO rate here at all, and every
+     plans can be spent on them — see the floor logic in economics(). §6's worry is a $200/night
      house-sitting booking against a flat fee, so that rate is the one that matters most. */
   /* DAVID'S REAL RATES, 12 Aug 2026, taken from "Subscription Business Model Scenario Planning_v2".
      These replace the placeholder guesses ($25 / $45) and add the boarding rate the page never had.
@@ -1248,7 +1274,7 @@
      are removed. See docs/handoff.md for the full grid.
 
      THE BOARDING RATE IS THE ONE THAT CHANGES THE PICTURE. At $195 a night it is 6.5x a walk, and
-     both Any Five and Everything can be spent entirely on it — so a plan's price bounds nothing on
+     both Five Anything and Full Coverage can be spent entirely on it — so a plan's price bounds nothing on
      its own. This is §6's exposure, now with a number attached. */
   var LIST_RATES = { walk: 30, daycare: 55, boarding: 195 };
 
@@ -1508,12 +1534,15 @@
 
   /* In-market = zip falls within CO, ME, MA, NH, OR, TX, or WA (3-digit zip prefix ranges).
 
-     INHERITED from the concierge page, and §8 gap 8 says geography is undefined in the PRD — so
-     this list is an assumption, not a decision. It is kept anyway because the failure it prevents
-     is worse than the one it causes: this page takes REAL recurring money, and a plan is a
-     promise to show up every week. Selling one where no Pro can walk the dog is the fastest way
-     to turn a cheap experiment into refunds and an unhappy customer. Out-of-market visitors are
-     never sent to Stripe; we capture interest instead. Confirm the list before launch. */
+     INHERITED from the concierge page, and it was an assumption until 14 Aug 2026 — §8 gap 8 had
+     geography undefined in the PRD. CONFIRMED by Lauren on that date: these seven states are the
+     market, so this list is now a decision and the page's own copy was corrected to match it
+     rather than the other way round.
+
+     Kept for the same reason it was kept while it was only an assumption: this page takes REAL
+     recurring money, and a plan is a promise to show up every week. Selling one where no Pro can
+     walk the dog is the fastest way to turn a cheap experiment into refunds and an unhappy
+     customer. Out-of-market visitors are never sent to Stripe; we capture interest instead. */
   var MARKET_RANGES=[[10,27],[30,38],[39,49],[750,799],[800,816],[970,979],[980,994]];
   var MARKET_ZIPS=[733,885];
   function inMarket(zip){var p=+zip.slice(0,3);return MARKET_ZIPS.indexOf(p)>-1||MARKET_RANGES.some(function(r){return p>=r[0]&&p<=r[1];});}

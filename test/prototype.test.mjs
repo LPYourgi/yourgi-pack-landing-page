@@ -584,8 +584,15 @@ console.log('\n— out of market —');
 
 console.log('\n— market gate coverage —');
 {
-  const cases = [['80202', true, 'Denver'], ['75201', true, 'Dallas'], ['76102', true, 'Fort Worth'],
-                 ['77002', true, 'Houston'], ['02108', true, 'Boston'], ['97205', true, 'Portland'],
+  /* ALL SEVEN MARKET STATES ARE EXERCISED HERE, one zip each at minimum. Maine, New Hampshire
+     and Washington were added 14 Aug 2026: the gate has always opened them, but nothing tested
+     them and the page's copy named no city in any of the three, so a range could have been
+     wrong — or removed — with every test still green. That is the same gap that let the copy
+     and the gate disagree in the first place. Portland ME and Portland OR are both here on
+     purpose; they sit in different ranges and the page used to name only "Portland". */
+  const cases = [['80202', true, 'Denver CO'], ['75201', true, 'Dallas TX'], ['76102', true, 'Fort Worth TX'],
+                 ['77002', true, 'Houston TX'], ['02108', true, 'Boston MA'], ['97205', true, 'Portland OR'],
+                 ['04101', true, 'Portland ME'], ['03101', true, 'Manchester NH'], ['98101', true, 'Seattle WA'],
                  ['90210', false, 'Beverly Hills'], ['10001', false, 'NYC'], ['60601', false, 'Chicago']];
   for (const [zip, expected, name] of cases) {
     const w2 = await boot({ links: 'https://buy.stripe.com/test_' });
@@ -1169,9 +1176,19 @@ console.log('\n— the shipped Stripe links are real, per-plan, and test mode �
   ok('the source still records why it was blanked', /LIVE-mode Payment Link/.test(src));
   ok('and records how to tell a live link from a test one before pasting',
     /a test-mode link carries a test_ prefix/.test(src));
-  // The sandbox these live in expires; the source has to say so or they become a silent 404.
-  ok('the source records that the sandbox behind these links expires',
-    /EXPIRES 19 AUG 2026/.test(src));
+  /* WAS: an assertion that the source says "EXPIRES 19 AUG 2026". That expiry was real while the
+     sandbox was unclaimed and it was cleared by claiming it on 13 Aug 2026, so the guard was
+     pinning a date that had stopped being true — and pinning it in the one place a reader would
+     trust. Replaced rather than deleted, because the thing it was protecting still matters: the
+     source has to explain what happens when these links stop resolving, or they become a silent
+     404 that nobody can diagnose from the page. Now it checks for that explanation instead of
+     for a specific date, so it cannot rot the same way again. */
+  // \s+ across the phrase: this lives in a wrapped block comment, so a reflow must not fail it.
+  ok('the source explains what happens when these links stop resolving',
+    /blank\s+the\s+links\s+and\s+STRIPE_READY\s+parks\s+the\s+button/.test(src));
+  /* The trap that caused the contradiction, kept where the next person will hit it. */
+  ok('and warns that stripe config --list cannot tell you if the sandbox is claimed',
+    /DO NOT RE-DERIVE THIS FROM `stripe config --list`/.test(src));
 
   // With links configured the CTA does its one job: hand off to Stripe.
   const w = await boot();                 // the real, shipping config

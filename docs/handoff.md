@@ -1,6 +1,6 @@
 # Handoff — Subscription Landing Page ("Yourgi Plus")
 
-**From:** Lauren Palma · **Created:** 10 August 2026 · **Reconciled against the PRD:** 10 August 2026
+**From:** Lauren Palma · **Created:** 10 August 2026 · **Reconciled against the PRD:** 10 August 2026 · **Last corrected against the page:** 14 August 2026
 
 ---
 
@@ -24,14 +24,16 @@ here; they're the product.
 
 ## The offer, and why it's shaped this way
 
-A coverage ladder: **$49** five walks (walking only), **$99** five days or nights of any service,
-**$499** unlimited for the month. `stripe/plans.json` is the machine-checked source of truth for the numbers.
+A coverage ladder, by **volume of any service**, not by service type: **Two Anything** at **$49** (two
+services a month), **Five Anything** at **$99** (five), **Full Coverage** at **$499** (unlimited for 30 days).
+All three cover walks, drop-ins, house sitting, daycare and overnights — the entry plan is *not* walking-only.
+`stripe/plans.json` is the machine-checked source of truth for the names, the numbers and the blurbs.
 
 | Choice | Why | Source |
 |---|---|---|
 | Prices are $49 / $99 / $499, not approved | David owns pricing | §7 q1 |
-| A coverage ladder, not a walking-frequency ladder | Walking only → any service → everything | §7 q2 |
-| Overnight and boarding included on the top two plans | | §7 q3 |
+| A volume ladder over any service, not a service-type ladder | Two of anything → five of anything → everything. No tier is restricted to one service | §7 q2 |
+| Overnight and boarding included on **all three** plans | Was "the top two" here, which the 13 Aug Figma sync superseded — Two Anything covers overnights too | §7 q3 |
 | **The top plan is uncapped, and nothing guards the exposure** | The cap used to be §6's subsidy guardrail. A month of nightly house-sitting on $499, with Pros paid full rate, is the exposure §6 names. **Highest open risk here** | §6, gap 10 |
 | **The page claims nothing about who shows up** | A plan buys care, not continuity with a person. Don't add a familiarity promise back — a test blocks it | gap 3 |
 | No Guarantee claim anywhere on the page | Coverage is undetermined and legally risky | §8 gap 4 |
@@ -43,9 +45,21 @@ A coverage ladder: **$49** five walks (walking only), **$99** five days or night
 > Not repeated here.
 
 **The Guarantee band from the concierge page is gone.** A Guarantee band on a page taking recurring money
-reads as a coverage claim whether or not it says so. It was replaced with a "Straight up: this plan is new"
-band that does the trust job honestly. If Legal confirms coverage, that band is where the Guarantee goes
-back. A test asserts the claim hasn't crept back in.
+reads as a coverage claim whether or not it says so.
+
+It was replaced by a "Straight up: this plan is new" band — and **that band has since gone too**, removed on
+13 Aug 2026 to match the Figma, which hides the whole frame. Two consequences worth a decision rather than
+silence:
+
+- **The beta disclosure now lives only in the ribbon at the top of the page.** §8 gap 5 wants enrolled
+  subscribers told honestly that this is a test that may end; one ribbon line is thinner cover for that than
+  a band was.
+- **There is no longer a band to put the Guarantee back into** if Legal confirms coverage. §8 gap 4 is still
+  open, so this is still not the place to add one — but the slot no longer exists, and someone will have to
+  rebuild it rather than edit it.
+
+A test still asserts no Guarantee claim has crept back into the plan cards or the signup card. Note the hero
+separately carries "Guaranteed coverage within 48-hours", which is a deliberate override — see below.
 
 ## What was carried over vs. built new
 
@@ -56,7 +70,7 @@ back. A test asserts the claim hasn't crept back in.
 | Mixpanel + Segment snippets | Return-from-Stripe states (success / cancel) |
 | Zip gate (CO, ME, MA, NH, OR, TX, WA) | Beta ribbon + honest-beta band |
 | Phone/zip/email validation and masking | Optional "which days do you need?" field |
-| Reviews | "How Yourgi Plus works" and FAQ |
+| ~~Reviews~~ — carried over, then **removed** 13 Aug 2026 | "How Yourgi Plus works", FAQ, and the "Why Yourgi Plus" band that replaced the reviews |
 
 **Deliberately dropped:**
 
@@ -70,10 +84,22 @@ back. A test asserts the claim hasn't crept back in.
 
 ## Current status
 
-**Inert.** `STRIPE_PAYMENT_LINKS` is empty on this branch, so "Continue to payment" does nothing at all —
-no validation, no capture, no confirmation screen. That's deliberate: the dry-run success screen this page
-used to show told reviewers "You're in." when no subscription existed anywhere, which put invented
-conversions into the one number the experiment exists to measure.
+**Live, in test mode.** `STRIPE_PAYMENT_LINKS` holds three real per-plan Payment Links, one per tier,
+every one of them test mode (`buy.stripe.com/test_…`). "Continue to payment" validates, checks the zip,
+captures the lead and hands off to a real Stripe checkout. **Nobody can be charged real money** — a
+test-mode link cannot take it — which is the only reason these can sit on a publicly served branch. A test
+asserts the `test_` prefix on all three; the day one loses it, this page is taking real payments at prices
+nobody has approved.
+
+This section used to read "Inert — `STRIPE_PAYMENT_LINKS` is empty on this branch". That stopped being
+true when the links were wired on 13 Aug 2026, and it was the most misleading line in this file: it told
+anyone picking the page up that the CTA was parked when it was in fact sending people to checkout.
+
+**The guard it described is still real and still worth keeping.** Empty the links and `STRIPE_READY` goes
+false, which parks the button — it does nothing at all rather than faking a sale. That is the deliberate
+choice over the dry-run success screen this page used to show, which told reviewers "You're in." when no
+subscription existed anywhere, putting invented conversions into the one number the experiment exists to
+measure.
 
 **Stripe → Teams is specified but not built.** See [`stripe-webhook.md`](stripe-webhook.md). Stripe access
 landed 12 Aug 2026; the remaining prerequisites are a Power Automate premium licence and a channel from Jeff.
@@ -110,14 +136,18 @@ you may only need to publish it and grab the links.
 → **The step-by-step build lives in [`stripe-webhook.md`](stripe-webhook.md)**, covering the Products,
 the Payment Links, the Power Automate flow, and the test plan. In outline:
 
-1. Build it all in **test mode** first. Prices still aren't approved, and this branch is served publicly.
-2. Three recurring **Products**, one per plan.
-3. A **Payment Link** each, redirecting to this page with `?checkout=success`, with **phone collection on**.
-4. Paste the links into `STRIPE_PAYMENT_LINKS`. The keys are `weekly`, `twice`, `weekdays` and must match
-   the `data-tier` attributes — a typo here silently bills someone the wrong price, so run the suite after
-   (it checks each plan routes to its own link).
-5. Build the **Power Automate flow** that turns `checkout.session.completed` into a Teams card, and point
-   a Stripe webhook endpoint at it.
+1. ~~Build it all in **test mode** first.~~ **Done** — every object is test mode and stays that way while
+   prices are unapproved and this branch is served publicly.
+2. ~~Three recurring **Products**, one per plan.~~ **Done** — see the table below for the ids.
+3. ~~A **Payment Link** each, redirecting to this page with `?checkout=success`, with **phone collection
+   on**.~~ **Done** — `phone_number_collection.enabled` is set in `stripe/plans.json`.
+4. ~~Paste the links into `STRIPE_PAYMENT_LINKS`.~~ **Done, 13 Aug 2026.** The keys are `weekly`, `twice`,
+   `weekdays` and match the `data-tier` attributes. Still true for any future paste: a typo here silently
+   bills someone the wrong price, so run the suite after (it checks each plan routes to its own link).
+5. **Build the Power Automate flow** that turns `checkout.session.completed` into a Teams card, and point
+   a Stripe webhook endpoint at it. **This is the only step left**, and it is blocked on a Premium licence
+   holder and a channel from Jeff — hand them [`flow-build-brief.md`](flow-build-brief.md), which is
+   self-contained.
 6. Re-run `node test/prototype.test.mjs`.
 
 ### Where the links live, and how checkout is configured — settled 13 Aug 2026
@@ -240,7 +270,7 @@ marketing reasons. The dollar difference doesn't change any conclusion below.
 | Daycare | **$55** | Baseline $165 ÷ 3 used, Downside $248 ÷ 4.5 used |
 | **Boarding** | **~$195/night** | Residual of the Baseline unlimited column once walks and daycare come out |
 
-These are now in `LIST_RATES`. **Boarding at $195 is 6.5× a walk**, and both Five Anything and Everything
+These are now in `LIST_RATES`. **Boarding at $195 is 6.5× a walk**, and both Five Anything and Full Coverage
 can be spent entirely on it — which is §6's exposure with a number finally attached.
 
 **Every scenario loses money per customer per month.** Pros are paid 90% of service value, and the
@@ -265,7 +295,7 @@ Two things follow that are worth saying out loud:
   service — and sets boarding to zero. The real tail is mix, not volume: five nights of boarding on
   Five Anything is 5 × $195 = $975 of value, $877 of Pro payout, against $99 collected — about **−$779
   from one subscriber in one month**, roughly six times the worst case the model shows for the
-  unlimited plan. On Everything, ten nights is about −$1,356. The uncapped plan has no modelled
+  unlimited plan. On Full Coverage, ten nights is about −$1,356. The uncapped plan has no modelled
   ceiling because the scenario that would find it wasn't run.
 
 ## How billing actually behaves (confirmed 12 Aug 2026)
@@ -314,46 +344,56 @@ alongside blocking decision #4.
   replay it and post a duplicate card. That's a nuisance, not a loss. **If this graduates from experiment
   to product, replace the flow with a small function doing real signature verification.** Reasoning in
   `stripe-webhook.md`.
-- **Two of the three plans can no longer state a real saving.** The comparison table computes savings from
-  `LIST_RATES`, which has a walk rate and a daycare rate and nothing else.
-  - **Walks** is exact: $125 of walking for $49, a $76 (61%) giveaway.
-  - **Five Anything** is spendable on any service, so its value depends on the mix and there is no single list
-    total. The page floors it at the cheapest known rate — 5 × $25 = $125 against $99 — and says "at least $26
-    … more if you spend it on a night away." It understates on purpose; a savings claim should never overstate.
-    **Real boarding and house-sitting rates would fix this**, and would probably make this plan look far better
-    than the 21% it currently advertises.
-  - **Everything** has no cap, therefore no list value, no per-use price and no savings figure. Those cells are
-    em dashes. Do not invent a denominator to fill them.
-  - **The exposure on Everything is unbounded by construction** (§6), with Pros paid full rate throughout.
-  §5 permits running underwater, so this may be intentional — but it should be chosen, not inherited from
-  missing rates. **The savings row is a subsidy check as much as a conversion device; read it that way when the
-  real rates land.**
+- **⚠️ "Save more than 50%" now ships on all three plans with no stated basis anywhere.** This bullet used to
+  describe a comparison table that computed per-plan savings from `LIST_RATES` and showed "Works out at" and
+  "You save vs. one at a time" rows. **The Figma hides both rows, so the table no longer carries either, and
+  the savings-basis fineprint went with them.** What is left is one flat sentence in the signup card, shown on
+  every plan.
+  - Against David's rates ($30 walk / $55 daycare / $195 boarding) the plans save about **18%** (Two Anything)
+    and **34%** (Five Anything) when spent on walks. The claim only clears 50% if a plan is spent on
+    overnights, and **the page does not state that basis**.
+  - The Figma attaches that sentence to the **Five Anything** card only; the other two read "@kai need copy
+    here", a designer's TODO. That placeholder is deliberately not carried onto the page, so the 50% line is
+    currently shown on the two plans it is *least* likely to be true for.
+  - **Full Coverage has no cap**, therefore no list value, no per-use price and no savings figure. Do not
+    invent a denominator to fill them.
+  - **The exposure on Full Coverage is unbounded by construction** (§6), with Pros paid full rate throughout.
+  §5 permits running underwater, so the subsidy may be intentional — but it should be chosen, not inherited.
+  **Nothing on the page checks this claim any more, so it ships verbatim on Lauren's instruction and David and
+  Legal own it before launch. Unverified pricing claim.**
 - **`LIST_RATES` is a placeholder that customers can see.** It drives the per-walk price, the savings
   callout, and the table. Wrong rates mean an overstated discount on a page taking real money. David's real
   pay-as-you-go numbers go in before launch.
 - **Phone is optional now**, so some leads arrive without one. Turn on **phone collection in the Stripe
   Payment Link** so anyone who actually subscribes still gives concierge a number. Out-of-market leads may
   only leave an email — the Teams card says so rather than showing a blank field.
-- **The rollover answer on the page is PROPOSED, not approved.** It follows ClassPass — roll forward, capped
-  at one cycle. If Legal or David lands somewhere else, the FAQ and the plan benefits both need updating, and
-  a test enforces that they can't contradict each other.
-- **⚠️ The page's headline no longer matches the offer.** "Stop re-hiring a stranger every week" was carrying
-  the Connection value prop, and on 12 Aug 2026 that premise was removed — a plan makes no promise about who
-  turns up or whether they've met your pet (§8 gap 3). Every continuity claim has been stripped from the body
-  copy and a test blocks another from appearing, but **the H1 was left standing on purpose**: replacing it is a
-  positioning decision and Kai owns final copy (§7 q5). **Single Platform** — one plan spanning walking through
-  overnight, one charge — is the value prop that's actually true and available. This is the first thing to
-  settle if you're picking this page up.
+- **~~The rollover answer on the page is PROPOSED, not approved.~~ Decided 12 Aug 2026: use it or lose it.**
+  This bullet described a ClassPass-style roll-forward capped at one cycle, which was never adopted. Nothing
+  rolls over; the comparison table says "Expire monthly" for all three plans and the plan benefits promise no
+  rollover, so the two cannot contradict each other. The FAQ no longer carries a rollover question at all —
+  the Figma dropped it. See the billing table above, which is the authoritative statement.
+- **~~The page's headline no longer matches the offer.~~ Resolved 13 Aug 2026.** The H1 was "Stop re-hiring a
+  stranger every week", which carried the Connection value prop after that premise had been removed — a plan
+  makes no promise about who turns up or whether they've met your pet (§8 gap 3). It is now **"Pet care,
+  handled for you"**, taken from the Figma, which is the Single Platform framing this bullet asked for: one
+  plan spanning walking through overnight, one charge, and no claim about who arrives. Every continuity claim
+  is still stripped from the body copy and a test still blocks another from appearing. Kai owns final polish
+  (§7 q5), but the headline is no longer contradicting the offer while he gets to it.
 - **The page now makes no promise the match team has to keep.** All three are gone: the one-business-day
   callback went with the move to self-serve booking, "one matched Pro plus a named backup" was wrong, and
   "Pros who already know your pet" was wrong too. Keep it that way until §8 gap 3 is written down.
-- **Rollover is still unanswered** and is flagged PLACEHOLDER in the FAQ. It's the question most likely to
-  decide whether someone signs up, and the plan benefits deliberately do *not* promise it — a test enforces
-  that the two can't contradict each other. This needs a real answer, not a vague one.
-- **The zip gate is an inherited assumption** (§8 gap 8 says geography is undefined). It's kept because
-  charging someone we can't staff is the worse failure. Confirm the market list before launch.
-- **The reviews are real but wrong.** They're boarding and cat-sitting reviews on a dog-walking page. Swap in
-  walking reviews.
+- **~~The zip gate is an inherited assumption.~~ Confirmed 14 Aug 2026 by Lauren:** the market is
+  **Colorado, Maine, Massachusetts, New Hampshire, Oregon, Texas and Washington**, which is exactly what
+  `MARKET_RANGES` has always encoded. The gate is unchanged; the page's copy was the stale half and now
+  names those seven states. It previously named six cities, which was narrower than the gate in a way that
+  mattered — ME, NH and WA could reach Stripe and pay while the page named no market of theirs, and
+  "Portland" was ambiguous between the Oregon and Maine markets, both open. All seven states now have zip
+  coverage in the test suite; they did not before, so a range could have been broken or removed with every
+  test still green. This answers §8 gap 8 for the page.
+- **~~The reviews are real but wrong.~~ Removed 13 Aug 2026.** They were boarding and cat-sitting reviews on
+  a dog-walking page. The Figma hides the testimonial block entirely and puts the "Why Yourgi Plus" band in
+  its place, so the three reviews are gone rather than replaced. If testimonials come back, git history has
+  the markup, and the swap-in-walking-reviews point still stands at that time.
 - **Segment reuses the concierge page's write key**, distinguished by `form_type: 'subscription_landing_page'`.
   Confirm that's the right source before launch.
 - **Event names need a lexicon check.** `Plan Selected`, `Checkout Started`, `Subscription Started`,
