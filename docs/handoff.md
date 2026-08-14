@@ -120,28 +120,104 @@ the Payment Links, the Power Automate flow, and the test plan. In outline:
    a Stripe webhook endpoint at it.
 6. Re-run `node test/prototype.test.mjs`.
 
-### The current links sit in a sandbox that expires — 19 Aug 2026
+### Where the links live, and how checkout is configured — settled 13 Aug 2026
 
-**The three links in `index.html` are not in Yourgi's Stripe account.** `create-plans.mjs` runs through the
-Stripe CLI, and `stripe login` put them in an auto-generated sandbox (`acct_1U3hh6EC544F53vL`) that was never
-claimed. Two consequences, both visible to anyone you send to checkout:
+**The three links in `index.html` are not in Yourgi's live Stripe account.** `create-plans.mjs` runs through
+the Stripe CLI, and `stripe login` put them in an auto-generated sandbox, `acct_1U3hh6EC544F53vL`. That
+sandbox was originally unclaimed, which meant it carried an expiry (`sandbox_expires_at = '2026-08-19'`) and
+an orange "Unclaimed sandbox" badge on every checkout page. **It has since been claimed under Yourgi Pro**,
+which cleared both. Checkout now shows a plain grey "Sandbox" pill — that indicator is inherent to test mode
+and is not something branding removes.
 
-1. **They expire.** `stripe config --list` reports `sandbox_expires_at = '2026-08-19'` (checked 13 Aug 2026).
-   After that the links stop resolving and the page's checkout is dead — with nothing in the source to explain
-   why, because nothing in the source changed. This is the failure mode most likely to be misdiagnosed later.
-2. **Checkout carries an orange "Unclaimed sandbox" badge**, directly above the price, and shows no Yourgi
-   logo — branding is per-account, and this sandbox has none set. (The live **Yourgi Pro** account,
-   `acct_1RWl3xIgv5bQybH7`, already has both logo and icon configured, so a live-mode link would be branded
-   automatically. Nothing needs doing there.)
+Configuration as it now stands in that sandbox, all set through the Dashboard:
 
-Both are fixed by **claiming the sandbox** — `stripe config --list | grep sandbox_claim_url`. Claiming
-attaches it to a real account, and puts it in the Dashboard so its branding can be set under
-Settings → Business → Branding. Stripe wants a *square* PNG or JPG, ≥128×128, under 512 KB; the wordmark the
-page's nav uses rasterizes to a suitable 1200×1200. Expect a test-mode indicator to remain on the page
-regardless — that's inherent to test checkout and is not something branding removes.
+| Setting | Value | Why |
+|---|---|---|
+| Logo / icon | Yourgi wordmark, **yellow** | Was a grey placeholder; branding is per-account and the sandbox had none. Yellow over black is a deliberate choice by Lauren, 13 Aug 2026 — it reads faint at this size on Stripe's white background, so don't "fix" it |
+| Checkout button | `#000` | Spot Black, matching the page's own `.btn-dark`. Was Stripe default blue |
+| Klarna | **off** | BNPL on a monthly subscription is confusing, and refund policy is still open (decision #12) |
+| ACH Direct Debit | **off** | Confirms up to 4 business days later and can fail after checkout — see below |
+| Instant Bank Payments | **on** (the "Bank" row) | Not the same thing as ACH; see below |
+| Card, Cash App Pay, Amazon Pay | on | All support recurring |
+
+**ACH vs Instant Bank Payments — the distinction that matters here.** They look identical on the checkout
+page and only one can ever appear; if both are enabled, ACH wins. ACH Direct Debit is a delayed-notification
+method: the Checkout Session completes while the payment is still processing, and it can fail days later on
+insufficient funds. That breaks the notification design in [`stripe-webhook.md`](stripe-webhook.md), which
+keys the Teams card on `checkout.session.completed` — concierge would be told to start work before the money
+was real. Instant Bank Payments (part of Link, badged "$5 back", Stripe-funded at no cost to us) confirms
+**instantly**, settles on the card timeline, is guaranteed by Stripe absent a customer dispute, and supports
+recurring. So ACH is off and Instant Bank Payments is on, and `checkout.session.completed` stays correct.
+
+Removing the bank row entirely would mean turning off Link altogether, which also removes saved-payment
+acceleration for returning customers. Not worth it.
+
+**Apple Pay and Google Pay** ride on the card payment method and need no separate toggle. They render only on
+an eligible browser and device, so they are invisible in desktop screenshots. Apple Pay confirmed working on
+iPhone, 13 Aug 2026.
 
 Re-running `create-plans.mjs` against a different sandbox produces new link URLs, so step 4 above has to be
-redone if that happens. The test suite catches a stale paste; it cannot catch an expired link.
+redone if that happens — and the new sandbox would start unbranded and unclaimed all over again. The test
+suite catches a stale paste; it cannot catch an expired link.
+
+#### Telling the live links from the dead ones — verified 13 Aug 2026
+
+`create-plans.mjs` creates its own Products and links on every run and reuses nothing, so the sandbox
+accumulates a link per plan per run. As of 13 Aug 2026 there are **20 Payment Links, of which exactly 3 are
+active** — and those 3 are the ones already pasted into `STRIPE_PAYMENT_LINKS`:
+
+| Plan | Payment Link | Price | Product |
+|---|---|---|---|
+| Two Anything ($49) | `plink_1U43lhEC544F53vLr2gGKjHz` | `price_1U43lgEC544F53vLic9GTR7s` | `prod_V4CAvZyCMwXFDm` |
+| Five Anything ($99) | `plink_1U43ljEC544F53vLPjlDMugH` | `price_1U43liEC544F53vL0hXGoizP` | `prod_V4CACYKwRpOKHK` |
+| Full Coverage ($499) | `plink_1U44OEEC544F53vLCha3Tdk0` | `price_1U44ODEC544F53vLMEJQwfxj` | `prod_V4CAW8wlwsl4Un` |
+
+All three `Yourgi Plus` Products are active; every older `Yourgi Pack` Product is archived. Note the newest
+$499 link (`plink_1U44Q2EC544F53vLpCBRCQIr`, 7:36 PM) is **not** the live one — it was a false start,
+deactivated immediately. The live $499 link is the one created two minutes earlier.
+
+**The Dashboard badge lies, and this will cost you twenty minutes if you trust it.** In Product catalog →
+Payment links, the three active links render a grey **"Deactivated"** pill. They are not deactivated. The
+`Status = Active` filter is evaluated server-side and correctly returns exactly these three rows — but the
+badge on each row draws from cached row state that never refreshes, so the filter and the badge contradict
+each other on the same screen. `Cmd+Shift+R` does not reliably clear it; a full logout and login does.
+
+Don't trust the Dashboard on this. Check the API instead, which is authoritative:
+
+```
+stripe payment_links list --limit 30 | grep -E '"(id|active|url)"'
+```
+
+Or just open a link in a browser — a genuinely deactivated link renders an error page instead of checkout.
+
+Two stray Products named **`myproduct`** (`prod_V3sG0CKF7ak9UD`, `prod_V3sE7mvV3oXLRY`) are also active.
+They came from Stripe CLI sample commands, not from `create-plans.mjs`, and are harmless — but they are the
+only other active Products in the account, so they surface in any "active Products" view.
+
+One thing `stripe config --list` **cannot** tell you: whether the sandbox is claimed. It still reports
+`sandbox_expires_at` and a `sandbox_claim_url`, but those were written to the local config at `stripe login`
+time and are never refreshed, so they say nothing about current state either way.
+
+#### Live-mode brand settings, recorded 13 Aug 2026 — restore point
+
+Once the sandbox is claimed it sits under Yourgi Pro, and the Dashboard's branding and payment-method screens
+then exist in **both** modes behind a switcher. A change made in live mode by accident is silent and affects
+production. These are the live values as they stand, so anything overwritten can be put back:
+
+| Field | Value |
+|---|---|
+| `checkout_background_color` | `#ffffff` |
+| `checkout_button_color` | `#0074d4` |
+| `checkout_border_style` / `checkout_font_family` | `default` / `default` |
+| `primary_color` / `secondary_color` | `#525f7f` / `#0074d4` |
+| `contrast_color` / `font_color` | `#505d7c` / `#ffffff` |
+| `use_logo_instead_of_icon` | `true` |
+
+Icon and logo files are already set on the live account and are unaffected by anything done in a sandbox.
+
+**What a live-mode mistake would actually touch:** the live account has exactly one active Payment Link —
+`plink_1U17JmIgv5bQybH711thp1rA`, Chris Mejia's `membership-c-test` at $50/mo, capped at one completed
+session. Branding is account-wide, so it also reaches live receipts, invoices and the customer portal.
 
 There is **no `TEAMS_WEBHOOK_URL` any more** — that step used to be here and was removed on 12 Aug 2026.
 The page notifies nobody; the Stripe webhook does. A Power Automate URL is a credential and this file is
