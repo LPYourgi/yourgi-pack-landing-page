@@ -3,3 +3,6 @@
 node_modules
 package-lock.json
 .claude/launch.json
+
+# Generated Webflow paste blocks — see webflow/build.mjs
+webflow/dist

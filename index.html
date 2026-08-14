@@ -190,9 +190,15 @@
   .err{border-color:#c0392b !important;}
   .err-msg{color:#c0392b; font-size:12px; margin-top:4px; display:none;}
   .hidden{display:none !important;}
-  .stepper{display:flex; align-items:center; border:1px solid #cfc8b6; border-radius:8px; background:#fff; overflow:hidden;}
-  .stepper button{border:none; background:none; padding:10px 14px; font-size:18px; cursor:pointer; line-height:1;}
-  .stepper span{flex:1; text-align:center; font-size:15px; font-weight:600;}
+  /* THE .stepper RULES ARE GONE (14 Aug 2026). They styled the how-many-pets counter, and no
+     markup on this page has used them since the form was narrowed to email/phone/zip — §4 puts
+     service setup on a concierge call, so pet count is a question for that call rather than a toll
+     on signup. Nothing referenced them in markup or JS.
+     DELETED RATHER THAN KEPT, which is the opposite call from .tier-unit a few rules below. The
+     difference is that .tier-unit has a live renderer computing perUse behind it and an explicit
+     note saying restoring it is a renderer rather than a re-derivation; the stepper has neither.
+     Removed while preparing the Webflow transfer, where the stylesheet is generated from this file
+     and dead rules would have been carried across as real code. */
   .fineprint{font-size:11.5px; color:var(--muted);}
   /* beta ribbon */
   .beta{background:var(--black); color:var(--bone); font-size:12px; letter-spacing:.02em;}
@@ -345,20 +351,20 @@
      on the phone someone is reading this on. Underlined on hover and focus so it stays findable. */
   .why-pro figcaption a{color:inherit; text-decoration:none;}
   .why-pro figcaption a:hover, .why-pro figcaption a:focus-visible{text-decoration:underline;}
-  /* reviews */
-  .reviews{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:28px;}
-  .review-card{background:#fff; border:3px solid var(--red); padding:22px; font-size:14px; display:flex; flex-direction:column; gap:16px;}
-  .review-top{display:flex; gap:14px; align-items:center;}
-  .review-avatar{width:56px; height:56px; border-radius:50%; background:rgba(162,162,162,.7); flex:0 0 auto; object-fit:cover; display:block;}
-  /* #F1B942 measured 1.79:1 on white — under the 3:1 WCAG asks of a meaningful graphic.
-     Darkened, and each rating also carries a visually-hidden text equivalent. */
-  .review-stars{color:#B87D0A; letter-spacing:2px; font-size:15px; margin-bottom:4px;}
-  .review-id{font-size:12px;}
-  .review-id .label{font-family:'National 2','Archivo',sans-serif; font-weight:600; color:var(--sky-ink); text-transform:uppercase; letter-spacing:.04em; display:block;}
-  .review-id .val{font-size:14px; color:var(--black); display:block; margin-top:2px;}
-  .review-divider{border-top:1px solid #000; opacity:.5;}
-  .review-quote{font-weight:600; margin:0; line-height:1.4;}
-  .review-who{margin:0; color:#555;}
+  /* THE .review-* RULES ARE GONE (14 Aug 2026) — nine rules for a block whose markup was deleted on
+     13 Aug, when the Figma hid the testimonials and put the Why Yourgi Plus band in their place.
+     Nothing on the page has carried any of these classes since.
+     SAFE TO DELETE RATHER THAN KEEP because the markup was already deleted rather than commented
+     out, and README decision #10 records the route back: git history has it, and if testimonials
+     return the markup and these rules come back together from the same commit. Keeping half of a
+     removed component is what leaves the next reader guessing which half is current.
+     TWO CONTRAST VALUES THEY CARRIED ARE STILL WORTH HAVING, and the suite still checks both as
+     hardcoded values (#41709B for the review label, #B87D0A for the stars): #F1B942 measured 1.79:1
+     on white, under the 3:1 a meaningful graphic needs, and the original label colour failed as
+     small text. If reviews come back, they come back darkened — do not restore the original hexes
+     from history without re-reading those assertions.
+     Removed while preparing the Webflow transfer, where the stylesheet is generated from this file
+     and these would have been carried across as real code. */
   /* comparison table — lets someone compare all three plans without clicking each one.
      Presented as its own object rather than bare rows on the page background: a white card,
      a priced header per column, and a recommended column that runs unbroken top to bottom.
@@ -490,7 +496,6 @@
     .why .wrap{grid-template-columns:1fr;}
     .polaroid-wrap{max-width:260px; margin:0 auto 12px;}
     .why-card{margin:0 auto; max-width:405px;}
-    .reviews{grid-template-columns:1fr;}
     /* A four-column table cannot fit a phone, so it scrolls. Narrower columns mean less of it
        is off-screen at once, and the pinned label column keeps the numbers meaningful. */
     table.compare{min-width:476px; font-size:13.5px;}

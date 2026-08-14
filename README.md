@@ -24,6 +24,12 @@ paying.
   longer carries Paid / Backed-out toggles — sign-up finishes on Stripe, so those screens aren't
   what a reviewer is being asked to look at. Reach them via `index.html?checkout=success` instead.
 - `test/prototype.test.mjs` — the headless check suite. See "Testing".
+- `webflow/` — **the transfer package for rebuilding this page in Webflow.** Start at
+  [`webflow/README.md`](webflow/README.md). `node webflow/build.mjs` generates the paste-ready head,
+  footer and embed blocks from `index.html` and reports each against Webflow's 50,000-character
+  limit; the four docs alongside it cover the Designer build, the class contract, the copy (with
+  every contested string flagged and its owner), and the assets. `webflow/dist/` is generated and
+  gitignored — `index.html` stays the source of truth, which is the lesson `deploy/` taught.
 - `docs/handoff.md` — start-here onboarding and open decisions.
 - `docs/stripe-webhook.md` — **the build runbook for Stripe → Teams.** Products, Payment Links, the
   Power Automate flow, and how a signup gets verified before staff act on it.
