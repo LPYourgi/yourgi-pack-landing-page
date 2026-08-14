@@ -263,13 +263,22 @@ test-mode-only by construction — the Stripe CLI defaults to test mode, the scr
 three `test_`-prefixed links into `STRIPE_PAYMENT_LINKS` in `index.html`, re-run
 `node webflow/build.mjs --no-analytics`, and update the Webflow page's footer custom code.
 
-**When the live links do go in**, they should go in last, together with: the `?checkout=success`
-redirect on each link repointed from the GitHub Pages URL to
-`https://www.yourgi.com/book/subscription?checkout=success` (`stripe/plans.json` still carries the
-old one), and a decision about whether `gh-pages` should keep serving a page whose CTA now charges
-real money. Verify with `node stripe/verify-links.mjs`, which checks the links against Stripe itself
-— the offline suite only checks the page against `stripe/plans.json`, and both can agree while
-Stripe charges something else, which is what happened with the $499 price.
+**RESOLVED 14 Aug 2026 — the live links went in, and both worries above turned out differently.**
+Read from the live Stripe API rather than assumed:
+
+- **There is no redirect to repoint.** All three links use `after_completion.type:
+  "hosted_confirmation"`, so a paying customer stays on Stripe and never returns to the page. The
+  GitHub Pages redirect this section warned about does not exist on the live objects — `plans.json`
+  describes the retired sandbox setup. The page's own confirmation screen is therefore dead code in
+  production; see `project-context.md` for what that costs.
+- **gh-pages was resolved by blanking, not by choosing.** It now tracks main except for
+  `STRIPE_PAYMENT_LINKS`, which is empty there, so the public review URL keeps working as a review
+  build with an inert CTA and cannot charge anyone. The invariant is written at the link map on that
+  branch in a form you can check with `git diff main -- index.html`.
+
+Still true and still worth doing: verify with `node stripe/verify-links.mjs` rather than the offline
+suite, which only checks the page against `stripe/plans.json` — both can agree while Stripe charges
+something else, which is what happened with the $499 price.
 
 **Note the current links are on a clock.** `STRIPE_PAYMENT_LINKS` in `index.html` still holds the
 sandbox test links, and that sandbox **expires 19 Aug 2026**. When it lapses the links stop

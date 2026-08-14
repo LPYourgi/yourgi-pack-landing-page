@@ -19,7 +19,7 @@ them exactly as written. Copy comes from `copy-deck.md`, assets from `assets.md`
 
 Everything below was written before anyone had built the page. It was **partially built on 14 Aug
 2026** against the live site, and four of its assumptions turned out to be wrong. The page exists as
-a **draft** at `/book/subscription` (page `6a7f7cee2942db14de3f1c59`, in the `book` folder
+at `/book/plus-care` (renamed from `subscription` on 14 Aug 2026) (page `6a7f7cee2942db14de3f1c59`, in the `book` folder
 `6a6d23e9900528ff06048baa` on site `6818d81fbac209b16f28ed8b`). Built so far: nav, beta banner, hero
 copy column, and the signup card. Sections 4–9 below are still unbuilt.
 
