@@ -13,8 +13,68 @@ them exactly as written. Copy comes from `copy-deck.md`, assets from `assets.md`
 - **`.vh`** is the visually-hidden utility (screen readers only). It is in the CSS block; just apply
   the class.
 
-Custom code does not run on the Designer canvas, so the page will look unstyled while you work.
-Use Preview or publish to staging to see it.
+---
+
+## Read this before you follow the rest of this document
+
+Everything below was written before anyone had built the page. It was **partially built on 14 Aug
+2026** against the live site, and four of its assumptions turned out to be wrong. The page exists as
+a **draft** at `/book/subscription` (page `6a7f7cee2942db14de3f1c59`, in the `book` folder
+`6a6d23e9900528ff06048baa` on site `6818d81fbac209b16f28ed8b`). Built so far: nav, beta banner, hero
+copy column, and the signup card. Sections 4–9 below are still unbuilt.
+
+**1. Do not put the styling in the code block and expect to see anything.** This document said "the
+page will look unstyled while you work — use Preview." That is true and it is also unusable: page
+custom code runs on neither the canvas *nor* Preview, so the whole page renders as raw HTML with
+every post-checkout screen stacked on top of the form. The build was redone with the layout rules as
+**real Designer classes** (`.card`, `.tier`, `.tier-row`, `.tier-badge`, `.btn-dark`, `.err-msg`,
+`.fineprint`, `.hero-wrap`, …) so the page renders in Designer and marketing can edit it. Keep the
+code block for what Designer genuinely cannot express — the list in `README.md` under "What Designer
+cannot do" is still correct — and put everything else in Designer styles. Where a rule is a
+descendant selector, promote it to a class on that element: `.hero .wrap` became `.hero-wrap`.
+
+**2. `<label>` and `<input>` cannot exist outside a Form.** Webflow rejects the update outright:
+`Field Label can only be placed in a Form` and `Text Field can only be placed in a Form`. Wrapping
+them in a `<form>` works but Webflow then auto-injects a `FormWrapper`, a success block and an error
+block, and defaults the form to `method="get"`. **This page must not post a form** — the footer
+script owns submission and the page reads `?checkout=` on return.
+
+**3. `<button>` becomes a `Link` (`<a>`).** This matters: `#to-checkout` runs
+`btn.setAttribute('disabled','')` to stop double-submits, and `disabled` is inert on an anchor. The
+tier tiles are `<button role="radio">` with arrow-key navigation and depend on `tabindex` surviving.
+
+Because of 2 and 3, **the signup card is an Embed, not Designer elements.** Same call as the
+comparison table in §5, and for the same reason: Webflow's element model cannot represent it
+faithfully, and a payment form that looks right while behaving subtly wrong is the worst outcome
+available. Its copy is therefore *not* Designer-editable — that is a deliberate trade, not an
+oversight.
+
+**4. `.hidden` already exists on this site**, as a combo class on other pages
+(`.section_faq5.hidden`, `.section-claims.bg-tan.hidden`). Adding a base `display:none` to it would
+reach across the whole site. **Rename this page's usage to `yg-hidden`** in `index.html`, re-run the
+build, and update the embed — until that happens the three post-checkout screens render stacked in
+Designer. This is the one outstanding blocker on the hero looking right.
+
+### If you are driving this through the MCP Data API rather than by hand
+
+- `data_whtml_builder` **silently drops bare `class=` attributes.** Elements come out structurally
+  perfect and completely unclassed, which is invisible from the HTML you sent. Pass the `css`
+  parameter and Webflow creates the classes properly.
+- **Embed code cannot be set when the element is created.** Create the `HtmlEmbed`, then write its
+  content with `data_element_settings_tool > set_settings`, key `code`. The `settings` field on the
+  element builder is ignored for embeds.
+- `set_style` **replaces every class on the element**, so pass the full list. It also failed once
+  immediately after `create_style` with `styles not found` and succeeded on retry — create styles,
+  then apply them in a separate call.
+- Images need a **managed asset**: a `src` pointing at the site CDN is not enough, the builder skips
+  it. Bind it afterwards with `set_image_asset` and the asset ID (the logo is `69bec48af6f4afa25791b287`).
+
+### One thing that is not a Webflow problem
+
+**The page cannot be verified yet.** It is a draft, and the site carries unpublished changes from
+other people, so `publish_site` would push their work live too. Single-page publishing needs
+Enterprise. Sort out a staging path before building more — right now nothing on this page has been
+seen working.
 
 ---
 
