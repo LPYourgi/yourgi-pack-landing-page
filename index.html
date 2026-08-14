@@ -716,7 +716,18 @@
              What this says instead is limited to what's actually true: the plan is live, the code is
              coming, the booking is theirs to make, and concierge is there if they'd rather not pick. -->
         <p id="confirm-body" style="font-size:15px; margin:12px auto 0; max-width:340px;">Receipt's in your email, and your plan is live from today. Your booking code comes next &mdash; then the days are yours to pick, as the month goes. Don't want to choose? Our concierge will find you someone.</p>
-        <p class="fineprint" style="margin-top:12px; max-width:288px; margin-inline:auto;">PLACEHOLDER &mdash; fulfilment is manual (concierge issues the coupon by hand), so confirm who sends the booking code and how fast before launch (&sect;8 gap 6). Timing is deliberately not promised here until that answer exists.</p>
+        <!-- §8 GAP 6 IS STILL OPEN: fulfilment is manual — concierge issues the booking code by
+             hand — and nobody has confirmed who sends it or how fast. That is why the line above
+             says the code "comes next" and promises no timing. Do not add a timeframe here until
+             that answer exists; it would be the one promise on this page made to someone who has
+             already paid.
+
+             THIS WAS A VISIBLE PARAGRAPH UNTIL 14 Aug 2026. It rendered the word PLACEHOLDER and
+             the whole §8-gap-6 note on the post-payment screen, so a customer who had just handed
+             over a card read an engineering note addressed to us. Reachable after any checkout —
+             the Payment Links redirect here with ?checkout=success — and by anyone typing that
+             parameter. Moved into this comment: the flag survives for whoever picks the gap up,
+             and stops being customer-facing copy. The sentence above it is unchanged. -->
         <button class="btn-dark" style="margin-top:18px;" id="restart">Back to plans</button>
       </div>
 
